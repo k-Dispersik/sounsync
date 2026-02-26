@@ -12,6 +12,10 @@ defmodule SoundsyncWeb.Endpoint do
     websocket: [connect_info: [session: @session_options]],
     longpoll: [connect_info: [session: @session_options]]
 
+  socket "/socket", SoundsyncWeb.UserSocket,
+    websocket: true,
+    longpoll: false
+
   plug Plug.Static,
     at: "/",
     from: :soundsync,
