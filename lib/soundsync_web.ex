@@ -30,6 +30,13 @@ defmodule SoundsyncWeb do
     end
   end
 
+  def html do
+    quote do
+      use Phoenix.Component
+      unquote(verified_routes())
+    end
+  end
+
   def verified_routes do
     quote do
       use Phoenix.VerifiedRoutes,
