@@ -15,15 +15,6 @@ const workspace = new WorkspaceChannel(workspaceId).join();
 // WebRTC — ephemeral events (cursor, drag preview, …)
 const rtc = new WorkspaceRtc(workspaceId, workspace.sessionId);
 
-// Local cursor → directly to WebRTC DataChannel
-let lastSent = 0;
-document.addEventListener("mousemove", (e) => {
-    const now = Date.now();
-    if (now - lastSent < 50) return;
-    lastSent = now;
-    rtc.send("cursor:move", { x: e.clientX, y: e.clientY, session_id: workspace.sessionId });
-});
-
 // ─── React ───────────────────────────────────────────────────────────────────
 
 const container = document.getElementById("root");
@@ -31,7 +22,7 @@ const container = document.getElementById("root");
 if (container) {
     createRoot(container).render(
         <React.StrictMode>
-            <WorkspaceCursor />
+            <WorkspaceCursor rtc={rtc} sessionId={workspace.sessionId} />
             <AppRouter />
         </React.StrictMode>
     );
