@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { MousePointer2 } from "lucide-react";
-import { WorkspaceRtc } from "../../realtime/webrtc/workspaceRtc";
-import { workspaceBus } from "../../realtime/workspaceBus";
+import { WorkspaceRtc } from "../../realtime/transport/workspaceRtc";
+import { useCursorSync } from "../../realtime/features/cursor/useCursorSync";
 
 interface CursorState {
     x: number;
@@ -18,17 +18,29 @@ export default function WorkspaceCursor({ rtc, sessionId }: Props) {
     const [cursors, setCursors] = useState<Record<string, CursorState>>({});
     const lastSentRef = useRef(0);
 
-    // ─── Outgoing ───────────────────────────────────────────
+    const { sendMove, sendClick } = useCursorSync(rtc, sessionId, {
+        onRemoteMove: (id, x, y) => {
+            setCursors((prev) => ({ ...prev, [id]: { ...prev[id], x, y } }));
+        },
+        onRemoteClick: (id, x, y) => {
+            setCursors((prev) => ({ ...prev, [id]: { ...prev[id], clicking: true } }));
+            setTimeout(() => {
+                setCursors((prev) => ({ ...prev, [id]: { ...prev[id], clicking: false } }));
+            }, 200);
+        },
+    });
+
+    // ─── DOM event listeners ─────────────────────────────────
     useEffect(() => {
         const handleMove = (e: MouseEvent) => {
             const now = Date.now();
             if (now - lastSentRef.current < 50) return;
             lastSentRef.current = now;
-            rtc.send("cursor:move", { x: e.clientX, y: e.clientY, session_id: sessionId });
+            sendMove(e.clientX, e.clientY);
         };
 
         const handleClick = (e: MouseEvent) => {
-            rtc.send("cursor:click", { x: e.clientX, y: e.clientY, session_id: sessionId });
+            sendClick(e.clientX, e.clientY);
         };
 
         document.addEventListener("mousemove", handleMove);
@@ -37,31 +49,7 @@ export default function WorkspaceCursor({ rtc, sessionId }: Props) {
             document.removeEventListener("mousemove", handleMove);
             document.removeEventListener("click", handleClick);
         };
-    }, [rtc, sessionId]);
-
-    // ─── Incoming ───────────────────────────────────────────
-    useEffect(() => {
-        return workspaceBus.on<{ session_id: string; x: number; y: number }>(
-            "cursor:move",
-            ({ session_id, x, y }) => {
-                if (session_id === sessionId) return;
-                setCursors((prev) => ({ ...prev, [session_id]: { ...prev[session_id], x, y } }));
-            }
-        );
-    }, [sessionId]);
-
-    useEffect(() => {
-        return workspaceBus.on<{ session_id: string }>(
-            "cursor:click",
-            ({ session_id }) => {
-                if (session_id === sessionId) return;
-                setCursors((prev) => ({ ...prev, [session_id]: { ...prev[session_id], clicking: true } }));
-                setTimeout(() => {
-                    setCursors((prev) => ({ ...prev, [session_id]: { ...prev[session_id], clicking: false } }));
-                }, 200);
-            }
-        );
-    }, [sessionId]);
+    }, [sendMove, sendClick]);
 
     return (
         <>

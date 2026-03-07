@@ -2,7 +2,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import AppRouter from "./routers";
 import { WorkspaceChannel } from "./realtime/phoenix/workspaceChannel";
-import { WorkspaceRtc } from "./realtime/webrtc/workspaceRtc";
+import { WorkspaceRtc } from "./realtime/transport/workspaceRtc";
 import WorkspaceCursor from "./components/cursors/cursors";
 
 // ─── Workspace setup (test) ─────────────────────────────────────────────────────────

@@ -1,5 +1,5 @@
 import { SignalingChannel } from "../phoenix/signalingChannel";
-import { workspaceBus } from "../workspaceBus";
+import { workspaceBus } from "../bus/workspaceBus";
 
 const ICE_SERVERS: RTCIceServer[] = [{ urls: "stun:stun.l.google.com:19302" }];
 
