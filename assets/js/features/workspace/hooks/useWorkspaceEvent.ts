@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
-import { workspaceBus } from "../bus/workspaceBus";
-import type { RealtimeEventName } from "../events";
+import { workspaceBus } from "../services/workspaceBus";
+import type { RealtimeEventName } from "../events/events";
 
 /**
  * Subscribe to a workspace realtime event.

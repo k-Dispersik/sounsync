@@ -10,3 +10,8 @@ export const RealtimeEvents = {
 } as const;
 
 export type RealtimeEventName = (typeof RealtimeEvents)[keyof typeof RealtimeEvents];
+
+// Typed event union — all bus communication must use these shapes
+export type WorkspaceEvent =
+    | { type: "cursor_move"; payload: { session_id: string; x: number; y: number } }
+    | { type: "cursor_click"; payload: { session_id: string; x: number; y: number } };

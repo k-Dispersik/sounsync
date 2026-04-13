@@ -1,7 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { MousePointer2 } from "lucide-react";
-import { WorkspaceRtc } from "../../realtime/transport/workspaceRtc";
-import { useCursorSync } from "../../realtime/features/cursor/useCursorSync";
 
 interface CursorState {
     x: number;
@@ -10,25 +8,13 @@ interface CursorState {
 }
 
 interface Props {
-    rtc: WorkspaceRtc;
-    sessionId: string;
+    cursors: Record<string, CursorState>;
+    sendMove: (x: number, y: number) => void;
+    sendClick: (x: number, y: number) => void;
 }
 
-export default function WorkspaceCursor({ rtc, sessionId }: Props) {
-    const [cursors, setCursors] = useState<Record<string, CursorState>>({});
+export default function WorkspaceCursor({ cursors, sendMove, sendClick }: Props) {
     const lastSentRef = useRef(0);
-
-    const { sendMove, sendClick } = useCursorSync(rtc, sessionId, {
-        onRemoteMove: (id, x, y) => {
-            setCursors((prev) => ({ ...prev, [id]: { ...prev[id], x, y } }));
-        },
-        onRemoteClick: (id, x, y) => {
-            setCursors((prev) => ({ ...prev, [id]: { ...prev[id], clicking: true } }));
-            setTimeout(() => {
-                setCursors((prev) => ({ ...prev, [id]: { ...prev[id], clicking: false } }));
-            }, 200);
-        },
-    });
 
     // ─── DOM event listeners ─────────────────────────────────
     useEffect(() => {

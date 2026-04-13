@@ -1,16 +1,18 @@
-import { WorkspaceChannel } from "../../realtime/phoenix/workspaceChannel";
-import { WorkspaceRtc } from "../../realtime/transport/workspaceRtc";
-import WorkspaceCursor from "../../components/cursors/cursors";
-import TrackClip from "../../components/tracks/TrackClip";
+import WorkspaceCursor from "../../features/workspace/components/cursors";
+import TrackClip from "../../features/workspace/components/TrackClip";
+import { useWorkspaceRealtime } from "../../features/workspace/hooks/useWorkspaceRealtime";
 
 const WORKSPACE_ID = "test-workspace";
 
-const workspace = new WorkspaceChannel(WORKSPACE_ID).join();
-const rtc = new WorkspaceRtc(WORKSPACE_ID, workspace.sessionId);
-
 export default function Workspace() {
+    const { cursors, sendCursor, sendCursorClick } = useWorkspaceRealtime(WORKSPACE_ID);
+
     return (<>
-        <WorkspaceCursor rtc={rtc} sessionId={workspace.sessionId} />
+        <WorkspaceCursor
+            cursors={cursors}
+            sendMove={sendCursor}
+            sendClick={sendCursorClick}
+        />
         <div
             className="absolute top-2 h-20"
             style={{ left: '0%', width: '50%' }}

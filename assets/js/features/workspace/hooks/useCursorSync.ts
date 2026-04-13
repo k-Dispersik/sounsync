@@ -1,8 +1,8 @@
 import { useCallback, useRef } from "react";
-import { RealtimeEvents } from "../../events";
-import { useWorkspaceEvent } from "../../hooks/useWorkspaceEvent";
-import { useWorkspaceBroadcast } from "../../hooks/useWorkspaceBroadcast";
-import type { WorkspaceRtc } from "../../transport/workspaceRtc";
+import { RealtimeEvents } from "../events/events";
+import { useWorkspaceEvent } from "./useWorkspaceEvent";
+import { useWorkspaceBroadcast } from "./useWorkspaceBroadcast";
+import type { WorkspaceRtc } from "../services/transport/workspaceRtc";
 
 interface CursorMovePayload {
     session_id: string;

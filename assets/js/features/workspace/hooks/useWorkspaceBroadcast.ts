@@ -1,6 +1,6 @@
 import { useCallback } from "react";
-import type { WorkspaceRtc } from "../transport/workspaceRtc";
-import type { RealtimeEventName } from "../events";
+import type { WorkspaceRtc } from "../services/transport/workspaceRtc";
+import type { RealtimeEventName } from "../events/events";
 
 /**
  * Returns a stable `broadcast` function that sends an event over WebRTC.
