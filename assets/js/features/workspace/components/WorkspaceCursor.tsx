@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import { MousePointer2 } from "lucide-react";
 
 interface CursorState {
@@ -9,34 +9,9 @@ interface CursorState {
 
 interface Props {
     cursors: Record<string, CursorState>;
-    sendMove: (x: number, y: number) => void;
-    sendClick: (x: number, y: number) => void;
 }
 
-export default function WorkspaceCursor({ cursors, sendMove, sendClick }: Props) {
-    const lastSentRef = useRef(0);
-
-    // ─── DOM event listeners ─────────────────────────────────
-    useEffect(() => {
-        const handleMove = (e: MouseEvent) => {
-            const now = Date.now();
-            if (now - lastSentRef.current < 50) return;
-            lastSentRef.current = now;
-            sendMove(e.clientX, e.clientY);
-        };
-
-        const handleClick = (e: MouseEvent) => {
-            sendClick(e.clientX, e.clientY);
-        };
-
-        document.addEventListener("mousemove", handleMove);
-        document.addEventListener("click", handleClick);
-        return () => {
-            document.removeEventListener("mousemove", handleMove);
-            document.removeEventListener("click", handleClick);
-        };
-    }, [sendMove, sendClick]);
-
+export default function WorkspaceCursor({ cursors }: Props) {
     return (
         <>
             {Object.entries(cursors).map(([id, { x, y, clicking }]) => (
