@@ -4,11 +4,12 @@ import type { RealtimeEventName } from "../events/events";
 
 /**
  * Returns a stable `broadcast` function that sends an event over WebRTC.
+ * No-ops when `rtc` is null (connection not yet established).
  */
-export function useWorkspaceBroadcast(rtc: WorkspaceRtc) {
+export function useWorkspaceBroadcast(rtc: WorkspaceRtc | null) {
     const broadcast = useCallback(
         (event: RealtimeEventName, payload: unknown) => {
-            rtc.send(event, payload);
+            rtc?.send(event, payload);
         },
         [rtc]
     );

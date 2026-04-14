@@ -28,7 +28,7 @@ export interface CursorCallbacks {
  * subscribes to remote cursor events via the provided callbacks.
  */
 export function useCursorSync(
-    rtc: WorkspaceRtc,
+    rtc: WorkspaceRtc | null,
     sessionId: string,
     callbacks: CursorCallbacks
 ) {
@@ -56,6 +56,7 @@ export function useCursorSync(
         RealtimeEvents.CURSOR_MOVE,
         useCallback(
             ({ session_id, x, y }: CursorMovePayload) => {
+                console.log("handle", session_id, x, y);
                 if (session_id === sessionId) return;
                 callbacksRef.current.onRemoteMove(session_id, x, y);
             },
