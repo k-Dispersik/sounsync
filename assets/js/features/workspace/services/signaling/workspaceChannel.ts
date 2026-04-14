@@ -1,7 +1,7 @@
 import { Channel } from "phoenix";
 import { socket } from "./socket";
 
-const getOrCreateSessionId = (): string => {
+export const getOrCreateSessionId = (): string => {
     const key = "session_id";
     const existing = sessionStorage.getItem(key);
     if (existing) return existing;
@@ -11,7 +11,9 @@ const getOrCreateSessionId = (): string => {
     return id;
 };
 
-export class WorkspaceChannel {
+// Provides a high-level API for joining a Phoenix channel scoped to a workspace,
+// with an associated session ID for identifying the client.
+export default class WorkspaceChannel {
     readonly workspaceId: string;
     readonly sessionId: string;
     private channel: Channel;
@@ -25,6 +27,7 @@ export class WorkspaceChannel {
     }
 
     join() {
+        console.log(`[Workspace:${this.workspaceId}] calling join(), socket state: ${socket.connectionState()}`);
         this.channel
             .join()
             .receive("ok", (resp) =>
@@ -32,6 +35,9 @@ export class WorkspaceChannel {
             )
             .receive("error", (err) =>
                 console.error(`[Workspace:${this.workspaceId}] join failed`, err)
+            )
+            .receive("timeout", () =>
+                console.warn(`[Workspace:${this.workspaceId}] join timed out`)
             );
         return this;
     }

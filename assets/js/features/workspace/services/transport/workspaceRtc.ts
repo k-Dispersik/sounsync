@@ -1,35 +1,87 @@
 import { SignalingChannel } from "../signaling/signalingChannel";
 import { workspaceBus } from "../workspaceBus";
+import { RealtimeEvents } from "../../events/events";
 
 const ICE_SERVERS: RTCIceServer[] = [{ urls: "stun:stun.l.google.com:19302" }];
 
+// Signals now carry `from`/`to` session IDs so each peer can maintain a
+// separate RTCPeerConnection per remote participant (full mesh).
 type SignalMessage =
-    | { type: "join" }
-    | { type: "offer"; sdp: RTCSessionDescriptionInit }
-    | { type: "answer"; sdp: RTCSessionDescriptionInit }
-    | { type: "ice"; candidate: RTCIceCandidateInit };
+    | { type: "join"; sessionId: string }
+    | { type: "offer"; sdp: RTCSessionDescriptionInit; from: string; to: string }
+    | { type: "answer"; sdp: RTCSessionDescriptionInit; from: string; to: string }
+    | { type: "ice"; candidate: RTCIceCandidateInit; from: string; to: string };
+
+interface PeerState {
+    pc: RTCPeerConnection;
+    dataChannel: RTCDataChannel | null;
+    makingOffer: boolean;
+    pendingIce: RTCIceCandidateInit[];
+}
 
 export class WorkspaceRtc {
-    private pc: RTCPeerConnection;
-    private dataChannel: RTCDataChannel | null = null;
-    private signaling: SignalingChannel;
     private sessionId: string;
+    private signaling: SignalingChannel;
     private signalingRef: number | null = null;
-    private makingOffer = false;
-    // ICE candidates that arrived before remoteDescription was set
-    private pendingIceCandidates: RTCIceCandidateInit[] = [];
+    // One RTCPeerConnection per remote peer — avoids the single-PC 1:1 limit.
+    private peers = new Map<string, PeerState>();
 
     constructor(workspaceId: string, sessionId: string) {
         this.sessionId = sessionId;
-        this.pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
         this.signaling = new SignalingChannel(workspaceId).join();
-
         this.setupSignaling();
-        this.setupIceCandidate();
-        this.setupRemoteDataChannel();
+        // Announce presence; existing peers will each open a connection to us.
+        this.signaling.push({ type: "join", sessionId });
+    }
 
-        // Announce presence — existing peers will respond by initiating a connection
-        this.signaling.push({ type: "join" });
+    // ─── Peer management ─────────────────────────────────────────────────────
+
+    private getOrCreatePeer(peerId: string): PeerState {
+        const existing = this.peers.get(peerId);
+        if (existing) return existing;
+
+        const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+        const state: PeerState = { pc, dataChannel: null, makingOffer: false, pendingIce: [] };
+        this.peers.set(peerId, state);
+
+        pc.onicecandidate = ({ candidate }) => {
+            if (candidate) {
+                this.signaling.push({
+                    type: "ice",
+                    candidate: candidate.toJSON(),
+                    from: this.sessionId,
+                    to: peerId,
+                });
+            }
+        };
+
+        // Answering side receives the channel via ondatachannel.
+        pc.ondatachannel = ({ channel }) => {
+            state.dataChannel = channel;
+            this.bindDataChannel(channel, peerId);
+        };
+
+        return state;
+    }
+
+    private async initiateConnection(peerId: string): Promise<void> {
+        const state = this.getOrCreatePeer(peerId);
+        const { pc } = state;
+
+        // Offering side creates the channel.
+        state.dataChannel = pc.createDataChannel("ephemeral", { ordered: false, maxRetransmits: 0 });
+        this.bindDataChannel(state.dataChannel, peerId);
+
+        try {
+            state.makingOffer = true;
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            this.signaling.push({ type: "offer", sdp: offer, from: this.sessionId, to: peerId });
+        } catch (err) {
+            console.error(`[WorkspaceRtc] offer error → ${peerId}`, err);
+        } finally {
+            state.makingOffer = false;
+        }
     }
 
     // ─── Signaling ────────────────────────────────────────────────────────────
@@ -38,35 +90,41 @@ export class WorkspaceRtc {
         this.signalingRef = this.signaling.on(async (raw) => {
             const msg = raw as SignalMessage;
             try {
-                // A new peer joined — we are the existing peer, so we initiate
                 if (msg.type === "join") {
-                    await this.initiateConnection();
+                    // A new participant arrived — we initiate a dedicated connection.
+                    await this.initiateConnection(msg.sessionId);
                     return;
                 }
 
+                // Ignore signals addressed to other peers.
+                if (msg.to !== this.sessionId) return;
+
+                const peerId = msg.from;
+
                 if (msg.type === "offer") {
-                    const offerCollision =
-                        this.makingOffer || this.pc.signalingState !== "stable";
-
-                    if (offerCollision) return;
-
-                    await this.pc.setRemoteDescription(msg.sdp);
-                    await this.flushPendingIceCandidates();
-                    const answer = await this.pc.createAnswer();
-                    await this.pc.setLocalDescription(answer);
-                    this.signaling.push({ type: "answer", sdp: answer });
+                    const state = this.getOrCreatePeer(peerId);
+                    if (state.makingOffer || state.pc.signalingState !== "stable") return;
+                    await state.pc.setRemoteDescription(msg.sdp);
+                    await this.flushPendingIce(state);
+                    const answer = await state.pc.createAnswer();
+                    await state.pc.setLocalDescription(answer);
+                    this.signaling.push({ type: "answer", sdp: answer, from: this.sessionId, to: peerId });
                 }
 
                 if (msg.type === "answer") {
-                    await this.pc.setRemoteDescription(msg.sdp);
-                    await this.flushPendingIceCandidates();
+                    const state = this.peers.get(peerId);
+                    if (!state) return;
+                    await state.pc.setRemoteDescription(msg.sdp);
+                    await this.flushPendingIce(state);
                 }
 
                 if (msg.type === "ice") {
-                    if (this.pc.remoteDescription) {
-                        await this.pc.addIceCandidate(msg.candidate);
+                    const state = this.peers.get(peerId);
+                    if (!state) return;
+                    if (state.pc.remoteDescription) {
+                        await state.pc.addIceCandidate(msg.candidate);
                     } else {
-                        this.pendingIceCandidates.push(msg.candidate);
+                        state.pendingIce.push(msg.candidate);
                     }
                 }
             } catch (err) {
@@ -75,60 +133,29 @@ export class WorkspaceRtc {
         });
     }
 
-    private setupIceCandidate(): void {
-        this.pc.onicecandidate = (event) => {
-            if (event.candidate) {
-                this.signaling.push({ type: "ice", candidate: event.candidate.toJSON() });
-            }
-        };
-    }
-
-    private async flushPendingIceCandidates(): Promise<void> {
-        const candidates = this.pendingIceCandidates.splice(0);
-        for (const candidate of candidates) {
-            await this.pc.addIceCandidate(candidate);
+    private async flushPendingIce(state: PeerState): Promise<void> {
+        const candidates = state.pendingIce.splice(0);
+        for (const c of candidates) {
+            await state.pc.addIceCandidate(c);
         }
     }
 
     // ─── DataChannel ─────────────────────────────────────────────────────────
 
-    async initiateConnection(): Promise<void> {
-        this.dataChannel = this.pc.createDataChannel("ephemeral", {
-            ordered: false,
-            maxRetransmits: 0,
-        });
-        this.bindDataChannelEvents(this.dataChannel);
-
-        try {
-            this.makingOffer = true;
-            const offer = await this.pc.createOffer();
-            await this.pc.setLocalDescription(offer);
-            this.signaling.push({ type: "offer", sdp: offer });
-        } catch (err) {
-            console.error("[WorkspaceRtc] offer error", err);
-        } finally {
-            this.makingOffer = false;
-        }
-    }
-
-    private setupRemoteDataChannel(): void {
-        this.pc.ondatachannel = (event) => {
-            this.dataChannel = event.channel;
-            this.bindDataChannelEvents(this.dataChannel);
+    private bindDataChannel(channel: RTCDataChannel, peerId: string): void {
+        channel.onopen = () => {
+            console.log(`[WorkspaceRtc] DataChannel open (peer: ${peerId})`);
+            workspaceBus.emit(RealtimeEvents.PEER_CONNECTED, { session_id: peerId });
         };
-    }
-
-    private bindDataChannelEvents(channel: RTCDataChannel): void {
-        channel.onopen = () => console.log("[WorkspaceRtc] DataChannel open");
-        channel.onclose = () => console.log("[WorkspaceRtc] DataChannel closed");
-
-        channel.onmessage = (event) => {
+        channel.onclose = () => {
+            console.log(`[WorkspaceRtc] DataChannel closed (peer: ${peerId})`);
+            workspaceBus.emit(RealtimeEvents.PEER_DISCONNECTED, { session_id: peerId });
+            this.peers.delete(peerId);
+        };
+        channel.onmessage = ({ data }) => {
             try {
-                const { event: name, payload } = JSON.parse(event.data as string) as {
-                    event: string;
-                    payload: unknown;
-                };
-                workspaceBus.emit(name, payload);
+                const { event, payload } = JSON.parse(data as string) as { event: string; payload: unknown };
+                workspaceBus.emit(event, payload);
             } catch (err) {
                 console.error("[WorkspaceRtc] failed to parse message", err);
             }
@@ -137,20 +164,31 @@ export class WorkspaceRtc {
 
     // ─── Outbound ─────────────────────────────────────────────────────────────
 
+    /** Returns session IDs of peers with an open DataChannel. */
+    getConnectedPeers(): string[] {
+        return [...this.peers.entries()]
+            .filter(([, s]) => s.dataChannel?.readyState === "open")
+            .map(([id]) => id);
+    }
+
     send(event: string, payload: unknown): void {
-        if (this.dataChannel?.readyState === "open") {
-            this.dataChannel.send(JSON.stringify({ event, payload }));
+        const data = JSON.stringify({ event, payload });
+        for (const state of this.peers.values()) {
+            if (state.dataChannel?.readyState === "open") {
+                state.dataChannel.send(data);
+            }
         }
     }
 
     // ─── Cleanup ──────────────────────────────────────────────────────────────
 
     destroy(): void {
-        if (this.signalingRef !== null) {
-            this.signaling.off(this.signalingRef);
+        if (this.signalingRef !== null) this.signaling.off(this.signalingRef);
+        for (const state of this.peers.values()) {
+            state.dataChannel?.close();
+            state.pc.close();
         }
+        this.peers.clear();
         this.signaling.leave();
-        this.dataChannel?.close();
-        this.pc.close();
     }
 }

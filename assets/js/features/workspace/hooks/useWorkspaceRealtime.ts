@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { WorkspaceChannel } from "../services/signaling/workspaceChannel";
+import WorkspaceChannel, { getOrCreateSessionId } from "../services/signaling/workspaceChannel";
 import { WorkspaceRtc } from "../services/transport/workspaceRtc";
 import { useCursorSync } from "./useCursorSync";
+import { useCursorEvents } from "./useCursorEvents";
+import { useWorkspaceEvent } from "./useWorkspaceEvent";
+import { RealtimeEvents } from "../events/events";
 
 interface CursorState {
     x: number;
@@ -9,31 +12,29 @@ interface CursorState {
     clicking?: boolean;
 }
 
-/**
- * Top-level hook that initialises the workspace realtime connection and
- * exposes a clean API to UI components.
- *
- * Layering: UI → useWorkspaceRealtime → useCursorSync → useWorkspaceBroadcast / useWorkspaceEvent
- *                                                      → WorkspaceRtc (WebRTC)
- *                                                      → WorkspaceChannel (Phoenix)
- */
 export function useWorkspaceRealtime(workspaceId: string) {
-    // Stable refs — created once, never recreated on re-render
-    const channelRef = useRef<WorkspaceChannel | null>(null);
-    const rtcRef = useRef<WorkspaceRtc | null>(null);
+    // sessionId is read from sessionStorage before the effect runs
+    const sessionId = useRef(getOrCreateSessionId()).current;
 
-    if (!channelRef.current) {
-        channelRef.current = new WorkspaceChannel(workspaceId).join();
-    }
-    if (!rtcRef.current) {
-        rtcRef.current = new WorkspaceRtc(workspaceId, channelRef.current.sessionId);
-    }
+    const [rtc, setRtc] = useState<WorkspaceRtc | null>(null);
 
-    const channel = channelRef.current;
-    const rtc = rtcRef.current;
-    const sessionId = channel.sessionId;
+    // ─── Lifecycle ────────────────────────────────────────────────────────────
+    useEffect(() => {
+        const channel = new WorkspaceChannel(workspaceId).join();
+        const r = new WorkspaceRtc(workspaceId, channel.sessionId);
+        setRtc(r);
 
-    // ─── Cursor state (lifted from WorkspaceCursor component) ─────────────────
+        (window as unknown as { __rtc?: WorkspaceRtc }).__rtc = r;
+
+        return () => {
+            r.destroy();
+            setRtc(null);
+            channel.leave();
+            delete (window as unknown as { __rtc?: WorkspaceRtc }).__rtc;
+        };
+    }, [workspaceId]);
+
+    // ─── Cursor state ─────────────────────────────────────────────────────────
     const [cursors, setCursors] = useState<Record<string, CursorState>>({});
 
     const { sendMove, sendClick } = useCursorSync(rtc, sessionId, {
@@ -48,21 +49,30 @@ export function useWorkspaceRealtime(workspaceId: string) {
         },
     });
 
-    // ─── Cleanup on unmount ────────────────────────────────────────────────────
-    useEffect(() => {
-        return () => {
-            rtcRef.current?.destroy();
-            channelRef.current?.leave();
-        };
-    }, []);
+    useCursorEvents(sendMove, sendClick);
+
+    // ─── Connected peers ──────────────────────────────────────────────────────
+    const [connectedPeers, setConnectedPeers] = useState<Set<string>>(new Set());
+
+    useWorkspaceEvent<{ session_id: string }>(
+        RealtimeEvents.PEER_CONNECTED,
+        ({ session_id }) => setConnectedPeers((prev) => new Set([...prev, session_id]))
+    );
+
+    useWorkspaceEvent<{ session_id: string }>(
+        RealtimeEvents.PEER_DISCONNECTED,
+        ({ session_id }) =>
+            setConnectedPeers((prev) => {
+                const next = new Set(prev);
+                next.delete(session_id);
+                return next;
+            })
+    );
 
     return {
         sessionId,
-        // Cursor API
         cursors,
-        sendCursor: sendMove,
-        sendCursorClick: sendClick,
-        // Track API (reserved for future features)
+        connectedPeers,
         tracks: [] as never[],
         updateTrack: (_id: string, _data: unknown) => { },
     };
