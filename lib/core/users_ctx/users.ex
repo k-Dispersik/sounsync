@@ -4,6 +4,7 @@ defmodule Core.UsersCtx.Users do
   import Ecto.Changeset
 
   alias Core.ProjectsCtx.Projects
+  alias Bcrypt
 
   def changeset(user, attrs) do
     user
@@ -42,7 +43,7 @@ defmodule Core.UsersCtx.Users do
   defp hash_password(changeset) do
     case changeset do
       %Ecto.Changeset{valid?: true, changes: %{password: password}} ->
-        put_change(changeset, :password, :crypto.hash(:sha256, password) |> Base.encode16())
+        put_change(changeset, :password, Bcrypt.hash_pwd_salt(password))
       _ -> changeset
     end
   end
