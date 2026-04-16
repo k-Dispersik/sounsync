@@ -12,8 +12,11 @@ defmodule SoundsyncWeb.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/api", SoundsyncWeb do
+  scope "/v1", SoundsyncWeb.API.V1 do
     pipe_through :api
+
+      get "/users/:id", UserController, :get
+      get "/projects", ProjectController, :list
   end
 
   if Application.compile_env(:soundsync, :dev_routes) do
