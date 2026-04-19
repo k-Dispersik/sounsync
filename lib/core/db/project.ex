@@ -7,6 +7,7 @@ defmodule Core.DB.Project do
     field :title, :string
     field :description, :string
 
+    has_many :tracks, Core.DB.Track, on_delete: :delete_all
     many_to_many :users, Core.DB.User, join_through: "projects_users", on_delete: :delete_all
 
     timestamps()

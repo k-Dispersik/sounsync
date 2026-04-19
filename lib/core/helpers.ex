@@ -53,10 +53,18 @@ defmodule Core.Helpers do
       import Core.Helpers, only: [insert_ok?: 1, update_ok?: 1]
 
       @doc "Fetches a single record by id. Returns `nil` if not found."
-      def get(id), do: Soundsync.Repo.get(unquote(schema), id)
+      def get(id, opts \\ []) do
+        case Soundsync.Repo.get(unquote(schema), id) do
+          nil -> nil
+          record -> Soundsync.Repo.preload(record, Keyword.get(opts, :assoc, []))
+        end
+      end
 
       @doc "Fetches a single record by id. Raises `Ecto.NoResultsError` if not found."
-      def get!(id), do: Soundsync.Repo.get!(unquote(schema), id)
+      def get!(id, opts \\ []) do
+        Soundsync.Repo.get!(unquote(schema), id)
+        |> Soundsync.Repo.preload(Keyword.get(opts, :assoc, []))
+      end
 
       @doc "Deletes a record. Returns `{:ok, record}` or `{:error, changeset}`."
       def delete(record), do: Soundsync.Repo.delete(record)
