@@ -28,7 +28,11 @@ function TransportBtn({ children }: { children: React.ReactNode }) {
     );
 }
 
-export default function WorkspaceTopBar() {
+interface Props {
+    projectTitle?: string;
+}
+
+export default function WorkspaceTopBar({ projectTitle }: Props) {
     return (
         <header className="flex items-center gap-4 px-4 h-14 bg-[#0d1117] border-b border-white/[0.07] flex-shrink-0 z-20">
             {/* Logo + project */}
@@ -40,7 +44,7 @@ export default function WorkspaceTopBar() {
             </div>
 
             <div className="flex items-center gap-1 text-sm text-white/60 cursor-pointer hover:text-white transition-colors">
-                <span>Untitled Project</span>
+                <span>{projectTitle ?? "Untitled Project"}</span>
                 <ChevronDown size={14} />
                 <span className="ml-2 text-xs text-white/30">Saved</span>
             </div>
