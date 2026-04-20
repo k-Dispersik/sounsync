@@ -3,48 +3,23 @@ defmodule SoundsyncWeb.API.V1.ProjectController do
 
   alias Core.ProjectsCtx.Projects
 
+  alias SoundsyncWeb.JSON
+  alias SoundsyncWeb.Helpers
+
+
   def index(conn, _params) do
     projects = Projects.list()
 
-    json(conn, Enum.map(projects, fn project ->
-      %{
-        id: project.id,
-        title: project.title,
-        description: project.description
-      }
-    end))
+    Enum.map(projects, &JSON.project(&1, :short)) |> Helpers.response(conn, :ok)
   end
 
   def show(conn, %{"id" => id}) do
     case Projects.get(id, assoc: [tracks: [:clips]]) do
       nil ->
-        conn
-        |> put_status(:not_found)
-        |> json(%{error: "Project not found"})
+        Helpers.response(%{error: "Project not found"}, conn, :not_found)
 
       project ->
-        json(conn, %{
-          id: project.id,
-          title: project.title,
-          description: project.description,
-          tracks: Enum.map(project.tracks, fn track ->
-            %{
-              id: track.id,
-              title: track.title,
-              row_index: track.row_index,
-              category: track.category,
-              clips: Enum.map(track.clips, fn clip ->
-                %{
-                  id: clip.id,
-                  start_time: clip.start_time,
-                  duration: clip.duration,
-                  settings: clip.settings,
-                  file_path: clip.file_path
-                }
-              end)
-            }
-          end)
-        })
+        JSON.project(project, :detailed) |> Helpers.response(conn, :ok)
     end
   end
 end
