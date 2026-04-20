@@ -5,6 +5,7 @@ defmodule Core.UsersCtx.Users do
 
   alias Core.ProjectsCtx.Projects
   alias Bcrypt
+  alias Soundsync.Repo
 
   def changeset(user, attrs) do
     user
@@ -20,8 +21,7 @@ defmodule Core.UsersCtx.Users do
     %Core.DB.User{}
     |> changeset(attrs)
     |> hash_password()
-    |> apply_action(:insert)
-    |> insert_ok?()
+    |> Repo.insert()
   end
 
   def update(user, attrs) do
@@ -29,8 +29,7 @@ defmodule Core.UsersCtx.Users do
     |> changeset(attrs)
     |> hash_password()
     |> put_assoc(:projects, attrs[:projects] || [])
-    |> apply_action(:update)
-    |> update_ok?()
+    |> Repo.update()
   end
 
   def create_project(user, project_attrs) do

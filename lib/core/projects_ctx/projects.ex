@@ -4,6 +4,8 @@ defmodule Core.ProjectsCtx.Projects do
   import Ecto.Changeset
 
   alias Core.DB.Project
+  alias Core.ProjectsCtx.Tracks
+
   alias Soundsync.Repo
 
   def changeset(project, attrs) do
@@ -12,18 +14,15 @@ defmodule Core.ProjectsCtx.Projects do
     |> validate_required([:title])
   end
 
-  def create(attrs) do
-    %Project{}
-    |> changeset(attrs)
-    |> apply_action(:insert)
-    |> insert_ok?()
-  end
+  def new(attrs \\ %{}), do:  %Project{} |> changeset(attrs)
+
+  def create(attrs), do: new(attrs) |> Repo.insert()
 
   def update(project, attrs) do
     project
     |> changeset(attrs)
-    |> apply_action(:update)
-    |> update_ok?()
+    |> put_track(project, attrs[:tracks])
+    |> Repo.update()
   end
 
   def list(), do: Project.query() |> Repo.all()
@@ -40,4 +39,21 @@ defmodule Core.ProjectsCtx.Projects do
     |> Project.with_user(user_id)
     |> Repo.all()
   end
+
+  def add_track(%Project{} = project, track_attrs) do
+    project
+    |> Ecto.build_assoc(:tracks)
+    |> Tracks.changeset(track_attrs)
+    |> Repo.insert()
+  end
+
+  defp put_track(project_changeset, _, nil), do: project_changeset
+  defp put_track(_, %Project{tracks: nil}, _), do: raise(ArgumentError, "Tracks must be preloaded in the project struct")
+
+  defp put_track(project_changeset, %Project{tracks: existing_tracks}, tracks) do
+    put_assoc(project_changeset, :tracks, existing_tracks ++ tracks)
+  end
+
+
+  defp put_track(_, _, _), do: raise(ArgumentError, "Invalid project struct: tracks must be a list or nil")
 end

@@ -11,46 +11,13 @@ defmodule Core.Helpers do
         #   get/1       - Repo.get by id, returns nil if not found
         #   get!/1      - Repo.get! by id, raises if not found
         #   delete/1    - deletes a record
-
-        # Also imports:
-        #   insert_ok?/1  - pipes a valid changeset into Repo.insert
-        #   update_ok?/1  - pipes a valid changeset into Repo.update
-      end
   """
-
-  @doc """
-  Inserts a changeset or passes through an `{:error, changeset}` tuple.
-
-  Asepts a tuple from `apply_action/2` or a changeset directly,
-  making it easy to pipe directly from `apply_action/2` results or changesets.
-
-      %Schema{}
-      |> Schema.changeset(attrs)
-      |> insert_ok?()
-
-      %Schema.changeset(attrs)
-      |> apply_action(:validate)
-      |> insert_ok?()
-  """
-  def insert_ok?({:ok, %Ecto.Changeset{} = changeset}), do: Soundsync.Repo.insert(changeset)
-  def insert_ok?({:error, _} = error), do: error
-
-  @doc """
-  Updates via a changeset or passes through an `{:error, changeset}` tuple.
-
-      user
-      |> MySchema.changeset(attrs)
-      |> update_ok?()
-  """
-  def update_ok?({:ok, %Ecto.Changeset{} = changeset}), do: Soundsync.Repo.update(changeset)
-  def update_ok?({:error, _} = error), do: error
 
   defmacro __using__(opts) do
     schema = Keyword.fetch!(opts, :schema)
 
     quote do
       alias Soundsync.Repo
-      import Core.Helpers, only: [insert_ok?: 1, update_ok?: 1]
 
       @doc "Fetches a single record by id. Returns `nil` if not found."
       def get(id, opts \\ []) do
