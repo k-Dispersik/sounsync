@@ -30,7 +30,7 @@ export default function Workspace() {
                 <div className="flex flex-col flex-1 overflow-hidden">
                     <WorkspaceToolbar />
                     <div className="flex-1 overflow-hidden">
-                        <TimelineGrid tracks={[]} />
+                        <TimelineGrid tracks={project?.tracks || []} />
                     </div>
                 </div>
             </div>

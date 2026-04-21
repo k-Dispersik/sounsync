@@ -4,6 +4,7 @@ export interface Project {
     id: number;
     title: string;
     description: string | null;
+    tracks: [];
 }
 
 export async function getProject(id: number): Promise<Project> {

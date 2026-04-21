@@ -2,8 +2,6 @@ import { useMemo } from 'react'
 import { GripVertical } from 'lucide-react'
 
 export interface TrackClipProps {
-    /** Label shown inside the clip header */
-    name: string
     /** Base accent colour (hex, rgb, etc.) used for header, bars and border */
     color: string
     /**
@@ -32,16 +30,15 @@ function seededRng(seed: string) {
 
 
 export default function TrackClip({
-    name,
     color,
     barCount = 50,
     className = '',
     onClick,
 }: TrackClipProps) {
     const barHeights = useMemo(() => {
-        const rand = seededRng(name)
+        const rand = seededRng(color)
         return Array.from({ length: barCount }, () => 20 + rand() * 80)
-    }, [name, barCount])
+    }, [color, barCount])
 
     return (
         <div
@@ -58,7 +55,6 @@ export default function TrackClip({
                 style={{ backgroundColor: `${color}30` }}
             >
                 <GripVertical className="w-3 h-3 text-white/50 cursor-grab" />
-                <span className="text-xs text-white truncate">{name}</span>
             </div>
 
             {/* ── Waveform bars ── */}

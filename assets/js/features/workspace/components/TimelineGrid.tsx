@@ -5,12 +5,10 @@ import TrackClip from "./TrackClip";
 
 export interface Clip {
     id: string;
-    name: string;
-    color: string;
-    /** Start position in beats (0-based) */
-    startBeat: number;
-    /** Duration in beats */
-    lengthBeats: number;
+    start_time: number; // seconds
+    duration: number; // seconds
+    settings: JSON;
+    file_path: string;
 }
 
 export interface Track {
@@ -121,11 +119,11 @@ function TrackRow({
                     key={clip.id}
                     className="absolute top-2 bottom-2"
                     style={{
-                        left: clip.startBeat * beatWidth,
-                        width: clip.lengthBeats * beatWidth - 2,
+                        left: clip.start_time * beatWidth,
+                        width: clip.duration * beatWidth - 2,
                     }}
                 >
-                    <TrackClip name={clip.name} color={clip.color} />
+                    <TrackClip color={"rgba(255, 255, 255, 0.2)"} />
                 </div>
             ))}
         </div>
@@ -187,8 +185,7 @@ export default function TimelineGrid({
                             <div
                                 className="w-2 h-2 rounded-full flex-shrink-0"
                                 style={{
-                                    backgroundColor:
-                                        track.clips[0]?.color ?? "rgba(255,255,255,0.2)",
+                                    backgroundColor: "rgba(255,255,255,0.2)",
                                 }}
                             />
                             <span className="text-sm text-white/70 truncate font-medium">
