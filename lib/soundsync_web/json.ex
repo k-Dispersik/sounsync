@@ -19,7 +19,7 @@ defmodule SoundsyncWeb.JSON do
   end
 
   def add_tracks(project_map, tracks) do
-    Map.put(project_map, :tracks, Enum.map(tracks, &Formatter.format/1)) |> add_clips()
+    Map.put(project_map, :tracks, Enum.map(tracks, &Formatter.format/1))
   end
 
   def add_clips(project_map) do

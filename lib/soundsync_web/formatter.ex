@@ -20,9 +20,7 @@ defmodule SoundsyncWeb.Formatter do
   def format(%Core.DB.Track{} = track) do
     %{
       id: track.id,
-      title: track.title,
       row_index: track.row_index,
-      category: track.category,
       clips: Enum.map(track.clips, &format/1)
     }
   end
@@ -30,10 +28,17 @@ defmodule SoundsyncWeb.Formatter do
   def format(%Core.DB.Clip{} = clip) do
     %{
       id: clip.id,
+      type: clip.type,
+      title: clip.title,
       start_time: clip.start_time,
       duration: clip.duration,
-      settings: clip.settings,
+      settings: format(clip.settings),
       file_path: clip.file_path
     }
+  end
+
+  # Placeholder for actual settings formatting
+  def format(%Core.DB.ClipSetting{} = _settings) do
+    %{}
   end
 end

@@ -47,13 +47,25 @@ defmodule Core.ProjectsCtx.Projects do
     |> Repo.insert()
   end
 
+  def get_tracks(%Project{} = project) do
+    project
+    |> Repo.preload(:tracks)
+    |> Map.get(:tracks, [])
+  end
+
+  def get_track_by_row_index(%Project{} = project, row_index) do
+    project
+    |> Repo.preload(:tracks)
+    |> Map.get(:tracks, [])
+    |> Enum.find(fn track -> track.row_index == row_index end)
+  end
+
   defp put_track(project_changeset, _, nil), do: project_changeset
   defp put_track(_, %Project{tracks: nil}, _), do: raise(ArgumentError, "Tracks must be preloaded in the project struct")
 
   defp put_track(project_changeset, %Project{tracks: existing_tracks}, tracks) do
     put_assoc(project_changeset, :tracks, existing_tracks ++ tracks)
   end
-
 
   defp put_track(_, _, _), do: raise(ArgumentError, "Invalid project struct: tracks must be a list or nil")
 end
