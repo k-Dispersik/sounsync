@@ -1,16 +1,6 @@
 import React from "react";
 import { Search, Upload, Music2, Clock, Users } from "lucide-react";
-
-const SAMPLE_LIST = [
-    { name: "Kick Deep", cat: "drums", dur: "0.2s" },
-    { name: "Snare Crack", cat: "drums", dur: "0.3s" },
-    { name: "Hi-Hat Tight", cat: "drums", dur: "0.1s" },
-    { name: "Bass Sub", cat: "bass", dur: "1.2s" },
-    { name: "Synth Pad", cat: "synth", dur: "3.5s" },
-    { name: "Vocal Chop", cat: "vocals", dur: "0.8s" },
-    { name: "FX Riser", cat: "fx", dur: "4.0s" },
-    { name: "FX Impact", cat: "fx", dur: "0.5s" },
-];
+import useSampleSidebar from "../hooks/useSampleSidebar";
 
 const CAT_ICONS: Record<string, string> = {
     drums: "🥁",
@@ -30,8 +20,8 @@ function SidebarTab({
     return (
         <button
             className={`flex-1 flex items-center justify-center h-10 border-b-2 transition-colors ${active
-                    ? "border-indigo-500 text-indigo-400"
-                    : "border-transparent text-white/30 hover:text-white/60"
+                ? "border-indigo-500 text-indigo-400"
+                : "border-transparent text-white/30 hover:text-white/60"
                 }`}
         >
             {icon}
@@ -39,14 +29,16 @@ function SidebarTab({
     );
 }
 
-export default function SampleSidebar() {
+export default function SampleSidebar({ tracks }: { tracks?: any[] }) {
+    // Get samples based on current project tracks 
+    const samples = useSampleSidebar(tracks ?? []);
+
     return (
         <aside className="w-52 flex-shrink-0 bg-[#0d1117] border-r border-white/[0.07] flex flex-col">
             {/* Tabs */}
             <div className="flex border-b border-white/[0.07]">
                 <SidebarTab icon={<Music2 size={14} />} active />
                 <SidebarTab icon={<Clock size={14} />} />
-                <SidebarTab icon={<Users size={14} />} />
             </div>
 
             {/* Search */}
@@ -66,9 +58,9 @@ export default function SampleSidebar() {
 
             {/* Sample list */}
             <div className="flex-1 overflow-y-auto py-1">
-                {SAMPLE_LIST.map((s) => (
+                {samples.map((s) => (
                     <div
-                        key={s.name}
+                        key={s.id}
                         className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-white/[0.04] group transition-colors"
                     >
                         <span className="text-base leading-none">{CAT_ICONS[s.cat] ?? "🎵"}</span>

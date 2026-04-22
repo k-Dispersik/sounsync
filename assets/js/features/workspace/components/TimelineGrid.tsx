@@ -1,24 +1,12 @@
-import React, { useRef } from "react";
-import TrackClip from "./TrackClip";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-export interface Clip {
-    id: string;
-    start_time: number; // seconds
-    duration: number; // seconds
-    settings: JSON;
-    file_path: string;
-}
-
-export interface Track {
-    id: string;
-    name: string;
-    clips: Clip[];
-}
+import { useRef } from "react";
+import Ruler, { RULER_HEIGHT } from "./Ruler";
+import TrackRow from "./TrackRow";
+import type { Track } from "./TrackRow";
+export type { Clip, Track } from "./TrackRow";
 
 interface Props {
     tracks: Track[];
+    isLoading: boolean;
     /** Beats per bar — default 4 */
     beatsPerBar?: number;
     /** Total number of bars to render — default 32 */
@@ -32,108 +20,12 @@ interface Props {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const LABEL_WIDTH = 168; // px — left sidebar
-const RULER_HEIGHT = 32; // px — top ruler
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-function Ruler({
-    totalBars,
-    beatsPerBar,
-    beatWidth,
-}: {
-    totalBars: number;
-    beatsPerBar: number;
-    beatWidth: number;
-}) {
-    const bars = Array.from({ length: totalBars }, (_, i) => i);
-
-    return (
-        <div
-            className="relative flex-shrink-0 border-b border-white/10 bg-zinc-900/80"
-            style={{ height: RULER_HEIGHT, width: totalBars * beatsPerBar * beatWidth }}
-        >
-            {bars.map((bar) => {
-                const x = bar * beatsPerBar * beatWidth;
-                return (
-                    <React.Fragment key={bar}>
-                        {/* Bar number label */}
-                        <span
-                            className="absolute top-1 text-[10px] font-mono text-white/40 select-none"
-                            style={{ left: x + 4 }}
-                        >
-                            {bar + 1}
-                        </span>
-                        {/* Bar tick */}
-                        <div
-                            className="absolute bottom-0 w-px bg-white/20"
-                            style={{ left: x, height: 10 }}
-                        />
-                        {/* Beat ticks */}
-                        {Array.from({ length: beatsPerBar - 1 }, (_, b) => b + 1).map((b) => (
-                            <div
-                                key={b}
-                                className="absolute bottom-0 w-px bg-white/10"
-                                style={{ left: x + b * beatWidth, height: 5 }}
-                            />
-                        ))}
-                    </React.Fragment>
-                );
-            })}
-        </div>
-    );
-}
-
-function TrackRow({
-    track,
-    totalBeats,
-    beatWidth,
-    trackHeight,
-    beatsPerBar,
-    isLast,
-}: {
-    track: Track;
-    totalBeats: number;
-    beatWidth: number;
-    trackHeight: number;
-    beatsPerBar: number;
-    isLast: boolean;
-}) {
-    return (
-        <div
-            className={`relative flex-shrink-0 ${!isLast ? "border-b border-white/[0.06]" : ""}`}
-            style={{ height: trackHeight }}
-        >
-            {/* Beat / bar grid lines */}
-            {Array.from({ length: totalBeats }, (_, i) => i).map((beat) => (
-                <div
-                    key={beat}
-                    className={`absolute top-0 bottom-0 w-px ${beat % beatsPerBar === 0 ? "bg-white/[0.06]" : "bg-white/[0.03]"
-                        }`}
-                    style={{ left: beat * beatWidth }}
-                />
-            ))}
-
-            {/* Clips */}
-            {track.clips.map((clip) => (
-                <div
-                    key={clip.id}
-                    className="absolute top-2 bottom-2"
-                    style={{
-                        left: clip.start_time * beatWidth,
-                        width: clip.duration * beatWidth - 2,
-                    }}
-                >
-                    <TrackClip color={"rgba(255, 255, 255, 0.2)"} />
-                </div>
-            ))}
-        </div>
-    );
-}
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function TimelineGrid({
     tracks,
+    isLoading,
     beatsPerBar = 4,
     totalBars = 32,
     beatWidth = 48,
@@ -174,25 +66,33 @@ export default function TimelineGrid({
                     className="flex-shrink-0 border-r border-white/10 overflow-hidden"
                     style={{ width: LABEL_WIDTH }}
                 >
-                    {tracks.map((track, i) => (
-                        <div
-                            key={track.id}
-                            className={`flex items-center px-4 gap-3 ${i < tracks.length - 1 ? "border-b border-white/[0.06]" : ""
-                                }`}
-                            style={{ height: trackHeight }}
-                        >
-                            {/* Color dot */}
-                            <div
-                                className="w-2 h-2 rounded-full flex-shrink-0"
-                                style={{
-                                    backgroundColor: "rgba(255,255,255,0.2)",
-                                }}
-                            />
-                            <span className="text-sm text-white/70 truncate font-medium">
-                                {track.name}
-                            </span>
+                    {isLoading ? (
+                        <div className="p-4 flex flex-col gap-2">
+                            {Array.from({ length: 4 }).map((_, i) => (
+                                <div key={i} className="skeleton h-6 w-full rounded" />
+                            ))}
                         </div>
-                    ))}
+                    ) : (
+                        tracks.map((track, i) => (
+                            <div
+                                key={track.id}
+                                className={`flex items-center px-4 gap-3 ${i < tracks.length - 1 ? "border-b border-white/[0.06]" : ""
+                                    }`}
+                                style={{ height: trackHeight }}
+                            >
+                                {/* Color dot */}
+                                <div
+                                    className="w-2 h-2 rounded-full flex-shrink-0"
+                                    style={{
+                                        backgroundColor: "rgba(255, 0, 255, 0.2)",
+                                    }}
+                                />
+                                <span className="text-sm text-white/70 truncate font-medium">
+                                    {track.name}
+                                </span>
+                            </div>
+                        ))
+                    )}
 
                     {/* Add track button */}
                     <div
@@ -215,17 +115,25 @@ export default function TimelineGrid({
                     }}
                 >
                     <div style={{ width: contentWidth }}>
-                        {tracks.map((track, i) => (
-                            <TrackRow
-                                key={track.id}
-                                track={track}
-                                totalBeats={totalBeats}
-                                beatWidth={beatWidth}
-                                trackHeight={trackHeight}
-                                beatsPerBar={beatsPerBar}
-                                isLast={i === tracks.length - 1}
-                            />
-                        ))}
+                        {isLoading ? (
+                            <div className="flex flex-col gap-2 p-4">
+                                {Array.from({ length: 4 }).map((_, i) => (
+                                    <div key={i} className="skeleton h-20 w-full rounded-lg" />
+                                ))}
+                            </div>
+                        ) : (
+                            tracks.map((track, i) => (
+                                <TrackRow
+                                    key={track.id}
+                                    track={track}
+                                    totalBeats={totalBeats}
+                                    beatWidth={beatWidth}
+                                    trackHeight={trackHeight}
+                                    beatsPerBar={beatsPerBar}
+                                    isLast={i === tracks.length - 1}
+                                />
+                            ))
+                        )}
                     </div>
                 </div>
             </div>

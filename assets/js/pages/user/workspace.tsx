@@ -12,25 +12,25 @@ const WORKSPACE_ID = "test-workspace";
 export default function Workspace() {
     const { id } = useParams<{ id: string }>();
     const { cursors } = useWorkspaceRealtime(WORKSPACE_ID);
-    const project = useProject(Number(id));
+    const { project, isLoading } = useProject(Number(id));
 
     return (
         <div className="w-full h-screen bg-[#0d1117] flex flex-col overflow-hidden">
             <WorkspaceCursor cursors={cursors} />
 
             {/* ── Top bar ── */}
-            <WorkspaceTopBar projectTitle={project?.title} />
+            <WorkspaceTopBar isLoading={isLoading} projectTitle={project?.title} />
 
             {/* ── Main body ── */}
             <div className="flex flex-1 overflow-hidden">
                 {/* Sample browser */}
-                <SampleSidebar />
+                <SampleSidebar tracks={project?.tracks || []} />
 
                 {/* Timeline area */}
                 <div className="flex flex-col flex-1 overflow-hidden">
                     <WorkspaceToolbar />
                     <div className="flex-1 overflow-hidden">
-                        <TimelineGrid tracks={project?.tracks || []} />
+                        <TimelineGrid isLoading={isLoading} tracks={project?.tracks || []} />
                     </div>
                 </div>
             </div>
