@@ -1,5 +1,4 @@
 defmodule SoundsyncWeb.JSON do
-
   alias SoundsyncWeb.Formatter
 
   def encode!(data) do
@@ -28,5 +27,13 @@ defmodule SoundsyncWeb.JSON do
         Map.put(track, :clips, Enum.map(track.clips, &Formatter.format/1))
       end)
     end)
+  end
+
+  def track(%Core.DB.Track{} = track) do
+    Formatter.format(track)
+  end
+
+  def clip(%Core.DB.Clip{} = clip) do
+    Formatter.format(clip)
   end
 end

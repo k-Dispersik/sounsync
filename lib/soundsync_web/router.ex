@@ -15,9 +15,15 @@ defmodule SoundsyncWeb.Router do
   scope "/v1", SoundsyncWeb.API.V1 do
     pipe_through :api
 
-      get "/users/:id", UserController, :show
-      get "/projects", ProjectController, :index
-      get "/projects/:id", ProjectController, :show
+    get "/users/:id", UserController, :show
+
+    scope "/projects" do
+      get "/", ProjectController, :index
+      get "/:id", ProjectController, :show
+      post "/", ProjectController, :create
+      post "/:project_id/tracks", ProjectController, :create_track
+      post "/:project_id/tracks/:track_id/clips", ProjectController, :create_clip
+    end
   end
 
   if Application.compile_env(:soundsync, :dev_routes) do

@@ -14,7 +14,7 @@ defmodule Core.ProjectsCtx.Projects do
     |> validate_required([:title])
   end
 
-  def new(attrs \\ %{}), do:  %Project{} |> changeset(attrs)
+  def new(attrs \\ %{}), do: %Project{} |> changeset(attrs)
 
   def create(attrs), do: new(attrs) |> Repo.insert()
 
@@ -45,6 +45,10 @@ defmodule Core.ProjectsCtx.Projects do
     |> Ecto.build_assoc(:tracks)
     |> Tracks.changeset(track_attrs)
     |> Repo.insert()
+    |> case do
+      {:ok, track} -> {:ok, Repo.preload(track, :clips)}
+      error -> error
+    end
   end
 
   def get_tracks(%Project{} = project) do
@@ -61,11 +65,14 @@ defmodule Core.ProjectsCtx.Projects do
   end
 
   defp put_track(project_changeset, _, nil), do: project_changeset
-  defp put_track(_, %Project{tracks: nil}, _), do: raise(ArgumentError, "Tracks must be preloaded in the project struct")
+
+  defp put_track(_, %Project{tracks: nil}, _),
+    do: raise(ArgumentError, "Tracks must be preloaded in the project struct")
 
   defp put_track(project_changeset, %Project{tracks: existing_tracks}, tracks) do
     put_assoc(project_changeset, :tracks, existing_tracks ++ tracks)
   end
 
-  defp put_track(_, _, _), do: raise(ArgumentError, "Invalid project struct: tracks must be a list or nil")
+  defp put_track(_, _, _),
+    do: raise(ArgumentError, "Invalid project struct: tracks must be a list or nil")
 end
