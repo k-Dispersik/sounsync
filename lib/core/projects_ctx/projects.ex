@@ -53,11 +53,11 @@ defmodule Core.ProjectsCtx.Projects do
     |> Map.get(:tracks, [])
   end
 
-  def get_track_by_row_index(%Project{} = project, row_index) do
+  def get_track_by_id(%Project{} = project, track_id) do
     project
     |> Repo.preload(:tracks)
     |> Map.get(:tracks, [])
-    |> Enum.find(fn track -> track.row_index == row_index end)
+    |> Enum.find(fn track -> track.id == track_id end)
   end
 
   defp put_track(project_changeset, _, nil), do: project_changeset
