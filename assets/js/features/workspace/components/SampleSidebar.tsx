@@ -29,7 +29,7 @@ function SidebarTab({
     );
 }
 
-export default function SampleSidebar({ tracks }: { tracks?: any[] }) {
+export default function SampleSidebar({ tracks, isLoading }: { tracks?: any[], isLoading?: boolean }) {
     // Get samples based on current project tracks 
     const samples = useSampleSidebar(tracks ?? []);
 
@@ -58,22 +58,32 @@ export default function SampleSidebar({ tracks }: { tracks?: any[] }) {
 
             {/* Sample list */}
             <div className="flex-1 overflow-y-auto py-1">
-                {samples.map((s) => (
-                    <div
-                        key={s.id}
-                        className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-white/[0.04] group transition-colors"
-                    >
-                        <span className="text-base leading-none">{CAT_ICONS[s.cat] ?? "🎵"}</span>
-                        <div className="flex-1 min-w-0">
-                            <p className="text-sm text-white/75 truncate group-hover:text-white transition-colors">
-                                {s.name}
-                            </p>
-                            <p className="text-[11px] text-white/30">
-                                {s.cat} · {s.dur}
-                            </p>
-                        </div>
+
+                {isLoading ? (
+                    <div className="p-4 flex flex-col gap-2">
+                        {Array.from({ length: 4 }).map((_, i) => (
+                            <div key={i} className="skeleton h-10 w-full rounded" />
+                        ))}
                     </div>
-                ))}
+                ) : (
+
+                    samples.map((s) => (
+                        <div
+                            key={s.id}
+                            className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-white/[0.04] group transition-colors"
+                        >
+                            <span className="text-base leading-none">{CAT_ICONS[s.type] ?? "🎵"}</span>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm text-white/75 truncate group-hover:text-white transition-colors">
+                                    {s.title}
+                                </p>
+                                <p className="text-[11px] text-white/30">
+                                    {s.type} · {s.duration}s
+                                </p>
+                            </div>
+                        </div>
+                    ))
+                )}
             </div>
         </aside>
     );

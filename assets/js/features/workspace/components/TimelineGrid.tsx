@@ -88,7 +88,7 @@ export default function TimelineGrid({
                                     }}
                                 />
                                 <span className="text-sm text-white/70 truncate font-medium">
-                                    {track.name}
+                                    {`Track ${track.row_index + 1}`}
                                 </span>
                             </div>
                         ))

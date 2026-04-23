@@ -1,16 +1,18 @@
 import TrackClip from "./TrackClip";
 
 export interface Clip {
-    id: string;
+    id: number;
+    title?: string;
+    type?: string;
     start_time: number; // seconds
     duration: number; // seconds
-    settings: JSON;
+    settings?: unknown;
     file_path: string;
 }
 
 export interface Track {
-    id: string;
-    name: string;
+    id: number;
+    row_index: number;
     clips: Clip[];
 }
 

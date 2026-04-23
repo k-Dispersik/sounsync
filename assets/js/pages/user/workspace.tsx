@@ -12,7 +12,7 @@ const WORKSPACE_ID = "test-workspace";
 export default function Workspace() {
     const { id } = useParams<{ id: string }>();
     const { cursors } = useWorkspaceRealtime(WORKSPACE_ID);
-    const { project, isLoading } = useProject(Number(id));
+    const { project, isLoading, refetch } = useProject(Number(id));
 
     return (
         <div className="w-full h-screen bg-[#0d1117] flex flex-col overflow-hidden">
@@ -24,11 +24,11 @@ export default function Workspace() {
             {/* ── Main body ── */}
             <div className="flex flex-1 overflow-hidden">
                 {/* Sample browser */}
-                <SampleSidebar tracks={project?.tracks || []} />
+                <SampleSidebar tracks={project?.tracks || []} isLoading={isLoading} />
 
                 {/* Timeline area */}
                 <div className="flex flex-col flex-1 overflow-hidden">
-                    <WorkspaceToolbar />
+                    <WorkspaceToolbar projectId={Number(id)} tracks={project?.tracks || []} onTrackAdded={refetch} />
                     <div className="flex-1 overflow-hidden">
                         <TimelineGrid isLoading={isLoading} tracks={project?.tracks || []} />
                     </div>

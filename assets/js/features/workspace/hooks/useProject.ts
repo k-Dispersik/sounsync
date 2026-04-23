@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
-import { getProject, type Project } from "../api/getProject";
+import { useState, useEffect, useCallback } from "react";
+import { getProject, type Project } from "../api/projects";
 
 export function useProject(id: number) {
     const [project, setProject] = useState<Project | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
+    const fetch = useCallback(() => {
         setIsLoading(true);
         getProject(id).then((project) => {
             setProject(project);
@@ -13,5 +13,9 @@ export function useProject(id: number) {
         });
     }, [id]);
 
-    return { project, isLoading };
+    useEffect(() => {
+        fetch();
+    }, [fetch]);
+
+    return { project, isLoading, refetch: fetch };
 }

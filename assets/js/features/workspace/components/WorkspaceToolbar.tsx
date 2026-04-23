@@ -1,9 +1,25 @@
 import { Plus, Mic } from "lucide-react";
+import { createTrack } from "../api/tracks";
+import type { Track } from "../api/tracks";
 
-export default function WorkspaceToolbar() {
+interface Props {
+    projectId: number;
+    tracks: Track[];
+    onTrackAdded: () => void;
+}
+
+export default function WorkspaceToolbar({ projectId, tracks, onTrackAdded }: Props) {
+    const handleAddTrack = async () => {
+        await createTrack(projectId, { row: tracks.length + 1 });
+        onTrackAdded();
+    };
+
     return (
         <div className="flex items-center gap-4 px-4 h-9 bg-[#0d1117] border-b border-white/[0.07] flex-shrink-0">
-            <button className="flex items-center gap-1.5 text-xs text-white/50 hover:text-white/80 transition-colors">
+            <button
+                className="flex items-center gap-1.5 text-xs text-white/50 hover:text-white/80 transition-colors"
+                onClick={handleAddTrack}
+            >
                 <Plus size={13} />
                 Add Track
             </button>
