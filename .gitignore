@@ -4,6 +4,9 @@
 # The directory ElixirLS writes its compiled artifacts to.
 .elixir_ls/
 
+# vscode settings, including ElixirLS configuration, should not be committed to the repository.
+.vscode/
+
 # If you run "mix test --cover", coverage assets end up here.
 /cover/
 
