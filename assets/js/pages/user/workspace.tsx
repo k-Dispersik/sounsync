@@ -28,9 +28,9 @@ export default function Workspace() {
 
                 {/* Timeline area */}
                 <div className="flex flex-col flex-1 overflow-hidden">
-                    <WorkspaceToolbar projectId={Number(id)} tracks={project?.tracks || []} onTrackAdded={refetch} />
+                    <WorkspaceToolbar projectId={Number(id)} tracks={project?.tracks || []} onTrackChanged={refetch} />
                     <div className="flex-1 overflow-hidden">
-                        <TimelineGrid isLoading={isLoading} tracks={project?.tracks || []} />
+                        <TimelineGrid isLoading={isLoading} tracks={project?.tracks || []} onTrackChanged={refetch} />
                     </div>
                 </div>
             </div>
