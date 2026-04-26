@@ -1,20 +1,7 @@
 import TrackClip from "./TrackClip";
+import type { Clip, Track } from "../api/tracks";
 
-export interface Clip {
-    id: number;
-    title?: string;
-    type?: string;
-    start_time: number; // seconds
-    duration: number; // seconds
-    settings?: unknown;
-    file_path: string;
-}
-
-export interface Track {
-    id: number;
-    row_index: number;
-    clips: Clip[];
-}
+export type { Clip, Track };
 
 export default function TrackRow({
     track,

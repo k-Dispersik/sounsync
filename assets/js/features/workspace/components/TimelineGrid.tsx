@@ -3,6 +3,8 @@ import Ruler, { RULER_HEIGHT } from "./Ruler";
 import TrackRow from "./TrackRow";
 import type { Track } from "./TrackRow";
 export type { Clip, Track } from "./TrackRow";
+import { Trash2 } from "lucide-react";
+import { deleteTrack } from "../api/tracks";
 
 interface Props {
     tracks: Track[];
@@ -15,6 +17,7 @@ interface Props {
     beatWidth?: number;
     /** Pixel height of each track row — default 80 */
     trackHeight?: number;
+    onTrackChanged: () => void;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -30,10 +33,16 @@ export default function TimelineGrid({
     totalBars = 32,
     beatWidth = 48,
     trackHeight = 80,
+    onTrackChanged,
 }: Props) {
     const scrollRef = useRef<HTMLDivElement>(null);
     const totalBeats = totalBars * beatsPerBar;
     const contentWidth = totalBeats * beatWidth;
+
+    const handleRemoveTrack = async (projectId: number, trackId: number) => {
+        await deleteTrack(projectId, trackId);
+        onTrackChanged();
+    };
 
     return (
         <div className="flex flex-col h-full overflow-hidden bg-zinc-950 select-none">
@@ -59,9 +68,7 @@ export default function TimelineGrid({
                 </div>
             </div>
 
-            {/* ── Body: labels + scrollable content ── */}
             <div className="flex flex-1 overflow-hidden">
-                {/* Track labels (fixed) */}
                 <div
                     className="flex-shrink-0 border-r border-white/10 overflow-hidden"
                     style={{ width: LABEL_WIDTH }}
@@ -80,29 +87,19 @@ export default function TimelineGrid({
                                     }`}
                                 style={{ height: trackHeight }}
                             >
+
                                 {/* Color dot */}
-                                <div
-                                    className="w-2 h-2 rounded-full flex-shrink-0"
-                                    style={{
-                                        backgroundColor: "rgba(255, 0, 255, 0.2)",
-                                    }}
-                                />
+                                <Trash2
+                                    onClick={() => handleRemoveTrack(track.project_id, track.id)}
+                                    size={18}
+                                    className="text-white/20 cursor-pointer hover:text-white/50 transition-colors" />
+
                                 <span className="text-sm text-white/70 truncate font-medium">
                                     {`Track ${track.row_index + 1}`}
                                 </span>
                             </div>
                         ))
                     )}
-
-                    {/* Add track button */}
-                    <div
-                        className="flex items-center px-4 cursor-pointer group"
-                        style={{ height: 40 }}
-                    >
-                        <span className="text-xs text-white/25 group-hover:text-white/50 transition-colors">
-                            + Add track
-                        </span>
-                    </div>
                 </div>
 
                 {/* Scrollable content */}

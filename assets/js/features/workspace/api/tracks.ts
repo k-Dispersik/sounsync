@@ -12,6 +12,7 @@ export interface Clip {
 
 export interface Track {
     id: number;
+    project_id: number;
     row_index: number;
     clips: Clip[];
 }

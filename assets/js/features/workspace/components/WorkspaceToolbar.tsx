@@ -5,13 +5,13 @@ import type { Track } from "../api/tracks";
 interface Props {
     projectId: number;
     tracks: Track[];
-    onTrackAdded: () => void;
+    onTrackChanged: () => void;
 }
 
-export default function WorkspaceToolbar({ projectId, tracks, onTrackAdded }: Props) {
+export default function WorkspaceToolbar({ projectId, tracks, onTrackChanged }: Props) {
     const handleAddTrack = async () => {
         await createTrack(projectId, { row: tracks.length + 1 });
-        onTrackAdded();
+        onTrackChanged();
     };
 
     return (

@@ -1,5 +1,4 @@
 defmodule SoundsyncWeb.Formatter do
-
   def format(%Core.DB.User{} = user) do
     %{
       id: user.id,
@@ -20,6 +19,7 @@ defmodule SoundsyncWeb.Formatter do
   def format(%Core.DB.Track{} = track) do
     %{
       id: track.id,
+      project_id: track.project_id,
       row_index: track.row_index,
       clips: Enum.map(track.clips, &format/1)
     }
