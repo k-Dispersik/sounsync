@@ -31,7 +31,7 @@ defmodule SoundsyncWeb.API.V1.ProjectController do
     after
       JSON.project(project, :detailed) |> Helpers.response(conn, :created)
     rescue
-      e -> Helpers.response(%{error: e}, conn, :bad_request)
+      e -> Helpers.response(%{error: e}, conn, :internal_server_error)
     end
   end
 
@@ -42,19 +42,31 @@ defmodule SoundsyncWeb.API.V1.ProjectController do
     after
       JSON.track(track) |> Helpers.response(conn, :created)
     rescue
-      e -> Helpers.response(%{error: e}, conn, :bad_request)
+      e -> Helpers.response(%{error: e}, conn, :internal_server_error)
     end
   end
 
   def create_clip(conn, %{"project_id" => project_id, "track_id" => track_id}) do
     OK.try do
       project <- Projects.get(project_id, assoc: [tracks: [:clips]]) |> OK.required()
-      track <- Projects.get_track_by_id(project, track_id) |> OK.required()
+      track <- Projects.get_track_by_id(project, String.to_integer(track_id)) |> OK.required()
       clip <- Tracks.add_clip(track, track)
     after
       JSON.clip(clip) |> Helpers.response(conn, :created)
     rescue
-      e -> Helpers.response(%{error: e}, conn, :bad_request)
+      e -> Helpers.response(%{error: e}, conn, :internal_server_error)
+    end
+  end
+
+  def delete_track(conn, %{"project_id" => project_id, "track_id" => track_id}) do
+    OK.try do
+      project <- Projects.get(project_id, assoc: [:tracks]) |> OK.required()
+      track <- Projects.get_track_by_id(project, String.to_integer(track_id)) |> OK.required()
+      _ <- Tracks.delete(track) |> IO.inspect(label: "Deleted track")
+    after
+      Helpers.response(%{message: "Track deleted"}, conn, :ok)
+    rescue
+      e -> Helpers.response(%{error: e}, conn, :internal_server_error)
     end
   end
 end

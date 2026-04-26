@@ -23,6 +23,7 @@ defmodule SoundsyncWeb.Router do
       post "/", ProjectController, :create
       post "/:project_id/tracks", ProjectController, :create_track
       post "/:project_id/tracks/:track_id/clips", ProjectController, :create_clip
+      delete "/:project_id/tracks/:track_id", ProjectController, :delete_track
     end
   end
 

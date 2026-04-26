@@ -57,7 +57,7 @@ defmodule Core.ProjectsCtx.Projects do
     |> Map.get(:tracks, [])
   end
 
-  def get_track_by_id(%Project{} = project, track_id) do
+  def get_track_by_id(%Project{} = project, track_id) when is_integer(track_id) do
     project
     |> Repo.preload(:tracks)
     |> Map.get(:tracks, [])
