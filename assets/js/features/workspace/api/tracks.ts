@@ -1,21 +1,5 @@
 import apiClient from "../../../shared/api/client";
-
-export interface Clip {
-    id: number;
-    title: string;
-    type: string;
-    start_time: number;
-    duration: number;
-    settings?: unknown;
-    file_path: string;
-}
-
-export interface Track {
-    id: number;
-    project_id: number;
-    row_index: number;
-    clips: Clip[];
-}
+import type { Track } from "../../../shared/types/index";
 
 export interface CreateTrackDTO {
     row: number;

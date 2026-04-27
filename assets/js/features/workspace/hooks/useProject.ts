@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { getProject, type Project } from "../api/projects";
+import { getProject } from "../api/projects";
+import type { Project } from "../../../shared/types/index";
 
 export function useProject(id: number) {
     const [project, setProject] = useState<Project | null>(null);

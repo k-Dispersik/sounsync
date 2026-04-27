@@ -1,8 +1,7 @@
 import { useRef } from "react";
 import Ruler, { RULER_HEIGHT } from "./Ruler";
 import TrackRow from "./TrackRow";
-import type { Track } from "./TrackRow";
-export type { Clip, Track } from "./TrackRow";
+import type { Track } from "../../../shared/types/index";
 import { Trash2 } from "lucide-react";
 import { deleteTrack } from "../api/tracks";
 

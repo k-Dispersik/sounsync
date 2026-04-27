@@ -1,12 +1,5 @@
 import apiClient from "../../../shared/api/client";
-import type { Track } from "./tracks";
-
-export interface Project {
-    id: number;
-    title: string;
-    description: string | null;
-    tracks: Track[];
-}
+import type { Project } from "../../../shared/types/index";
 
 export interface CreateProjectDTO {
     title: string;

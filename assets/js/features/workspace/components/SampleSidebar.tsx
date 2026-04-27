@@ -1,6 +1,7 @@
 import React from "react";
 import { Search, Upload, Music2, Clock, Users } from "lucide-react";
 import useSampleSidebar from "../hooks/useSampleSidebar";
+import type { Track } from "../../../shared/types/index";
 
 const CAT_ICONS: Record<string, string> = {
     drums: "🥁",
@@ -29,7 +30,7 @@ function SidebarTab({
     );
 }
 
-export default function SampleSidebar({ tracks, isLoading }: { tracks?: any[], isLoading?: boolean }) {
+export default function SampleSidebar({ tracks, isLoading }: { tracks?: Track[]; isLoading?: boolean }) {
     // Get samples based on current project tracks 
     const samples = useSampleSidebar(tracks ?? []);
 

@@ -1,14 +1,5 @@
 import apiClient from "../../../shared/api/client";
-
-export interface Clip {
-    id: number;
-    title: string;
-    type: string;
-    start_time: number;
-    duration: number;
-    track_id: number;
-    file_path: string;
-}
+import type { Clip } from "../../../shared/types/index";
 
 export interface CreateClipDTO {
     title: string;

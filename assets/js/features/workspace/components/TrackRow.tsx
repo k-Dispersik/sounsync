@@ -1,7 +1,5 @@
 import TrackClip from "./TrackClip";
-import type { Clip, Track } from "../api/tracks";
-
-export type { Clip, Track };
+import type { Track } from "../../../shared/types/index";
 
 export default function TrackRow({
     track,

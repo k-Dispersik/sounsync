@@ -1,6 +1,6 @@
 import { Plus, Mic } from "lucide-react";
 import { createTrack } from "../api/tracks";
-import type { Track } from "../api/tracks";
+import type { Track } from "../../../shared/types/index";
 
 interface Props {
     projectId: number;
