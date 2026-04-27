@@ -1,5 +1,5 @@
 import React from "react";
-import { Search, Upload, Music2, Clock, Users } from "lucide-react";
+import { Search, Upload, Music2, Clock } from "lucide-react";
 import useSampleSidebar from "../hooks/useSampleSidebar";
 import type { Track } from "../../../shared/types/index";
 

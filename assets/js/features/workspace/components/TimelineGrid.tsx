@@ -1,9 +1,15 @@
-import { useRef } from "react";
+import { useState, useRef } from "react";
 import Ruler, { RULER_HEIGHT } from "./Ruler";
 import TrackRow from "./TrackRow";
 import type { Track } from "../../../shared/types/index";
 import { Trash2 } from "lucide-react";
 import { deleteTrack } from "../api/tracks";
+
+interface SelectedPosition {
+    second: number;
+    trackId: number | null;
+    rowIndex: number | null;
+}
 
 interface Props {
     tracks: Track[];
@@ -35,12 +41,33 @@ export default function TimelineGrid({
     onTrackChanged,
 }: Props) {
     const scrollRef = useRef<HTMLDivElement>(null);
+    const [hoveredSecond, setHoveredSecond] = useState<number | null>(null);
+    const [hoveredTrackId, setHoveredTrackId] = useState<number | null>(null);
+    const [selectedPosition, setSelectedPosition] = useState<SelectedPosition | null>(null);
     const totalBeats = totalBars * beatsPerBar;
     const contentWidth = totalBeats * beatWidth;
 
     const handleRemoveTrack = async (projectId: number, trackId: number) => {
         await deleteTrack(projectId, trackId);
         onTrackChanged();
+    };
+
+    const handleRulerSecondClick = (second: number) => {
+        setSelectedPosition({ second, trackId: null, rowIndex: null });
+    };
+
+    const handleTrackSecondClick = (second: number, trackId: number, rowIndex: number) => {
+        setSelectedPosition({ second, trackId, rowIndex });
+    };
+
+    const handleTrackSecondHover = (second: number, trackId: number) => {
+        setHoveredSecond(second);
+        setHoveredTrackId(trackId);
+    };
+
+    const handleSecondLeave = () => {
+        setHoveredSecond(null);
+        setHoveredTrackId(null);
     };
 
     return (
@@ -63,6 +90,14 @@ export default function TimelineGrid({
                         totalBars={totalBars}
                         beatsPerBar={beatsPerBar}
                         beatWidth={beatWidth}
+                        hoveredSecond={hoveredSecond}
+                        selectedSecond={selectedPosition?.second ?? null}
+                        onSecondHover={(second) => {
+                            setHoveredSecond(second);
+                            setHoveredTrackId(null);
+                        }}
+                        onSecondLeave={handleSecondLeave}
+                        onSecondClick={handleRulerSecondClick}
                     />
                 </div>
             </div>
@@ -72,6 +107,15 @@ export default function TimelineGrid({
                     className="flex-shrink-0 border-r border-white/10 overflow-hidden"
                     style={{ width: LABEL_WIDTH }}
                 >
+                    <div className="flex h-8 items-center border-b border-white/[0.06] px-4 text-[10px] font-medium uppercase tracking-[0.18em] text-white/35">
+                        {selectedPosition !== null
+                            ? selectedPosition.rowIndex !== null
+                                ? `Track ${selectedPosition.rowIndex + 1} @ ${selectedPosition.second + 1}s`
+                                : `Ruler @ ${selectedPosition.second + 1}s`
+                            : hoveredSecond !== null
+                                ? `Hover ${hoveredSecond + 1}s`
+                                : "Timeline"}
+                    </div>
                     {isLoading ? (
                         <div className="p-4 flex flex-col gap-2">
                             {Array.from({ length: 4 }).map((_, i) => (
@@ -127,6 +171,13 @@ export default function TimelineGrid({
                                     trackHeight={trackHeight}
                                     beatsPerBar={beatsPerBar}
                                     isLast={i === tracks.length - 1}
+                                    hoveredSecond={hoveredSecond}
+                                    hoveredTrackId={hoveredTrackId}
+                                    selectedSecond={selectedPosition?.second ?? null}
+                                    selectedTrackId={selectedPosition?.trackId ?? null}
+                                    onSecondHover={handleTrackSecondHover}
+                                    onSecondLeave={handleSecondLeave}
+                                    onSecondClick={handleTrackSecondClick}
                                 />
                             ))
                         )}

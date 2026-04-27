@@ -42,7 +42,7 @@ export default function TrackClip({
 
     return (
         <div
-            className={`relative h-full rounded-lg overflow-hidden cursor-pointer group/clip transition-all hover:scale-[1.02] ${className}`}
+            className={`relative h-full overflow-hidden cursor-pointer group/clip transition-all hover:scale-[1.01] ${className}`}
             style={{
                 backgroundColor: `${color}20`,
                 border: `1px solid ${color}40`,
@@ -73,8 +73,8 @@ export default function TrackClip({
             </div>
 
             {/* ── Resize handles (visible on hover) ── */}
-            <div className="absolute left-0 top-0 w-2 h-full cursor-w-resize opacity-0 group-hover/clip:opacity-100 bg-white/20 transition-opacity" />
-            <div className="absolute right-0 top-0 w-2 h-full cursor-e-resize opacity-0 group-hover/clip:opacity-100 bg-white/20 transition-opacity" />
+            <div className="absolute left-0 top-0 w-1 h-full cursor-w-resize opacity-0 group-hover/clip:opacity-100 bg-white/20 transition-opacity" />
+            <div className="absolute right-0 top-0 w-1 h-full cursor-e-resize opacity-0 group-hover/clip:opacity-100 bg-white/20 transition-opacity" />
         </div>
     )
 }
