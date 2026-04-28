@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import Ruler, { RULER_HEIGHT } from "./Ruler";
+import { useState, useRef, type CSSProperties, useEffect } from "react";
+import Ruler from "./Ruler";
 import TrackRow from "./TrackRow";
 import type { Track } from "../../../shared/types/index";
 import { Trash2 } from "lucide-react";
@@ -25,12 +25,6 @@ interface Props {
     onTrackChanged: () => void;
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const LABEL_WIDTH = 168; // px — left sidebar
-
-// ─── Main component ───────────────────────────────────────────────────────────
-
 export default function TimelineGrid({
     tracks,
     isLoading,
@@ -41,6 +35,7 @@ export default function TimelineGrid({
     onTrackChanged,
 }: Props) {
     const scrollRef = useRef<HTMLDivElement>(null);
+    // const [playheadPosition, setPlayheadPosition] = useState(0);
     const [hoveredSecond, setHoveredSecond] = useState<number | null>(null);
     const [hoveredTrackId, setHoveredTrackId] = useState<number | null>(null);
     const [selectedPosition, setSelectedPosition] = useState<SelectedPosition | null>(null);
@@ -70,14 +65,21 @@ export default function TimelineGrid({
         setHoveredTrackId(null);
     };
 
+    // useEffect(() => {
+    //     const interval = setInterval(() => {
+    //         setHoveredSecond((prev) => (prev !== null ? prev + 1 : null));
+    //     }, 250);
+
+    //     return () => clearInterval(interval);
+    // }, []);
+
     return (
         <div className="flex flex-col h-full overflow-hidden bg-zinc-950 select-none">
             {/* ── Header row ── */}
             <div className="flex flex-shrink-0 border-b border-white/10">
                 {/* Corner cell */}
                 <div
-                    className="flex-shrink-0 bg-zinc-900/80 border-r border-white/10 flex items-center px-4"
-                    style={{ width: LABEL_WIDTH, height: RULER_HEIGHT }}
+                    className="flex h-8 w-[168px] flex-shrink-0 items-center border-r border-white/10 bg-zinc-900/80 px-4"
                 >
                     <span className="text-[10px] uppercase tracking-widest text-white/30 font-semibold">
                         Tracks
@@ -103,19 +105,7 @@ export default function TimelineGrid({
             </div>
 
             <div className="flex flex-1 overflow-hidden">
-                <div
-                    className="flex-shrink-0 border-r border-white/10 overflow-hidden"
-                    style={{ width: LABEL_WIDTH }}
-                >
-                    <div className="flex h-8 items-center border-b border-white/[0.06] px-4 text-[10px] font-medium uppercase tracking-[0.18em] text-white/35">
-                        {selectedPosition !== null
-                            ? selectedPosition.rowIndex !== null
-                                ? `Track ${selectedPosition.rowIndex + 1} @ ${selectedPosition.second + 1}s`
-                                : `Ruler @ ${selectedPosition.second + 1}s`
-                            : hoveredSecond !== null
-                                ? `Hover ${hoveredSecond + 1}s`
-                                : "Timeline"}
-                    </div>
+                <div className="w-[168px] flex-shrink-0 overflow-hidden border-r border-white/10">
                     {isLoading ? (
                         <div className="p-4 flex flex-col gap-2">
                             {Array.from({ length: 4 }).map((_, i) => (
@@ -154,7 +144,7 @@ export default function TimelineGrid({
                         }
                     }}
                 >
-                    <div style={{ width: contentWidth }}>
+                    <div className="w-[var(--timeline-width)]" style={{ "--timeline-width": `${contentWidth}px` } as CSSProperties}>
                         {isLoading ? (
                             <div className="flex flex-col gap-2 p-4">
                                 {Array.from({ length: 4 }).map((_, i) => (

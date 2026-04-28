@@ -1,4 +1,4 @@
-import React from "react";
+import React, { type CSSProperties } from "react";
 
 export const RULER_HEIGHT = 32; // px — top ruler
 
@@ -23,33 +23,36 @@ export default function Ruler({
 }) {
     const bars = Array.from({ length: totalBars }, (_, i) => i);
     const totalSeconds = totalBars * beatsPerBar;
+    const rulerStyle = {
+        "--ruler-width": `${totalSeconds * beatWidth}px`,
+        "--hover-indicator-x": `${(hoveredSecond ?? 0) * beatWidth + beatWidth / 2}px`,
+    } as CSSProperties;
 
     return (
         <div
-            className="relative flex-shrink-0 border-b border-white/10 bg-zinc-900/80"
-            style={{ height: RULER_HEIGHT, width: totalBars * beatsPerBar * beatWidth }}
+            className="relative h-8 w-[var(--ruler-width)] flex-shrink-0 border-b border-white/10 bg-zinc-900/80"
+            style={rulerStyle}
         >
             {Array.from({ length: totalSeconds }, (_, second) => {
-                const isHovered = hoveredSecond === second;
-                const isSelected = selectedSecond === second;
+                const indicatorClassName = selectedSecond === second
+                    ? "bg-cyan-200/80"
+                    : hoveredSecond === second
+                        ? "bg-cyan-100/60"
+                        : "bg-transparent";
 
                 return (
                     <button
                         key={second}
                         type="button"
                         aria-label={`Jump to second ${second + 1}`}
-                        className="absolute inset-y-0 z-10 cursor-pointer"
-                        style={{ left: second * beatWidth, width: beatWidth }}
+                        className="absolute inset-y-0 z-10 w-[var(--beat-width)] cursor-pointer"
+                        style={{ "--beat-width": `${beatWidth}px`, left: second * beatWidth } as CSSProperties}
                         onMouseEnter={() => onSecondHover(second)}
                         onMouseLeave={onSecondLeave}
                         onClick={() => onSecondClick(second)}
                     >
                         <span
-                            className={`pointer-events-none absolute inset-y-0 left-0 w-px transition-colors ${isSelected ? "bg-cyan-200/80"
-                                : isHovered
-                                    ? "bg-cyan-100/60"
-                                    : "bg-transparent"
-                                }`}
+                            className={`pointer-events-none absolute inset-y-0 left-0 w-px transition-colors ${indicatorClassName}`}
                         />
                     </button>
                 );
@@ -86,7 +89,7 @@ export default function Ruler({
             {hoveredSecond !== null && (
                 <div
                     className="pointer-events-none absolute -top-7 z-20 rounded-md border border-cyan-300/30 bg-cyan-400/12 px-2 py-1 text-[10px] font-medium text-cyan-100 shadow-lg shadow-cyan-950/30"
-                    style={{ left: hoveredSecond * beatWidth + beatWidth / 2, transform: "translateX(-50%)" }}
+                    style={{ left: "var(--hover-indicator-x)", transform: "translateX(-50%)" }}
                 >
                     {`${hoveredSecond + 1}s`}
                 </div>

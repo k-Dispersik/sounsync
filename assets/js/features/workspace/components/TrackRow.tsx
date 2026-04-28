@@ -1,5 +1,23 @@
-import TrackClip from "./TrackClip";
+import type { CSSProperties } from "react";
 import type { Track } from "../../../shared/types/index";
+import TrackClip from "./TrackClip";
+import { TrackCell } from "./TrackCell";
+
+interface TrackRowProps {
+    track: Track;
+    totalBeats: number;
+    beatWidth: number;
+    trackHeight: number;
+    beatsPerBar: number;
+    isLast: boolean;
+    hoveredSecond: number | null;
+    hoveredTrackId: number | null;
+    selectedSecond: number | null;
+    selectedTrackId: number | null;
+    onSecondHover: (second: number, trackId: number) => void;
+    onSecondLeave: () => void;
+    onSecondClick: (second: number, trackId: number, rowIndex: number) => void;
+}
 
 export default function TrackRow({
     track,
@@ -15,59 +33,44 @@ export default function TrackRow({
     onSecondHover,
     onSecondLeave,
     onSecondClick,
-}: {
-    track: Track;
-    totalBeats: number;
-    beatWidth: number;
-    trackHeight: number;
-    beatsPerBar: number;
-    isLast: boolean;
-    hoveredSecond: number | null;
-    hoveredTrackId: number | null;
-    selectedSecond: number | null;
-    selectedTrackId: number | null;
-    onSecondHover: (second: number, trackId: number) => void;
-    onSecondLeave: () => void;
-    onSecondClick: (second: number, trackId: number, rowIndex: number) => void;
-}) {
+}: TrackRowProps) {
+    const rowStyle = {
+        "--track-row-height": `${trackHeight}px`,
+        "--playhead-x": `${(hoveredSecond ?? selectedSecond ?? 0) * beatWidth}px`,
+    } as CSSProperties;
+
     return (
         <div
-            className={`relative flex-shrink-0 ${!isLast ? "border-b border-white/[0.06]" : ""}`}
-            style={{ height: trackHeight }}
+            className={`relative h-[var(--track-row-height)] flex-shrink-0 ${!isLast ? "border-b border-white/[0.06]" : ""}`}
+            style={rowStyle}
         >
-            {/* Clickable second cells */}
-            {Array.from({ length: totalBeats }, (_, second) => {
-                const isHovered = hoveredSecond === second && hoveredTrackId === track.id;
-                const isSelected = selectedSecond === second && selectedTrackId === track.id;
+            {Array.from({ length: totalBeats }, (_, second) => (
+                <TrackCell
+                    key={`cell-${track.id}-${second}`}
+                    track={track}
+                    second={second}
+                    beatWidth={beatWidth}
+                    hoveredSecond={hoveredSecond}
+                    hoveredTrackId={hoveredTrackId}
+                    selectedSecond={selectedSecond}
+                    selectedTrackId={selectedTrackId}
+                    onSecondHover={onSecondHover}
+                    onSecondLeave={onSecondLeave}
+                    onSecondClick={onSecondClick}
+                />
+            ))}
 
+            {Array.from({ length: totalBeats }, (_, i) => i).map((beat) => {
+                const isBar = beat % beatsPerBar === 0;
                 return (
-                    <button
-                        key={`cell-${track.id}-${second}`}
-                        type="button"
-                        aria-label={`Select second ${second + 1} on track ${track.row_index + 1}`}
-                        className={`absolute inset-y-0 z-0 cursor-pointer transition-colors ${isSelected
-                            ? "bg-cyan-400/10"
-                            : isHovered
-                                ? "bg-cyan-200/10"
-                                : "bg-transparent"
+                    <div
+                        key={`grid-line-${track.id}-${beat}`}
+                        className={`pointer-events-none absolute top-0 bottom-0 w-px ${isBar ? "bg-white/[0.06]" : "bg-white/[0.03]"
                             }`}
-                        style={{ left: second * beatWidth, width: beatWidth }}
-                        onMouseEnter={() => onSecondHover(second, track.id)}
-                        onMouseLeave={onSecondLeave}
-                        onClick={() => onSecondClick(second, track.id, track.row_index)}
+                        style={{ left: beat * beatWidth }}
                     />
                 );
             })}
-
-            {/* Beat / bar grid lines */}
-            {Array.from({ length: totalBeats }, (_, i) => i).map((beat) => (
-                <div
-                    key={beat}
-                    className={`pointer-events-none absolute top-0 bottom-0 w-px ${beat === 0 ? "bg-white/[0.06]" : "bg-white/[0.03]"
-                        }`}
-                    style={{ left: beat * beatWidth }}
-                />
-            ))}
 
             {(hoveredSecond !== null || (selectedSecond !== null && selectedTrackId === track.id)) && (
                 <div
@@ -75,23 +78,13 @@ export default function TrackRow({
                         ? "bg-cyan-300/80"
                         : "bg-cyan-200/45"
                         }`}
-                    style={{ left: (hoveredSecond ?? selectedSecond ?? 0) * beatWidth }}
+                    style={{ left: "var(--playhead-x)" }}
                 />
             )}
 
             {/* Clips */}
             {track.clips.map((clip) => (
-                <div
-                    key={clip.id}
-                    className="absolute top-2 bottom-2 z-20"
-                    style={{
-                        left: clip.start_time * beatWidth,
-                        width: clip.duration * beatWidth - 2,
-                    }}
-                >
-                    <TrackClip color={"rgba(255, 0, 255, 0.2)"} />
-                </div>
-            ))}
+                <TrackClip key={clip.id} color={"rgba(255, 0, 255, 0.2)"} clip={clip} beatWidth={beatWidth} />))}
         </div>
     );
 }
