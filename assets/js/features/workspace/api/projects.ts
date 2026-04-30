@@ -1,5 +1,5 @@
 import apiClient from "../../../shared/api/client";
-import type { Project } from "../../../shared/types/index";
+import type { Project, ProjectSettings } from "../../../shared/types/index";
 
 export interface CreateProjectDTO {
     title: string;
@@ -18,5 +18,10 @@ export async function getProject(id: number): Promise<Project> {
 
 export async function createProject(dto: CreateProjectDTO): Promise<Project> {
     const { data } = await apiClient.post<Project>("/projects", dto);
+    return data;
+}
+
+export async function updateProjectSettings(id: number, settings: ProjectSettings): Promise<Project> {
+    const { data } = await apiClient.patch<Project>(`/projects/${id}/settings`, { settings });
     return data;
 }

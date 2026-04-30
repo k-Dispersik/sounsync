@@ -11,7 +11,15 @@ defmodule Core.ProjectsCtx.Projects do
   def changeset(project, attrs) do
     project
     |> cast(attrs, [:title, :description])
+    |> cast_embed(:settings, with: &project_settings_changeset/2)
     |> validate_required([:title])
+  end
+
+  def project_settings_changeset(settings, attrs) do
+    settings
+    |> cast(attrs, [:bpm])
+    |> validate_required([:bpm])
+    |> validate_number(:bpm, greater_than: 0)
   end
 
   def new(attrs \\ %{}), do: %Project{} |> changeset(attrs)

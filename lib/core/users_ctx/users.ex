@@ -43,7 +43,9 @@ defmodule Core.UsersCtx.Users do
     case changeset do
       %Ecto.Changeset{valid?: true, changes: %{password: password}} ->
         put_change(changeset, :password, Bcrypt.hash_pwd_salt(password))
-      _ -> changeset
+
+      _ ->
+        changeset
     end
   end
 end

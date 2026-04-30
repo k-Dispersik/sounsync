@@ -69,4 +69,48 @@ defmodule SoundsyncWeb.API.V1.ProjectController do
       e -> Helpers.response(%{error: e}, conn, :internal_server_error)
     end
   end
+
+  def update_settings(conn, %{"id" => id} = params) do
+    OK.try do
+      project <- Projects.get(id, assoc: [tracks: [:clips]]) |> OK.required()
+      settings_attrs <- params |> project_settings_attrs() |> OK.required()
+      _ <- Projects.update(project, %{settings: settings_attrs})
+      updated_project <- Projects.get(id, assoc: [tracks: [:clips]]) |> OK.required()
+    after
+      JSON.project(updated_project, :detailed) |> Helpers.response(conn, :ok)
+    rescue
+      _e ->
+        Helpers.response(
+          %{error: "Failed to update project settings"},
+          conn,
+          :unprocessable_entity
+        )
+    end
+  end
+
+  defp project_settings_attrs(%{"settings" => settings_params}) when is_map(settings_params) do
+    with {:ok, bpm} <- extract_bpm(settings_params) do
+      %{bpm: bpm}
+    else
+      _ -> nil
+    end
+  end
+
+  defp project_settings_attrs(_params), do: nil
+
+  defp extract_bpm(settings_params) do
+    case settings_params["bpm"] || settings_params["BPM"] || settings_params[:bpm] do
+      bpm when is_integer(bpm) ->
+        {:ok, bpm}
+
+      bpm when is_binary(bpm) ->
+        case Integer.parse(bpm) do
+          {parsed_bpm, ""} -> {:ok, parsed_bpm}
+          _ -> :error
+        end
+
+      _ ->
+        :error
+    end
+  end
 end

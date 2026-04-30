@@ -10,7 +10,7 @@ defmodule Core.ProjectsCtx.Clips do
     |> validate_required([:type, :start_time, :duration])
   end
 
-  def new(attrs \\ %{}), do:  %Clip{} |> changeset(attrs)
+  def new(attrs \\ %{}), do: %Clip{} |> changeset(attrs)
 
   def create(attrs), do: new(attrs) |> Repo.insert()
 

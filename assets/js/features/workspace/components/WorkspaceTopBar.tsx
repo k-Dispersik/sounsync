@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
     SkipBack,
     Square,
@@ -13,6 +13,8 @@ import {
     Plus
 } from "lucide-react";
 import { Logo } from "js/shared/components/Logo";
+import { useProjectBPM } from "js/features/workspace/hooks/useProjectBPM";
+import type { ProjectSettings } from "../../../shared/types";
 
 const AVATARS = [
     { initials: "A", color: "#6366f1" },
@@ -30,11 +32,12 @@ function TransportBtn({ children }: { children: React.ReactNode }) {
 
 interface Props {
     projectTitle?: string;
-    projectSettings?: { BPM?: number };
+    projectSettings?: ProjectSettings | null;
+    onBPMChange?: (BPM: number) => Promise<void>;
     isLoading: boolean;
 }
 
-export default function WorkspaceTopBar({ projectTitle, projectSettings, isLoading }: Props) {
+export default function WorkspaceTopBar({ projectTitle, projectSettings, onBPMChange, isLoading }: Props) {
     return (
         <header className="flex items-center gap-4 px-4 h-14 bg-[#0d1117] border-b border-white/[0.07] flex-shrink-0 z-20">
             <Logo size={16} showText={true} />
@@ -61,7 +64,7 @@ export default function WorkspaceTopBar({ projectTitle, projectSettings, isLoadi
             </div>
 
             <div className="flex items-center gap-3 mr-4">
-                <BPMInput BPM={projectSettings?.BPM} />
+                <BPMInput BPM={projectSettings?.BPM} onChange={onBPMChange} />
                 <input className="field w-32" disabled value={"00:00:00.000"} />
             </div>
 
@@ -73,29 +76,43 @@ export default function WorkspaceTopBar({ projectTitle, projectSettings, isLoadi
 
 
 
-function BPMInput({ BPM }: { BPM?: number }) {
-    const [isBPMModalOpen, setIsBPMModalOpen] = useState(false);
+function BPMInput({ BPM = 120, onChange }: { BPM?: number; onChange?: (BPM: number) => Promise<void> }) {
+    const { draftBPM, isOpen, isSaving, open, close, commit, setDraftBPM } = useProjectBPM({ BPM, onChange });
+
     return (
         <>
-            {isBPMModalOpen ? (
+            {isOpen ? (
                 <label className="field-shell">
                     <span className="field-label">BPM</span>
                     <input
                         type="number"
                         className="field w-12"
-                        defaultValue={BPM}
+                        value={draftBPM}
                         autoFocus
-                        onBlur={() => setIsBPMModalOpen(false)}
+                        onChange={(event) => setDraftBPM(event.target.value)}
+                        onBlur={commit}
+                        onKeyDown={(event) => {
+                            if (event.key === "Enter") {
+                                void commit();
+                            }
+
+                            if (event.key === "Escape") {
+                                close();
+                            }
+                        }}
                         min={20}
                         max={300}
+                        disabled={isSaving}
                     />
                 </label>
             ) : (
-                <div className="field flex items-center gap-2"
-                    onClick={() => setIsBPMModalOpen(true)}>
+                <button
+                    type="button"
+                    className="field flex items-center gap-2"
+                    onClick={open}>
                     <span className="text-white/40 text-xs">BPM</span>
-                    <span className="font-mono font-semibold">{BPM}</span>
-                </div>
+                    <span className="font-mono font-semibold">{isSaving ? "..." : BPM}</span>
+                </button>
             )
             }
         </>

@@ -8,7 +8,6 @@ defmodule SoundsyncWeb.API.V1.UserController do
   def get(conn, %{"id" => id}) do
     case Users.get(id) do
       nil -> Helpers.response(%{error: "User not found"}, conn, :not_found)
-
       user -> JSON.user(user) |> Helpers.response(conn, :ok)
     end
   end

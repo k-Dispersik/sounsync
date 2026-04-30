@@ -1,11 +1,15 @@
 defmodule Core.DB.Project do
   use Ecto.Schema
-  import Ecto.Query
 
+  import Ecto.Query
 
   schema "projects" do
     field :title, :string
     field :description, :string
+
+    embeds_one :settings, Core.DB.ProjectSetting,
+      on_replace: :update,
+      defaults_to_struct: true
 
     has_many :tracks, Core.DB.Track, on_delete: :delete_all
     many_to_many :users, Core.DB.User, join_through: "projects_users", on_delete: :delete_all

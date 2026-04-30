@@ -12,6 +12,7 @@ defmodule SoundsyncWeb.Formatter do
       id: project.id,
       title: project.title,
       description: project.description,
+      settings: format(project.settings),
       tracks: Enum.map(project.tracks, &format/1)
     }
   end
@@ -41,4 +42,12 @@ defmodule SoundsyncWeb.Formatter do
   def format(%Core.DB.ClipSetting{} = _settings) do
     %{}
   end
+
+  def format(%Core.DB.ProjectSetting{} = settings) do
+    %{
+      BPM: settings.bpm
+    }
+  end
+
+  def format(nil), do: nil
 end

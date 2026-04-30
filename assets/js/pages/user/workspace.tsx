@@ -1,8 +1,10 @@
+import { useCallback } from "react";
 import { useParams } from "react-router-dom";
 import WorkspaceCursor from "../../features/workspace/components/WorkspaceCursor";
 import TimelineGrid from "../../features/workspace/components/TimelineGrid";
 import WorkspaceTopBar from "../../features/workspace/components/WorkspaceTopBar";
 import SampleSidebar from "../../features/workspace/components/SampleSidebar";
+import { updateProjectSettings } from "../../features/workspace/api/projects";
 import { useWorkspaceRealtime } from "../../features/workspace/hooks/useWorkspaceRealtime";
 import { useProject } from "../../features/workspace/hooks/useProject";
 
@@ -13,12 +15,26 @@ export default function Workspace() {
     const { cursors } = useWorkspaceRealtime(WORKSPACE_ID);
     const { project, isLoading, refetch } = useProject(Number(id));
 
+    const handleBPMChange = useCallback(async (BPM: number) => {
+        if (!id) {
+            return;
+        }
+
+        await updateProjectSettings(Number(id), { BPM });
+        refetch();
+    }, [id, refetch]);
+
     return (
         <div className="w-full h-screen bg-[#0d1117] flex flex-col overflow-hidden">
             <WorkspaceCursor cursors={cursors} />
 
             {/* ── Top bar ── */}
-            <WorkspaceTopBar isLoading={isLoading} projectTitle={project?.title} />
+            <WorkspaceTopBar
+                isLoading={isLoading}
+                projectTitle={project?.title}
+                projectSettings={project?.settings}
+                onBPMChange={handleBPMChange}
+            />
 
             {/* ── Main body ── */}
             <div className="flex flex-1 overflow-hidden">

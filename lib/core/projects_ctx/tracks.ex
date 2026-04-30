@@ -13,7 +13,7 @@ defmodule Core.ProjectsCtx.Tracks do
     |> validate_required([:row_index])
   end
 
-  def new(attrs \\ %{}), do:  %Track{} |> changeset(attrs)
+  def new(attrs \\ %{}), do: %Track{} |> changeset(attrs)
 
   def create(attrs), do: new(attrs) |> Repo.insert()
 

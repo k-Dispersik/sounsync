@@ -6,7 +6,9 @@ defmodule Core.DB.User do
     field :password, :string
     field :email, :string
 
-    many_to_many :projects, Core.DB.Project, join_through: "projects_users", on_delete: :delete_all
+    many_to_many :projects, Core.DB.Project,
+      join_through: "projects_users",
+      on_delete: :delete_all
 
     timestamps()
   end
