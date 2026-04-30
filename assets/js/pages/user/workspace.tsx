@@ -2,7 +2,6 @@ import { useParams } from "react-router-dom";
 import WorkspaceCursor from "../../features/workspace/components/WorkspaceCursor";
 import TimelineGrid from "../../features/workspace/components/TimelineGrid";
 import WorkspaceTopBar from "../../features/workspace/components/WorkspaceTopBar";
-import WorkspaceToolbar from "../../features/workspace/components/WorkspaceToolbar";
 import SampleSidebar from "../../features/workspace/components/SampleSidebar";
 import { useWorkspaceRealtime } from "../../features/workspace/hooks/useWorkspaceRealtime";
 import { useProject } from "../../features/workspace/hooks/useProject";
@@ -28,9 +27,8 @@ export default function Workspace() {
 
                 {/* Timeline area */}
                 <div className="flex flex-col flex-1 overflow-hidden">
-                    <WorkspaceToolbar projectId={Number(id)} tracks={project?.tracks || []} onTrackChanged={refetch} />
                     <div className="flex-1 overflow-hidden">
-                        <TimelineGrid isLoading={isLoading} tracks={project?.tracks || []} onTrackChanged={refetch} />
+                        <TimelineGrid projectId={Number(id)} isLoading={isLoading} tracks={project?.tracks || []} onTrackChanged={refetch} />
                     </div>
                 </div>
             </div>
