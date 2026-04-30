@@ -1,0 +1,37 @@
+.field {
+    @apply px-3 h-8 rounded-md bg-white/[0.06] border border-white/10 font-mono text-sm text-white/80 outline-none transition-colors;
+}
+
+.field:focus,
+.field:focus-visible {
+    @apply border-white/30 outline-none ring-0;
+}
+
+.field-shell {
+    @apply flex items-center gap-2 px-3 h-8 rounded-md bg-white/[0.06] border border-white/10 text-sm text-white/80 transition-colors;
+}
+
+.field-shell:focus-within {
+    @apply border-white/30;
+}
+
+.field-shell .field {
+    @apply h-full flex-1 px-0 border-0 bg-transparent;
+}
+
+.field-shell .field:focus,
+.field-shell .field:focus-visible {
+    @apply border-transparent outline-none ring-0;
+}
+
+.field-label {
+    @apply text-white/40 text-xs;
+}
+
+.field:disabled {
+    @apply bg-white/[0.06] text-white/80;
+}
+
+.field::placeholder {
+    @apply text-white/35;
+}
