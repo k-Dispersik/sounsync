@@ -3,31 +3,31 @@ import type { Track } from "../../../shared/types/index";
 
 interface TrackCellProps {
     track: Track;
-    second: number;
+    beatIndex: number;
     beatWidth: number;
-    hoveredSecond: number | null;
+    hoveredBeat: number | null;
     hoveredTrackId: number | null;
-    selectedSecond: number | null;
+    selectedBeat: number | null;
     selectedTrackId: number | null;
-    onSecondHover: (second: number, trackId: number) => void;
-    onSecondLeave: () => void;
-    onSecondClick: (second: number, trackId: number, rowIndex: number) => void;
+    onBeatHover: (beatIndex: number, trackId: number) => void;
+    onBeatLeave: () => void;
+    onBeatClick: (beatIndex: number, trackId: number, rowIndex: number) => void;
 }
 
 
 export function TrackCell({ track,
-    second,
+    beatIndex,
     beatWidth,
-    hoveredSecond,
+    hoveredBeat,
     hoveredTrackId,
-    selectedSecond,
+    selectedBeat,
     selectedTrackId,
-    onSecondHover,
-    onSecondLeave,
-    onSecondClick
+    onBeatHover,
+    onBeatLeave,
+    onBeatClick
 }: TrackCellProps) {
-    const isHovered = hoveredSecond === second && hoveredTrackId === track.id;
-    const isSelected = selectedSecond === second && selectedTrackId === track.id;
+    const isHovered = hoveredBeat === beatIndex && hoveredTrackId === track.id;
+    const isSelected = selectedBeat === beatIndex && selectedTrackId === track.id;
     const cellClassName = isSelected
         ? "bg-cyan-400/10"
         : isHovered
@@ -36,14 +36,14 @@ export function TrackCell({ track,
 
     return (
         <button
-            key={`cell-${track.id}-${second}`}
+            key={`cell-${track.id}-${beatIndex}`}
             type="button"
-            aria-label={`Select second ${second + 1} on track ${track.row_index + 1}`}
+            aria-label={`Select beat ${beatIndex + 1} on track ${track.row_index + 1}`}
             className={`absolute inset-y-0 z-0 w-[var(--beat-width)] cursor-pointer transition-colors ${cellClassName}`}
-            style={{ "--beat-width": `${beatWidth}px`, left: second * beatWidth } as CSSProperties}
-            onMouseEnter={() => onSecondHover(second, track.id)}
-            onMouseLeave={onSecondLeave}
-            onClick={() => onSecondClick(second, track.id, track.row_index)}
+            style={{ "--beat-width": `${beatWidth}px`, left: beatIndex * beatWidth } as CSSProperties}
+            onMouseEnter={() => onBeatHover(beatIndex, track.id)}
+            onMouseLeave={onBeatLeave}
+            onClick={() => onBeatClick(beatIndex, track.id, track.row_index)}
         />
     );
 }

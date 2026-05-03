@@ -10,7 +10,7 @@ export interface TrackClipProps {
      * @default 50
      */
     clip: Clip
-    beatWidth: number
+    pixelsPerMillisecond: number
     barCount?: number
     /** Extra class names applied to the root element */
     className?: string
@@ -36,7 +36,7 @@ function seededRng(seed: string) {
 export default function TrackClip({
     color,
     barCount = 50,
-    beatWidth,
+    pixelsPerMillisecond,
     className = '',
     onClick,
     clip,
@@ -51,8 +51,8 @@ export default function TrackClip({
             key={clip.id}
             className="absolute top-2 bottom-2 z-20"
             style={{
-                left: clip.start_time * beatWidth,
-                width: clip.duration * beatWidth - 2,
+                left: clip.start_time * pixelsPerMillisecond,
+                width: Math.max(2, clip.duration * pixelsPerMillisecond - 2),
             }}
         >
             <div

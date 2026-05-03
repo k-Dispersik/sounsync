@@ -7,6 +7,7 @@ import SampleSidebar from "../../features/workspace/components/SampleSidebar";
 import { updateProjectSettings } from "../../features/workspace/api/projects";
 import { useWorkspaceRealtime } from "../../features/workspace/hooks/useWorkspaceRealtime";
 import { useProject } from "../../features/workspace/hooks/useProject";
+import type { ProjectSettings } from "../../shared/types";
 
 const WORKSPACE_ID = "test-workspace";
 
@@ -15,36 +16,39 @@ export default function Workspace() {
     const { cursors } = useWorkspaceRealtime(WORKSPACE_ID);
     const { project, isLoading, refetch } = useProject(Number(id));
 
-    const handleBPMChange = useCallback(async (BPM: number) => {
+    const handleProjectSettingsChange = useCallback(async (settings: ProjectSettings) => {
         if (!id) {
             return;
         }
 
-        await updateProjectSettings(Number(id), { BPM });
+        await updateProjectSettings(Number(id), settings);
         refetch();
     }, [id, refetch]);
 
     return (
         <div className="w-full h-screen bg-[#0d1117] flex flex-col overflow-hidden">
             <WorkspaceCursor cursors={cursors} />
-
-            {/* ── Top bar ── */}
             <WorkspaceTopBar
                 isLoading={isLoading}
                 projectTitle={project?.title}
                 projectSettings={project?.settings}
-                onBPMChange={handleBPMChange}
+                onChangeProjectSettings={handleProjectSettingsChange}
             />
 
             {/* ── Main body ── */}
             <div className="flex flex-1 overflow-hidden">
-                {/* Sample browser */}
                 <SampleSidebar tracks={project?.tracks || []} isLoading={isLoading} />
-
-                {/* Timeline area */}
                 <div className="flex flex-col flex-1 overflow-hidden">
                     <div className="flex-1 overflow-hidden">
-                        <TimelineGrid projectId={Number(id)} isLoading={isLoading} tracks={project?.tracks || []} onTrackChanged={refetch} />
+                        <TimelineGrid
+                            projectId={Number(id)}
+                            isLoading={isLoading}
+                            tracks={project?.tracks || []}
+                            timeSignature={project?.settings?.timeSignature}
+                            BPM={project?.settings?.BPM}
+                            timelineLengthMs={project?.settings?.timelineLengthMs}
+                            onTrackChanged={refetch}
+                        />
                     </div>
                 </div>
             </div>

@@ -1,11 +1,13 @@
+import type { ProjectSettings } from "js/shared/types/project";
 import { useEffect, useState } from "react";
 
 interface Props {
-    BPM?: number;
-    onChange?: (BPM: number) => Promise<void>;
+    settings: ProjectSettings;
+    onChange?: (settings: ProjectSettings) => Promise<void>;
 }
 
-export function useProjectBPM({ BPM = 120, onChange }: Props) {
+export function useProjectBPM({ settings, onChange }: Props) {
+    const { BPM } = settings;
     const [isOpen, setIsOpen] = useState(false);
     const [draftBPM, setDraftBPM] = useState(String(BPM));
     const [isSaving, setIsSaving] = useState(false);
@@ -37,11 +39,21 @@ export function useProjectBPM({ BPM = 120, onChange }: Props) {
         setIsSaving(true);
 
         try {
-            await onChange(nextBPM);
+            await onChange({ ...settings, BPM: nextBPM });
         } finally {
             setIsSaving(false);
         }
     };
+
+    const keyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === "Enter") {
+            void commit();
+        }
+
+        if (event.key === "Escape") {
+            close();
+        }
+    }
 
     return {
         BPM,
@@ -52,5 +64,6 @@ export function useProjectBPM({ BPM = 120, onChange }: Props) {
         close,
         commit,
         setDraftBPM,
+        keyDown
     };
 }

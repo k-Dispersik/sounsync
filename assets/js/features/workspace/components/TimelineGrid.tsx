@@ -1,29 +1,21 @@
-import { useState, useRef, type CSSProperties, useEffect } from "react";
+import { type CSSProperties } from "react";
 import Ruler from "./Ruler";
 import TrackRow from "./TrackRow";
 import type { Track } from "../../../shared/types/index";
 import { Trash2 } from "lucide-react";
 import { deleteTrack } from "../api/tracks";
 import WorkspaceToolbar from "./WorkspaceToolbar";
-
-interface SelectedPosition {
-    second: number;
-    trackId: number | null;
-    rowIndex: number | null;
-}
+import { useTimelineGrid } from "js/features/workspace/hooks/useTimelineGrid";
 
 interface Props {
     projectId: number;
     tracks: Track[];
     isLoading: boolean;
-    /** Beats per bar — default 4 */
-    beatsPerBar?: number;
-    /** Total number of bars to render — default 32 */
-    totalBars?: number;
     /** Pixel width of one beat — default 48 */
     beatWidth?: number;
-    /** Pixel height of each track row — default 80 */
-    trackHeight?: number;
+    timeSignature?: string;
+    BPM?: number;
+    timelineLengthMs?: number;
     onTrackChanged: () => void;
 }
 
@@ -31,59 +23,38 @@ export default function TimelineGrid({
     projectId,
     tracks,
     isLoading,
-    beatsPerBar = 4,
-    totalBars = 32,
     beatWidth = 48,
-    trackHeight = 80,
+    timeSignature,
+    BPM,
+    timelineLengthMs,
     onTrackChanged,
 }: Props) {
-    const scrollRef = useRef<HTMLDivElement>(null);
-    const [playheadPosition, setPlayheadPosition] = useState(0);
-    const [hoveredSecond, setHoveredSecond] = useState<number | null>(null);
-    const [hoveredTrackId, setHoveredTrackId] = useState<number | null>(null);
-    const [selectedPosition, setSelectedPosition] = useState<SelectedPosition | null>(null);
-    const totalBeats = totalBars * beatsPerBar;
-    const contentWidth = totalBeats * beatWidth;
+    const {
+        scrollRef,
+        hoveredBeat,
+        hoveredTrackId,
+        selectedPosition,
+        selectedCell,
+        beatsPerBar,
+        totalBars,
+        totalBeats,
+        contentWidth,
+        pixelsPerMillisecond,
+        millisecondsPerBeat,
+        handleRulerBeatClick,
+        handleTrackBeatClick,
+        handleTrackBeatHover,
+        handleRulerBeatHover,
+        handleBeatLeave,
+        handleOpenCreateClipModal,
+    } = useTimelineGrid({ tracks, BPM, beatWidth, timelineLengthMs, timeSignature });
 
     const handleRemoveTrack = async (trackId: number) => {
         await deleteTrack(projectId, trackId);
         onTrackChanged();
     };
 
-    const handleRulerSecondClick = (second: number) => {
-        setSelectedPosition({ second, trackId: null, rowIndex: null });
-    };
-
-    const handleTrackSecondClick = (second: number, trackId: number, rowIndex: number) => {
-        setSelectedPosition({ second, trackId, rowIndex });
-    };
-
-    const handleTrackSecondHover = (second: number, trackId: number) => {
-        setHoveredSecond(second);
-        setHoveredTrackId(trackId);
-    };
-
-    const handleSecondLeave = () => {
-        setHoveredSecond(null);
-        setHoveredTrackId(null);
-    };
-
-    const handleOpenCreateClipModal = (trackId: number, second: number) => {
-        // TODO: open modal and pass trackId and second
-    }
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setPlayheadPosition((prev) => {
-                const next = prev + 0.25;
-                return next;
-            });
-        }, 250);
-
-        return () => clearInterval(interval);
-    }, []);
-
-    const selectedCell = selectedPosition && selectedPosition.trackId !== null ? { trackId: selectedPosition.trackId, second: selectedPosition.second } : null;
+    // const barsPerSecond = 60 / BPM;
 
     return (
         <>
@@ -112,14 +83,12 @@ export default function TimelineGrid({
                             totalBars={totalBars}
                             beatsPerBar={beatsPerBar}
                             beatWidth={beatWidth}
-                            hoveredSecond={hoveredSecond}
-                            selectedSecond={selectedPosition?.second ?? null}
-                            onSecondHover={(second) => {
-                                setHoveredSecond(second);
-                                setHoveredTrackId(null);
-                            }}
-                            onSecondLeave={handleSecondLeave}
-                            onSecondClick={handleRulerSecondClick}
+                            millisecondsPerBeat={millisecondsPerBeat}
+                            hoveredBeat={hoveredBeat}
+                            selectedBeat={selectedPosition?.beatIndex ?? null}
+                            onBeatHover={handleRulerBeatHover}
+                            onBeatLeave={handleBeatLeave}
+                            onBeatClick={handleRulerBeatClick}
                         />
                     </div>
                 </div>
@@ -138,7 +107,7 @@ export default function TimelineGrid({
                                     key={track.id}
                                     className={`flex items-center px-4 gap-3 ${i < tracks.length - 1 ? "border-b border-white/[0.06]" : ""
                                         }`}
-                                    style={{ height: trackHeight }}
+                                    style={{ height: 80 }}
                                 >
 
                                     <Trash2
@@ -177,16 +146,16 @@ export default function TimelineGrid({
                                         track={track}
                                         totalBeats={totalBeats}
                                         beatWidth={beatWidth}
-                                        trackHeight={trackHeight}
                                         beatsPerBar={beatsPerBar}
+                                        pixelsPerMillisecond={pixelsPerMillisecond}
                                         isLast={i === tracks.length - 1}
-                                        hoveredSecond={hoveredSecond}
+                                        hoveredBeat={hoveredBeat}
                                         hoveredTrackId={hoveredTrackId}
-                                        selectedSecond={selectedPosition?.second ?? null}
+                                        selectedBeat={selectedPosition?.beatIndex ?? null}
                                         selectedTrackId={selectedPosition?.trackId ?? null}
-                                        onSecondHover={handleTrackSecondHover}
-                                        onSecondLeave={handleSecondLeave}
-                                        onSecondClick={handleTrackSecondClick}
+                                        onBeatHover={handleTrackBeatHover}
+                                        onBeatLeave={handleBeatLeave}
+                                        onBeatClick={handleTrackBeatClick}
                                     />
                                 ))
                             )}

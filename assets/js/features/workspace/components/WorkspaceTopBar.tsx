@@ -1,4 +1,4 @@
-import React from "react";
+import { ReactNode, useState } from "react";
 import {
     SkipBack,
     Square,
@@ -15,6 +15,7 @@ import {
 import { Logo } from "js/shared/components/Logo";
 import { useProjectBPM } from "js/features/workspace/hooks/useProjectBPM";
 import type { ProjectSettings } from "../../../shared/types";
+import { TIME_SIGNATURES, type TimeSignatureValue } from "js/shared/types/project";
 
 const AVATARS = [
     { initials: "A", color: "#6366f1" },
@@ -22,7 +23,8 @@ const AVATARS = [
     { initials: "J", color: "#06b6d4" },
 ];
 
-function TransportBtn({ children }: { children: React.ReactNode }) {
+
+function TransportBtn({ children }: { children: ReactNode }) {
     return (
         <button className="w-9 h-9 rounded-md hover:bg-white/[0.08] flex items-center justify-center text-white/60 hover:text-white transition-colors">
             {children}
@@ -33,11 +35,23 @@ function TransportBtn({ children }: { children: React.ReactNode }) {
 interface Props {
     projectTitle?: string;
     projectSettings?: ProjectSettings | null;
-    onBPMChange?: (BPM: number) => Promise<void>;
+    onChangeProjectSettings?: (settings: ProjectSettings) => Promise<void>;
     isLoading: boolean;
 }
 
-export default function WorkspaceTopBar({ projectTitle, projectSettings, onBPMChange, isLoading }: Props) {
+const DEFAULT_PROJECT_SETTINGS: ProjectSettings = {
+    BPM: 120,
+    timeSignature: "4/4",
+    timelineLengthMs: 60_000,
+};
+
+function isTimeSignatureValue(value: string): value is TimeSignatureValue {
+    return TIME_SIGNATURES.includes(value as TimeSignatureValue);
+}
+
+export default function WorkspaceTopBar({ projectTitle, projectSettings, onChangeProjectSettings, isLoading }: Props) {
+    const settings = projectSettings ?? DEFAULT_PROJECT_SETTINGS;
+
     return (
         <header className="flex items-center gap-4 px-4 h-14 bg-[#0d1117] border-b border-white/[0.07] flex-shrink-0 z-20">
             <Logo size={16} showText={true} />
@@ -64,7 +78,8 @@ export default function WorkspaceTopBar({ projectTitle, projectSettings, onBPMCh
             </div>
 
             <div className="flex items-center gap-3 mr-4">
-                <BPMInput BPM={projectSettings?.BPM} onChange={onBPMChange} />
+                <TimeSignatureDropdown settings={settings} onChange={onChangeProjectSettings} />
+                <BPMInput settings={settings} onChange={onChangeProjectSettings} />
                 <input className="field w-32" disabled value={"00:00:00.000"} />
             </div>
 
@@ -74,10 +89,65 @@ export default function WorkspaceTopBar({ projectTitle, projectSettings, onBPMCh
     );
 }
 
+function TimeSignatureDropdown({
+    settings,
+    onChange,
+}: {
+    settings: ProjectSettings;
+    onChange?: (settings: ProjectSettings) => Promise<void>;
+}) {
+    const [isSaving, setIsSaving] = useState(false);
+
+    const handleTimeSignatureChange = async (timeSignature: TimeSignatureValue) => {
+        if (!onChange || settings.timeSignature === timeSignature) {
+            return;
+        }
+
+        setIsSaving(true);
+
+        try {
+            await onChange({ ...settings, timeSignature });
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    return (
+        <div className="dropdown cursor-pointer">
+            <div tabIndex={0} role="button" className="btn m-1">
+                <span className="field-label">Time Signature</span>
+                <span className="font-mono font-semibold">{isSaving ? "..." : settings.timeSignature}</span>
+                <ChevronDown size={14} />
+            </div>
+            <ul tabIndex={-1} className="dropdown-content menu bg-base-100 rounded-box z-40 w-24 p-2 shadow-sm">
+                {TIME_SIGNATURES.map((value) => {
+                    if (!isTimeSignatureValue(value)) {
+                        return null;
+                    }
+
+                    return (
+                        <li key={value}>
+                            <button onClick={() => void handleTimeSignatureChange(value)} className="flex justify-between" disabled={isSaving}>
+                                {value}
+                            </button>
+                        </li>
+                    );
+                })}
+            </ul>
+        </div>
+    );
+}
 
 
-function BPMInput({ BPM = 120, onChange }: { BPM?: number; onChange?: (BPM: number) => Promise<void> }) {
-    const { draftBPM, isOpen, isSaving, open, close, commit, setDraftBPM } = useProjectBPM({ BPM, onChange });
+
+function BPMInput({
+    settings,
+    onChange,
+}: {
+    settings: ProjectSettings;
+    onChange?: (settings: ProjectSettings) => Promise<void>;
+}) {
+    const { draftBPM, isOpen, isSaving, open, commit, setDraftBPM, keyDown } = useProjectBPM({ settings, onChange });
 
     return (
         <>
@@ -91,15 +161,7 @@ function BPMInput({ BPM = 120, onChange }: { BPM?: number; onChange?: (BPM: numb
                         autoFocus
                         onChange={(event) => setDraftBPM(event.target.value)}
                         onBlur={commit}
-                        onKeyDown={(event) => {
-                            if (event.key === "Enter") {
-                                void commit();
-                            }
-
-                            if (event.key === "Escape") {
-                                close();
-                            }
-                        }}
+                        onKeyDown={(event) => keyDown(event)}
                         min={20}
                         max={300}
                         disabled={isSaving}
@@ -111,7 +173,7 @@ function BPMInput({ BPM = 120, onChange }: { BPM?: number; onChange?: (BPM: numb
                     className="field flex items-center gap-2"
                     onClick={open}>
                     <span className="text-white/40 text-xs">BPM</span>
-                    <span className="font-mono font-semibold">{isSaving ? "..." : BPM}</span>
+                    <span className="font-mono font-semibold">{isSaving ? "..." : settings.BPM}</span>
                 </button>
             )
             }
