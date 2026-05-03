@@ -1,7 +1,6 @@
 defmodule SoundsyncWeb.API.V1.ProjectController do
   use SoundsyncWeb, :controller
 
-  alias Code.Formatter
   alias Core.ProjectsCtx.Projects
   alias Core.ProjectsCtx.Tracks
 
@@ -92,7 +91,8 @@ defmodule SoundsyncWeb.API.V1.ProjectController do
   defp project_settings_attrs(%{"settings" => settings_params}) when is_map(settings_params) do
     %{
       bpm: Map.get(settings_params, "BPM"),
-      time_signature: Helpers.parse_time_signature(Map.get(settings_params, "timeSignature"))
+      time_signature: Helpers.parse_time_signature(Map.get(settings_params, "timeSignature")),
+      timeline_length_ms: Map.get(settings_params, "timelineLengthMs")
     }
   end
 

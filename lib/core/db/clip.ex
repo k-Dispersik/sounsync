@@ -6,7 +6,9 @@ defmodule Core.DB.Clip do
   schema "clips" do
     field :title, :string
     field :type, Ecto.Enum, values: @types
+    # in milliseconds
     field :start_time, :integer
+    # in milliseconds
     field :duration, :integer
     field :file_path, :string
 

@@ -22,6 +22,7 @@ defmodule Core.DB.ProjectSetting do
   embedded_schema do
     field :bpm, :integer, default: 120
     field :time_signature, Ecto.Enum, values: @time_signature_values, default: :four_four
+    field :timeline_length_ms, :integer, default: 60_000
   end
 
   def get_time_signature_values, do: @time_signature_values

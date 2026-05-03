@@ -17,8 +17,9 @@ defmodule Core.ProjectsCtx.Projects do
 
   def project_settings_changeset(settings, attrs) do
     settings
-    |> cast(attrs, [:bpm, :time_signature])
+    |> cast(attrs, [:bpm, :time_signature, :timeline_length_ms])
     |> validate_number(:bpm, greater_than: 20, less_than: 300)
+    |> validate_number(:timeline_length_ms, greater_than: 0)
   end
 
   def new(attrs \\ %{}), do: %Project{} |> changeset(attrs)
