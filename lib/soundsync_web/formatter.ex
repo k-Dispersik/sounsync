@@ -45,7 +45,8 @@ defmodule SoundsyncWeb.Formatter do
 
   def format(%Core.DB.ProjectSetting{} = settings) do
     %{
-      BPM: settings.bpm
+      "BPM" => settings.bpm,
+      "timeSignature" => SoundsyncWeb.Helpers.parse_time_signature(settings.time_signature)
     }
   end
 
