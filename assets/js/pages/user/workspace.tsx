@@ -42,15 +42,13 @@ export default function Workspace() {
                     <SampleSidebar tracks={project?.tracks || []} isLoading={isLoading} />
                     <div className="flex flex-col flex-1 overflow-hidden">
                         <div className="flex-1 overflow-hidden">
-                            <TimelineGrid
-                                projectId={Number(id)}
-                                isLoading={isLoading}
-                                tracks={project?.tracks || []}
-                                timeSignature={project?.settings?.timeSignature}
-                                BPM={project?.settings?.BPM}
-                                timelineLengthMs={project?.settings?.timelineLengthMs}
-                                onTrackChanged={refetch}
-                            />
+                            {project && (
+                                <TimelineGrid
+                                    project={project}
+                                    isLoading={isLoading}
+                                    onTrackChanged={refetch}
+                                />
+                            )}
                         </div>
                     </div>
                 </div>

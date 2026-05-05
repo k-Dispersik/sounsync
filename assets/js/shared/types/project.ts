@@ -19,6 +19,6 @@ export interface Project {
     id: number;
     title: string;
     description: string | null;
-    settings: ProjectSettings | null;
+    settings: ProjectSettings;
     tracks: Track[];
 }

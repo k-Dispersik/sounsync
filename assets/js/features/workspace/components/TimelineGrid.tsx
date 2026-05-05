@@ -1,31 +1,25 @@
 import { type CSSProperties } from "react";
 import Ruler from "./Ruler";
 import TrackRow from "./TrackRow";
-import type { Track } from "../../../shared/types/index";
+import type { Project, Track } from "../../../shared/types/index";
 import { Trash2 } from "lucide-react";
 import { deleteTrack } from "../api/tracks";
 import WorkspaceToolbar from "./WorkspaceToolbar";
 import { useTimelineGrid } from "js/features/workspace/hooks/useTimelineGrid";
 
 interface Props {
-    projectId: number;
-    tracks: Track[];
+    project: Project;
     isLoading: boolean;
     /** Pixel width of one beat — default 48 */
     beatWidth?: number;
-    timeSignature?: string;
-    BPM?: number;
     timelineLengthMs?: number;
     onTrackChanged: () => void;
 }
 
 export default function TimelineGrid({
-    projectId,
-    tracks,
+    project,
     isLoading,
     beatWidth = 48,
-    timeSignature,
-    BPM,
     timelineLengthMs,
     onTrackChanged,
 }: Props) {
@@ -47,18 +41,24 @@ export default function TimelineGrid({
         handleRulerBeatHover,
         handleBeatLeave,
         handleOpenCreateClipModal,
-    } = useTimelineGrid({ tracks, BPM, beatWidth, timelineLengthMs, timeSignature });
+    } = useTimelineGrid({
+        tracks: project.tracks,
+        BPM: project.settings?.BPM || 120,
+        beatWidth,
+        timelineLengthMs,
+        timeSignature: project.settings?.timeSignature || "4/4",
+    });
 
     const handleRemoveTrack = async (trackId: number) => {
-        await deleteTrack(projectId, trackId);
+        await deleteTrack(project.id, trackId);
         onTrackChanged();
     };
 
     return (
         <>
             <WorkspaceToolbar
-                projectId={projectId}
-                tracks={tracks}
+                projectId={project.id}
+                tracks={project.tracks}
                 selectedCell={selectedCell}
                 openCreateClipModal={handleOpenCreateClipModal}
                 onTrackChanged={onTrackChanged}
@@ -100,10 +100,10 @@ export default function TimelineGrid({
                                 ))}
                             </div>
                         ) : (
-                            tracks.map((track, i) => (
+                            project.tracks.map((track, i) => (
                                 <div
                                     key={track.id}
-                                    className={`flex items-center px-4 gap-3 ${i < tracks.length - 1 ? "border-b border-white/[0.06]" : ""
+                                    className={`flex items-center px-4 gap-3 ${i < project.tracks.length - 1 ? "border-b border-white/[0.06]" : ""
                                         }`}
                                     style={{ height: 80 }}
                                 >
@@ -138,7 +138,7 @@ export default function TimelineGrid({
                                     ))}
                                 </div>
                             ) : (
-                                tracks.map((track, i) => (
+                                project.tracks.map((track, i) => (
                                     <TrackRow
                                         key={track.id}
                                         track={track}
@@ -146,7 +146,7 @@ export default function TimelineGrid({
                                         beatWidth={beatWidth}
                                         beatsPerBar={beatsPerBar}
                                         pixelsPerMillisecond={pixelsPerMillisecond}
-                                        isLast={i === tracks.length - 1}
+                                        isLast={i === project.tracks.length - 1}
                                         hoveredBeat={hoveredBeat}
                                         hoveredTrackId={hoveredTrackId}
                                         selectedBeat={selectedPosition?.beatIndex ?? null}
