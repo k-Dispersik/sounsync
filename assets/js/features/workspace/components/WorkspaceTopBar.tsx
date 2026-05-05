@@ -1,11 +1,5 @@
 import { ReactNode, useState } from "react";
 import {
-    SkipBack,
-    Square,
-    Play,
-    Circle,
-    SkipForward,
-    Repeat2,
     Share2,
     Download,
     Settings,
@@ -16,21 +10,14 @@ import { Logo } from "js/shared/components/Logo";
 import { useProjectBPM } from "js/features/workspace/hooks/useProjectBPM";
 import type { ProjectSettings } from "../../../shared/types";
 import { TIME_SIGNATURES, type TimeSignatureValue } from "js/shared/types/project";
+import Transport from "./Transport";
+import { useTransportContext } from "../contextProviders/TransportProvider";
 
 const AVATARS = [
     { initials: "A", color: "#6366f1" },
     { initials: "M", color: "#ec4899" },
     { initials: "J", color: "#06b6d4" },
 ];
-
-
-function TransportBtn({ children }: { children: ReactNode }) {
-    return (
-        <button className="w-9 h-9 rounded-md hover:bg-white/[0.08] flex items-center justify-center text-white/60 hover:text-white transition-colors">
-            {children}
-        </button>
-    );
-}
 
 interface Props {
     projectTitle?: string;
@@ -73,20 +60,13 @@ export default function WorkspaceTopBar({ projectTitle, projectSettings, onChang
 
             {/* Transport */}
             <div className="flex items-center gap-1 mx-auto">
-                <TransportBtn><SkipBack size={15} /></TransportBtn>
-                <TransportBtn><Square size={15} /></TransportBtn>
-                <button className="w-9 h-9 rounded-full bg-indigo-500 hover:bg-indigo-400 flex items-center justify-center transition-colors">
-                    <Play size={16} className="text-white ml-0.5" />
-                </button>
-                <TransportBtn><Circle size={15} className="text-red-400" /></TransportBtn>
-                <TransportBtn><SkipForward size={15} /></TransportBtn>
-                <TransportBtn><Repeat2 size={15} /></TransportBtn>
+                <Transport />
             </div>
 
             <div className="flex items-center gap-3 mr-4">
                 <TimeSignatureDropdown settings={settings} onChange={onChangeProjectSettings} />
                 <BPMInput settings={settings} onChange={onChangeProjectSettings} />
-                <input className="field w-32" disabled value={"00:00:00.000"} />
+                <input className="field w-32" disabled value={playheadTime} />
             </div>
 
             <CollaboratorAvatars users={AVATARS} />

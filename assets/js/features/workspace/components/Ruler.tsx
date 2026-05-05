@@ -1,4 +1,5 @@
 import React, { type CSSProperties } from "react";
+import TimelineMarkers from "./TimelineMarkers";
 
 export const RULER_HEIGHT = 32; // px — top ruler
 
@@ -104,13 +105,10 @@ export default function Ruler({
                 );
             })}
 
-            {barEndLines.map((x, index) => (
-                <div
-                    key={`bar-end-${index}`}
-                    className="pointer-events-none absolute inset-y-0 z-10 w-0.5 bg-blue-950/90"
-                    style={{ left: x - 1, height: "100%" }}
-                />
-            ))}
+            <TimelineMarkers
+                barEndLines={barEndLines}
+                pixelsPerMillisecond={beatWidth / millisecondsPerBeat}
+            />
 
             {hoveredBeat !== null && hoveredBar !== null && hoveredBeatInBar !== null && hoveredTimeSeconds !== null && (
                 <div

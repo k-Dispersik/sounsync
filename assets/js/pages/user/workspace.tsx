@@ -8,7 +8,7 @@ import { updateProjectSettings } from "../../features/workspace/api/projects";
 import { useWorkspaceRealtime } from "../../features/workspace/hooks/useWorkspaceRealtime";
 import { useProject } from "../../features/workspace/hooks/useProject";
 import type { ProjectSettings } from "../../shared/types";
-import TransportProvider from "js/features/workspace/ contextProviders/TransportProvider";
+import TransportProvider from "js/features/workspace/contextProviders/TransportProvider";
 
 const WORKSPACE_ID = "test-workspace";
 

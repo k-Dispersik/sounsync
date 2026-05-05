@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import type { Track } from "../../../shared/types/index";
 import TrackClip from "./TrackClip";
 import { TrackCell } from "./TrackCell";
+import TimelineMarkers from "./TimelineMarkers";
 
 interface TrackRowProps {
     track: Track;
@@ -73,13 +74,11 @@ export default function TrackRow({
                 );
             })}
 
-            {barEndLines.map((x, index) => (
-                <div
-                    key={`bar-end-${track.id}-${index}`}
-                    className="pointer-events-none absolute inset-y-0 z-10 w-0.5 bg-blue-950/90"
-                    style={{ left: x - 1 }}
-                />
-            ))}
+            <TimelineMarkers
+                barEndLines={barEndLines}
+                barEndKeyPrefix={`bar-end-${track.id}`}
+                pixelsPerMillisecond={pixelsPerMillisecond}
+            />
 
             {(hoveredBeat !== null || (selectedBeat !== null && selectedTrackId === track.id)) && (
                 <div
