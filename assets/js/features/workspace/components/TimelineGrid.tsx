@@ -54,8 +54,6 @@ export default function TimelineGrid({
         onTrackChanged();
     };
 
-    // const barsPerSecond = 60 / BPM;
-
     return (
         <>
             <WorkspaceToolbar

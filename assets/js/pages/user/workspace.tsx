@@ -8,6 +8,7 @@ import { updateProjectSettings } from "../../features/workspace/api/projects";
 import { useWorkspaceRealtime } from "../../features/workspace/hooks/useWorkspaceRealtime";
 import { useProject } from "../../features/workspace/hooks/useProject";
 import type { ProjectSettings } from "../../shared/types";
+import TransportProvider from "js/features/workspace/ contextProviders/TransportProvider";
 
 const WORKSPACE_ID = "test-workspace";
 
@@ -27,31 +28,33 @@ export default function Workspace() {
 
     return (
         <div className="w-full h-screen bg-[#0d1117] flex flex-col overflow-hidden">
-            <WorkspaceCursor cursors={cursors} />
-            <WorkspaceTopBar
-                isLoading={isLoading}
-                projectTitle={project?.title}
-                projectSettings={project?.settings}
-                onChangeProjectSettings={handleProjectSettingsChange}
-            />
+            <TransportProvider>
+                <WorkspaceCursor cursors={cursors} />
+                <WorkspaceTopBar
+                    isLoading={isLoading}
+                    projectTitle={project?.title}
+                    projectSettings={project?.settings}
+                    onChangeProjectSettings={handleProjectSettingsChange}
+                />
 
-            {/* ── Main body ── */}
-            <div className="flex flex-1 overflow-hidden">
-                <SampleSidebar tracks={project?.tracks || []} isLoading={isLoading} />
-                <div className="flex flex-col flex-1 overflow-hidden">
-                    <div className="flex-1 overflow-hidden">
-                        <TimelineGrid
-                            projectId={Number(id)}
-                            isLoading={isLoading}
-                            tracks={project?.tracks || []}
-                            timeSignature={project?.settings?.timeSignature}
-                            BPM={project?.settings?.BPM}
-                            timelineLengthMs={project?.settings?.timelineLengthMs}
-                            onTrackChanged={refetch}
-                        />
+                {/* ── Main body ── */}
+                <div className="flex flex-1 overflow-hidden">
+                    <SampleSidebar tracks={project?.tracks || []} isLoading={isLoading} />
+                    <div className="flex flex-col flex-1 overflow-hidden">
+                        <div className="flex-1 overflow-hidden">
+                            <TimelineGrid
+                                projectId={Number(id)}
+                                isLoading={isLoading}
+                                tracks={project?.tracks || []}
+                                timeSignature={project?.settings?.timeSignature}
+                                BPM={project?.settings?.BPM}
+                                timelineLengthMs={project?.settings?.timelineLengthMs}
+                                onTrackChanged={refetch}
+                            />
+                        </div>
                     </div>
                 </div>
-            </div>
+            </TransportProvider>
         </div>
     );
 }

@@ -33,7 +33,6 @@ function getMinimumTimelineLengthMs(tracks: Track[]) {
 
 export function useTimelineGrid({ tracks, BPM = 120, beatWidth, timelineLengthMs = 60_000, timeSignature }: Props) {
     const scrollRef = useRef<HTMLDivElement>(null);
-    const [playheadPosition, setPlayheadPosition] = useState(0);
     const [hoveredBeat, setHoveredBeat] = useState<number | null>(null);
     const [hoveredTrackId, setHoveredTrackId] = useState<number | null>(null);
     const [selectedPosition, setSelectedPosition] = useState<SelectedPosition | null>(null);
@@ -77,17 +76,8 @@ export function useTimelineGrid({ tracks, BPM = 120, beatWidth, timelineLengthMs
         // TODO: open modal and pass trackId and second
     };
 
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setPlayheadPosition((prev) => prev + 0.25);
-        }, 250);
-
-        return () => clearInterval(interval);
-    }, []);
-
     return {
         scrollRef,
-        playheadPosition,
         hoveredBeat,
         hoveredTrackId,
         selectedPosition,

@@ -51,6 +51,12 @@ function isTimeSignatureValue(value: string): value is TimeSignatureValue {
 
 export default function WorkspaceTopBar({ projectTitle, projectSettings, onChangeProjectSettings, isLoading }: Props) {
     const settings = projectSettings ?? DEFAULT_PROJECT_SETTINGS;
+    const { playheadPosition } = useTransportContext();
+
+    const playheadTime =
+        playheadPosition !== undefined
+            ? new Date(playheadPosition).toISOString().slice(11, 23)
+            : "00:00:00.000";
 
     return (
         <header className="flex items-center gap-4 px-4 h-14 bg-[#0d1117] border-b border-white/[0.07] flex-shrink-0 z-20">
