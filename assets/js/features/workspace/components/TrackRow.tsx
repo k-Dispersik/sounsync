@@ -2,13 +2,14 @@ import type { CSSProperties } from "react";
 import type { Track } from "../../../shared/types/index";
 import TrackClip from "./TrackClip";
 import { TrackCell } from "./TrackCell";
-import TimelineMarkers from "./TimelineMarkers";
+import { BarEndMarkers, PlayheadMarker } from "./TimelineMarkers";
 
 interface TrackRowProps {
     track: Track;
     totalBeats: number;
     beatWidth: number;
     beatsPerBar: number;
+    barEndLines: number[];
     pixelsPerMillisecond: number;
     isLast: boolean;
     hoveredBeat: number | null;
@@ -25,6 +26,7 @@ export default function TrackRow({
     totalBeats,
     beatWidth,
     beatsPerBar,
+    barEndLines,
     pixelsPerMillisecond,
     isLast,
     hoveredBeat,
@@ -35,7 +37,7 @@ export default function TrackRow({
     onBeatLeave,
     onBeatClick,
 }: TrackRowProps) {
-    const barEndLines = Array.from({ length: Math.floor(totalBeats / beatsPerBar) }, (_, bar) => (bar + 1) * beatsPerBar * beatWidth);
+    const beatOffsets = Array.from({ length: totalBeats }, (_, beatIndex) => beatIndex * beatWidth);
     const rowStyle = {
         "--track-row-height": `${80}px`,
         "--playhead-x": `${(hoveredBeat ?? selectedBeat ?? 0) * beatWidth}px`,
@@ -43,10 +45,10 @@ export default function TrackRow({
 
     return (
         <div
-            className={`relative h-[var(--track-row-height)] flex-shrink-0 ${!isLast ? "border-b border-white/[0.06]" : ""}`}
+            className={`relative h-[var(--track-row-height)] flex-shrink-0 overflow-hidden ${!isLast ? "border-b border-white/[0.06]" : ""}`}
             style={rowStyle}
         >
-            {Array.from({ length: totalBeats }, (_, beatIndex) => (
+            {beatOffsets.map((_, beatIndex) => (
                 <TrackCell
                     key={`cell-${track.id}-${beatIndex}`}
                     track={track}
@@ -62,22 +64,21 @@ export default function TrackRow({
                 />
             ))}
 
-            {Array.from({ length: totalBeats }, (_, i) => i).map((beat) => {
+            {beatOffsets.map((left, beat) => {
                 const isBar = beat % beatsPerBar === 0;
                 return (
                     <div
                         key={`grid-line-${track.id}-${beat}`}
                         className={`pointer-events-none absolute top-0 bottom-0 w-px ${isBar ? "bg-white/[0.06]" : "bg-white/[0.03]"
                             }`}
-                        style={{ left: beat * beatWidth }}
+                        style={{ left }}
                     />
                 );
             })}
 
-            <TimelineMarkers
+            <BarEndMarkers
                 barEndLines={barEndLines}
                 barEndKeyPrefix={`bar-end-${track.id}`}
-                pixelsPerMillisecond={pixelsPerMillisecond}
             />
 
             {(hoveredBeat !== null || (selectedBeat !== null && selectedTrackId === track.id)) && (

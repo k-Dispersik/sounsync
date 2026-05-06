@@ -3,7 +3,5 @@ defmodule Core.DB.ClipSetting do
 
   # TODO: add fields
   embedded_schema do
-
   end
-
 end

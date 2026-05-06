@@ -2,17 +2,13 @@ import { useTransportContext } from "../contextProviders/TransportProvider";
 
 interface TimelineMarkersProps {
     barEndLines: number[];
-    pixelsPerMillisecond: number;
     barEndKeyPrefix?: string;
 }
 
-export default function TimelineMarkers({
+export function BarEndMarkers({
     barEndLines,
-    pixelsPerMillisecond,
     barEndKeyPrefix = "bar-end",
 }: TimelineMarkersProps) {
-    const { isPlaying, playheadPosition } = useTransportContext();
-
     return (
         <>
             {barEndLines.map((x, index) => (
@@ -23,6 +19,16 @@ export default function TimelineMarkers({
                 />
             ))}
 
+
+        </>
+    );
+}
+
+export function PlayheadMarker({ pixelsPerMillisecond }: { pixelsPerMillisecond: number }) {
+    const { isPlaying, playheadPosition } = useTransportContext();
+
+    return (
+        <>
             {(isPlaying || playheadPosition !== 0) && (
                 <div
                     className="pointer-events-none absolute inset-y-0 z-20 w-0.5 bg-red-400/90"

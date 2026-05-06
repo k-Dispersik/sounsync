@@ -1,18 +1,18 @@
 import { type CSSProperties } from "react";
 import Ruler from "./Ruler";
 import TrackRow from "./TrackRow";
-import type { Project, Track } from "../../../shared/types/index";
+import type { Project } from "../../../shared/types/index";
 import { Trash2 } from "lucide-react";
 import { deleteTrack } from "../api/tracks";
 import WorkspaceToolbar from "./WorkspaceToolbar";
-import { useTimelineGrid } from "js/features/workspace/hooks/useTimelineGrid";
+import { useTimeline } from "js/features/workspace/hooks/useTimeline";
+import { useTimelineSelection } from "js/features/workspace/hooks/useTimelineSelection";
 
 interface Props {
     project: Project;
     isLoading: boolean;
     /** Pixel width of one beat — default 48 */
     beatWidth?: number;
-    timelineLengthMs?: number;
     onTrackChanged: () => void;
 }
 
@@ -20,34 +20,32 @@ export default function TimelineGrid({
     project,
     isLoading,
     beatWidth = 48,
-    timelineLengthMs,
     onTrackChanged,
 }: Props) {
     const {
         scrollRef,
         hoveredBeat,
         hoveredTrackId,
-        selectedPosition,
-        selectedCell,
         beatsPerBar,
-        totalBars,
         totalBeats,
         contentWidth,
+        gridBeatWidth,
         pixelsPerMillisecond,
-        millisecondsPerBeat,
-        handleRulerBeatClick,
-        handleTrackBeatClick,
         handleTrackBeatHover,
         handleRulerBeatHover,
         handleBeatLeave,
         handleOpenCreateClipModal,
-    } = useTimelineGrid({
-        tracks: project.tracks,
-        BPM: project.settings?.BPM || 120,
+        barEndLines,
+    } = useTimeline({
+        project,
         beatWidth,
-        timelineLengthMs,
-        timeSignature: project.settings?.timeSignature || "4/4",
     });
+    const {
+        selectedPosition,
+        selectedCell,
+        handleRulerBeatClick,
+        handleTrackBeatClick,
+    } = useTimelineSelection();
 
     const handleRemoveTrack = async (trackId: number) => {
         await deleteTrack(project.id, trackId);
@@ -78,10 +76,11 @@ export default function TimelineGrid({
                     {/* Scrolling ruler — synced with content below */}
                     <div className="overflow-hidden flex-1" ref={scrollRef}>
                         <Ruler
-                            totalBars={totalBars}
+                            totalBeats={totalBeats}
                             beatsPerBar={beatsPerBar}
-                            beatWidth={beatWidth}
-                            millisecondsPerBeat={millisecondsPerBeat}
+                            beatWidth={gridBeatWidth}
+                            contentWidth={contentWidth}
+                            pixelsPerMillisecond={pixelsPerMillisecond}
                             hoveredBeat={hoveredBeat}
                             selectedBeat={selectedPosition?.beatIndex ?? null}
                             onBeatHover={handleRulerBeatHover}
@@ -143,8 +142,9 @@ export default function TimelineGrid({
                                         key={track.id}
                                         track={track}
                                         totalBeats={totalBeats}
-                                        beatWidth={beatWidth}
+                                        beatWidth={gridBeatWidth}
                                         beatsPerBar={beatsPerBar}
+                                        barEndLines={barEndLines}
                                         pixelsPerMillisecond={pixelsPerMillisecond}
                                         isLast={i === project.tracks.length - 1}
                                         hoveredBeat={hoveredBeat}
