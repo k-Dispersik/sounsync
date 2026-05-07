@@ -2,7 +2,6 @@ import { ReactNode, useState } from "react";
 import {
     Share2,
     Download,
-    Settings,
     ChevronDown,
     Plus
 } from "lucide-react";
@@ -199,9 +198,7 @@ function ExternalActions() {
                 <Download size={13} />
                 Export
             </button>
-            <button className="w-8 h-8 rounded-md hover:bg-white/[0.08] flex items-center justify-center text-white/40 hover:text-white/70 transition-colors">
-                <Settings size={15} />
-            </button>
+            <UserSettings />
         </div>
     );
 }
