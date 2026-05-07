@@ -45,7 +45,7 @@ export default function TrackRow({
 
     return (
         <div
-            className={`relative h-[var(--track-row-height)] flex-shrink-0 overflow-hidden ${!isLast ? "border-b border-white/[0.06]" : ""}`}
+            className={`relative h-[var(--track-row-height)] flex-shrink-0 overflow-hidden ${!isLast ? "border-b border-base-content/[0.06]" : ""}`}
             style={rowStyle}
         >
             {beatOffsets.map((_, beatIndex) => (
@@ -69,7 +69,7 @@ export default function TrackRow({
                 return (
                     <div
                         key={`grid-line-${track.id}-${beat}`}
-                        className={`pointer-events-none absolute top-0 bottom-0 w-px ${isBar ? "bg-white/[0.06]" : "bg-white/[0.03]"
+                        className={`pointer-events-none absolute top-0 bottom-0 w-px ${isBar ? "bg-base-content/[0.06]" : "bg-base-content/[0.03]"
                             }`}
                         style={{ left }}
                     />
@@ -80,6 +80,8 @@ export default function TrackRow({
                 barEndLines={barEndLines}
                 barEndKeyPrefix={`bar-end-${track.id}`}
             />
+
+            <PlayheadMarker pixelsPerMillisecond={pixelsPerMillisecond} />
 
             {(hoveredBeat !== null || (selectedBeat !== null && selectedTrackId === track.id)) && (
                 <div

@@ -60,7 +60,7 @@ export default function Ruler({
 
     return (
         <div
-            className="relative h-8 w-[var(--ruler-width)] flex-shrink-0 border-b border-white/10 bg-zinc-900/80"
+            className="relative h-8 w-[var(--ruler-width)] flex-shrink-0 border-b border-base-content/10 bg-base-300/80"
             style={rulerStyle}
         >
             {rulerTicks.map(({ beatIndex, left, secondMarker, isBarStart }) => {
@@ -87,7 +87,7 @@ export default function Ruler({
                         </button>
                         {secondMarker && (
                             <span
-                                className="absolute top-1 text-[10px] font-mono text-white/40 select-none"
+                                className="absolute top-1 text-[10px] font-mono text-base-content/40 select-none"
                                 style={{ left: secondMarker.left + 4 }}
                             >
                                 {secondMarker.second}
@@ -96,7 +96,7 @@ export default function Ruler({
 
                         {isBarStart && (
                             <div
-                                className="absolute bottom-0 w-px bg-white/20"
+                                className="absolute bottom-0 w-px bg-base-content/20"
                                 style={{ left, height: 10 }}
                             />
                         )}

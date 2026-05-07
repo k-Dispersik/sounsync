@@ -12,6 +12,7 @@ import type { ProjectSettings } from "../../../shared/types";
 import { TIME_SIGNATURES, type TimeSignatureValue } from "js/shared/types/project";
 import Transport from "./Transport";
 import { useTransportContext } from "../contextProviders/TransportProvider";
+import UserSettings from "js/shared/components/UserSettings";
 
 const AVATARS = [
     { initials: "A", color: "#6366f1" },
@@ -46,16 +47,16 @@ export default function WorkspaceTopBar({ projectTitle, projectSettings, onChang
             : "00:00:00.000";
 
     return (
-        <header className="flex items-center gap-4 px-4 h-14 bg-[#0d1117] border-b border-white/[0.07] flex-shrink-0 z-20">
+        <header className="flex items-center gap-4 px-4 h-14 bg-base-200 border-b border-base-content/[0.07] flex-shrink-0 relative z-50">
             <Logo size={16} showText={true} />
-            <div className="flex items-center gap-1 text-sm text-white/60 cursor-pointer hover:text-white transition-colors">
+            <div className="flex items-center gap-1 text-sm text-base-content/60 cursor-pointer hover:text-base-content transition-colors">
                 {isLoading ? (
                     <div className="skeleton h-4 w-24 rounded" />
                 ) : (
                     <span>{projectTitle ?? "Untitled Project"}</span>
                 )}
                 <ChevronDown size={14} />
-                <span className="ml-2 text-xs text-white/30">Saved</span>
+                <span className="ml-2 text-xs text-base-content/30">Saved</span>
             </div>
 
             {/* Transport */}
@@ -100,12 +101,12 @@ function TimeSignatureDropdown({
 
     return (
         <div className="dropdown cursor-pointer">
-            <div tabIndex={0} role="button" className="btn m-1">
+            <div tabIndex={0} role="button" className="field flex items-center gap-2 cursor-pointer">
                 <span className="field-label">Time Signature</span>
                 <span className="font-mono font-semibold">{isSaving ? "..." : settings.timeSignature}</span>
                 <ChevronDown size={14} />
             </div>
-            <ul tabIndex={-1} className="dropdown-content menu bg-base-100 rounded-box z-40 w-24 p-2 shadow-sm">
+            <ul tabIndex={-1} className="dropdown-content menu bg-base-200 border border-base-content/10 rounded-lg z-40 w-24 p-2 shadow-lg">
                 {TIME_SIGNATURES.map((value) => {
                     if (!isTimeSignatureValue(value)) {
                         return null;
@@ -174,13 +175,13 @@ function CollaboratorAvatars({ users }: { users?: { initials: string; color: str
             {users?.map((a) => (
                 <div
                     key={a.initials}
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0 ring-2 ring-[#0d1117] -ml-1 first:ml-0"
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-base-content flex-shrink-0 ring-2 ring-base-200 -ml-1 first:ml-0"
                     style={{ backgroundColor: a.color }}
                 >
                     {a.initials}
                 </div>
             ))}
-            <button className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/60 transition-colors ml-1">
+            <button className="w-7 h-7 rounded-full bg-base-content/10 hover:bg-base-content/20 flex items-center justify-center text-base-content/60 transition-colors ml-1">
                 <Plus size={13} />
             </button>
         </div>
@@ -190,11 +191,11 @@ function CollaboratorAvatars({ users }: { users?: { initials: string; color: str
 function ExternalActions() {
     return (
         <div className="flex items-center gap-2 ml-2">
-            <button className="flex items-center gap-2 px-3 h-8 rounded-md bg-white/[0.06] hover:bg-white/[0.10] border border-white/10 text-sm text-white/70 transition-colors">
+            <button className="flex items-center gap-2 px-3 h-8 rounded-md bg-base-content/[0.06] hover:bg-base-content/[0.10] border border-base-content/10 text-sm text-base-content/70 transition-colors">
                 <Share2 size={13} />
                 Share
             </button>
-            <button className="flex items-center gap-2 px-3 h-8 rounded-md bg-indigo-500 hover:bg-indigo-400 text-sm text-white font-medium transition-colors">
+            <button className="flex items-center gap-2 px-3 h-8 rounded-md bg-primary hover:opacity-90 text-sm text-primary-content font-medium transition-opacity">
                 <Download size={13} />
                 Export
             </button>

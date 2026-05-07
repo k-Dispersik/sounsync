@@ -68,7 +68,7 @@ export default function TrackClip({
                     className="h-6 px-2 flex items-center gap-2"
                     style={{ backgroundColor: `${color}30` }}
                 >
-                    <GripVertical className="w-3 h-3 text-white/50 cursor-grab" />
+                    <GripVertical className="w-3 h-3 text-base-content/50 cursor-grab" />
                 </div>
 
                 {/* ── Waveform bars ── */}
@@ -87,8 +87,8 @@ export default function TrackClip({
                 </div>
 
                 {/* ── Resize handles (visible on hover) ── */}
-                <div className="absolute left-0 top-0 w-1 h-full cursor-w-resize opacity-0 group-hover/clip:opacity-100 bg-white/20 transition-opacity" />
-                <div className="absolute right-0 top-0 w-1 h-full cursor-e-resize opacity-0 group-hover/clip:opacity-100 bg-white/20 transition-opacity" />
+                <div className="absolute left-0 top-0 w-1 h-full cursor-w-resize opacity-0 group-hover/clip:opacity-100 bg-base-content/20 transition-opacity" />
+                <div className="absolute right-0 top-0 w-1 h-full cursor-e-resize opacity-0 group-hover/clip:opacity-100 bg-base-content/20 transition-opacity" />
             </div>
         </div>
     )

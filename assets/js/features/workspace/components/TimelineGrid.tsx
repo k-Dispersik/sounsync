@@ -9,7 +9,7 @@ import { useTimeline } from "js/features/workspace/hooks/useTimeline";
 import { useTimelineSelection } from "js/features/workspace/hooks/useTimelineSelection";
 
 interface Props {
-    project: Project;
+    project: Project | null;
     isLoading: boolean;
     /** Pixel width of one beat — default 48 */
     beatWidth?: number;
@@ -22,6 +22,7 @@ export default function TimelineGrid({
     beatWidth = 48,
     onTrackChanged,
 }: Props) {
+    const tracks = project?.tracks ?? [];
     const {
         scrollRef,
         hoveredBeat,
@@ -48,6 +49,10 @@ export default function TimelineGrid({
     } = useTimelineSelection();
 
     const handleRemoveTrack = async (trackId: number) => {
+        if (!project) {
+            return;
+        }
+
         await deleteTrack(project.id, trackId);
         onTrackChanged();
     };
@@ -55,20 +60,20 @@ export default function TimelineGrid({
     return (
         <>
             <WorkspaceToolbar
-                projectId={project.id}
-                tracks={project.tracks}
+                projectId={Number(project?.id)}
+                tracks={tracks}
                 selectedCell={selectedCell}
                 openCreateClipModal={handleOpenCreateClipModal}
                 onTrackChanged={onTrackChanged}
             />
-            <div className="flex flex-col h-full overflow-hidden bg-zinc-950 select-none">
+            <div className="flex flex-col h-full overflow-hidden bg-base-100 select-none">
                 {/* ── Header row ── */}
-                <div className="flex flex-shrink-0 border-b border-white/10">
+                <div className="flex flex-shrink-0 border-b border-base-content/10">
                     {/* Corner cell */}
                     <div
-                        className="flex h-8 w-[168px] flex-shrink-0 items-center border-r border-white/10 bg-zinc-900/80 px-4"
+                        className="flex h-8 w-[168px] flex-shrink-0 items-center border-r border-base-content/10 bg-base-300/80 px-4"
                     >
-                        <span className="text-[10px] uppercase tracking-widest text-white/30 font-semibold">
+                        <span className="text-[10px] uppercase tracking-widest text-base-content/30 font-semibold">
                             Tracks
                         </span>
                     </div>
@@ -91,7 +96,7 @@ export default function TimelineGrid({
                 </div>
 
                 <div className="flex flex-1 overflow-hidden">
-                    <div className="w-[168px] flex-shrink-0 overflow-hidden border-r border-white/10">
+                    <div className="w-[168px] flex-shrink-0 overflow-hidden border-r border-base-content/10">
                         {isLoading ? (
                             <div className="p-4 flex flex-col gap-2">
                                 {Array.from({ length: 4 }).map((_, i) => (
@@ -99,10 +104,10 @@ export default function TimelineGrid({
                                 ))}
                             </div>
                         ) : (
-                            project.tracks.map((track, i) => (
+                            project?.tracks.map((track, i) => (
                                 <div
                                     key={track.id}
-                                    className={`flex items-center px-4 gap-3 ${i < project.tracks.length - 1 ? "border-b border-white/[0.06]" : ""
+                                    className={`flex items-center px-4 gap-3 ${i < project?.tracks.length - 1 ? "border-b border-base-content/[0.06]" : ""}
                                         }`}
                                     style={{ height: 80 }}
                                 >
@@ -110,9 +115,9 @@ export default function TimelineGrid({
                                     <Trash2
                                         onClick={() => handleRemoveTrack(track.id)}
                                         size={18}
-                                        className="text-white/20 cursor-pointer hover:text-white/50 transition-colors" />
+                                        className="text-base-content/20 cursor-pointer hover:text-base-content/50 transition-colors" />
 
-                                    <span className="text-sm text-white/70 truncate font-medium">
+                                    <span className="text-sm text-base-content/70 truncate font-medium">
                                         {`Track ${track.row_index + 1}`}
                                     </span>
                                 </div>
@@ -137,7 +142,7 @@ export default function TimelineGrid({
                                     ))}
                                 </div>
                             ) : (
-                                project.tracks.map((track, i) => (
+                                tracks.map((track, i) => (
                                     <TrackRow
                                         key={track.id}
                                         track={track}
@@ -146,7 +151,7 @@ export default function TimelineGrid({
                                         beatsPerBar={beatsPerBar}
                                         barEndLines={barEndLines}
                                         pixelsPerMillisecond={pixelsPerMillisecond}
-                                        isLast={i === project.tracks.length - 1}
+                                        isLast={i === tracks.length - 1}
                                         hoveredBeat={hoveredBeat}
                                         hoveredTrackId={hoveredTrackId}
                                         selectedBeat={selectedPosition?.beatIndex ?? null}

@@ -17,22 +17,22 @@ export default function WorkspaceToolbar({ projectId, tracks, selectedCell, open
     };
 
     return (
-        <div className="flex items-center gap-4 px-4 h-9 bg-[#0d1117] border-b border-white/[0.07] flex-shrink-0">
+        <div className="flex items-center gap-4 px-4 h-9 bg-base-200 border-b border-base-content/[0.07] flex-shrink-0">
             <button
-                className="flex items-center gap-1.5 text-xs text-white/50 hover:text-white/80 transition-colors"
+                className="flex items-center gap-1.5 text-xs text-base-content/50 hover:text-base-content/80 transition-colors"
                 onClick={handleAddTrack}
             >
                 <Plus size={13} />
                 Add Track
             </button>
-            <div className="w-px h-4 bg-white/10" />
-            <button className="flex items-center gap-1.5 text-xs text-white/50 hover:text-white/80 transition-colors">
+            <div className="w-px h-4 bg-base-content/10" />
+            <button className="flex items-center gap-1.5 text-xs text-base-content/50 hover:text-base-content/80 transition-colors">
                 <Mic size={13} />
                 Record
             </button>
             {selectedCell && (
                 <button
-                    className="flex items-center gap-1.5 text-xs text-white/50 hover:text-white/80 transition-colors"
+                    className="flex items-center gap-1.5 text-xs text-base-content/50 hover:text-base-content/80 transition-colors"
                     onClick={() => openCreateClipModal(selectedCell.trackId, selectedCell.beatIndex)}
                 >
                     <Plus size={13} />

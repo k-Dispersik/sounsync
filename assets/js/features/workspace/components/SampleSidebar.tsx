@@ -21,8 +21,8 @@ function SidebarTab({
     return (
         <button
             className={`flex-1 flex items-center justify-center h-10 border-b-2 transition-colors ${active
-                ? "border-indigo-500 text-indigo-400"
-                : "border-transparent text-white/30 hover:text-white/60"
+                ? "border-primary text-primary"
+                : "border-transparent text-base-content/30 hover:text-base-content/60"
                 }`}
         >
             {icon}
@@ -35,23 +35,23 @@ export default function SampleSidebar({ tracks, isLoading }: { tracks?: Track[];
     const samples = useSampleSidebar(tracks ?? []);
 
     return (
-        <aside className="w-52 flex-shrink-0 bg-[#0d1117] border-r border-white/[0.07] flex flex-col">
+        <aside className="w-52 flex-shrink-0 bg-base-200 border-r border-base-content/[0.07] flex flex-col">
             {/* Tabs */}
-            <div className="flex border-b border-white/[0.07]">
+            <div className="flex border-b border-base-content/[0.07]">
                 <SidebarTab icon={<Music2 size={14} />} active />
                 <SidebarTab icon={<Clock size={14} />} />
             </div>
 
             {/* Search */}
-            <div className="p-3 border-b border-white/[0.07]">
-                <div className="flex items-center gap-2 px-3 h-8 rounded-md bg-white/[0.05] border border-white/[0.08]">
-                    <Search size={13} className="text-white/30 flex-shrink-0" />
+            <div className="p-3 border-b border-base-content/[0.07]">
+                <div className="flex items-center gap-2 px-3 h-8 rounded-md bg-base-content/[0.05] border border-base-content/[0.08]">
+                    <Search size={13} className="text-base-content/30 flex-shrink-0" />
                     <input
-                        className="bg-transparent text-sm text-white/70 placeholder-white/25 outline-none w-full"
+                        className="bg-transparent text-sm text-base-content/70 placeholder:text-base-content/25 outline-none w-full"
                         placeholder="Search samples…"
                     />
                 </div>
-                <button className="mt-2 w-full flex items-center justify-center gap-2 h-8 rounded-md bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-500/30 text-indigo-300 text-xs font-medium transition-colors">
+                <button className="mt-2 w-full flex items-center justify-center gap-2 h-8 rounded-md bg-primary/20 hover:bg-primary/30 border border-primary/30 text-primary text-xs font-medium transition-colors">
                     <Upload size={12} />
                     Upload Sample
                 </button>
@@ -71,14 +71,14 @@ export default function SampleSidebar({ tracks, isLoading }: { tracks?: Track[];
                     samples.map((s) => (
                         <div
                             key={s.id}
-                            className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-white/[0.04] group transition-colors"
+                            className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-base-content/[0.04] group transition-colors"
                         >
                             <span className="text-base leading-none">{CAT_ICONS[s.type] ?? "🎵"}</span>
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm text-white/75 truncate group-hover:text-white transition-colors">
+                                <p className="text-sm text-base-content/75 truncate group-hover:text-base-content transition-colors">
                                     {s.title}
                                 </p>
-                                <p className="text-[11px] text-white/30">
+                                <p className="text-[11px] text-base-content/30">
                                     {s.type} · {s.duration}s
                                 </p>
                             </div>

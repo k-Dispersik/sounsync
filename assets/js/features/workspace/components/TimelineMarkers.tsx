@@ -14,7 +14,7 @@ export function BarEndMarkers({
             {barEndLines.map((x, index) => (
                 <div
                     key={`${barEndKeyPrefix}-${index}`}
-                    className="pointer-events-none absolute inset-y-0 z-10 w-0.5 bg-gray-500/80"
+                    className="pointer-events-none absolute inset-y-0 z-10 w-0.5 bg-base-content/50"
                     style={{ left: x - 1 }}
                 />
             ))}

@@ -1,37 +1,74 @@
 .field {
-    @apply px-3 h-8 rounded-md bg-white/[0.06] border border-white/10 font-mono text-sm text-white/80 outline-none transition-colors;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    height: 2rem;
+    border-radius: 0.375rem;
+    background-color: color-mix(in oklch, var(--color-base-content) 6%, transparent);
+    border: 1px solid color-mix(in oklch, var(--color-base-content) 10%, transparent);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.875rem;
+    color: color-mix(in oklch, var(--color-base-content) 80%, transparent);
+    outline: none;
+    transition: border-color 150ms, color 150ms;
 }
 
 .field:focus,
 .field:focus-visible {
-    @apply border-white/30 outline-none ring-0;
+    border-color: color-mix(in oklch, var(--color-base-content) 30%, transparent);
+    outline: none;
+    box-shadow: none;
 }
 
 .field-shell {
-    @apply flex items-center gap-2 px-3 h-8 rounded-md bg-white/[0.06] border border-white/10 text-sm text-white/80 transition-colors;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    height: 2rem;
+    border-radius: 0.375rem;
+    background-color: color-mix(in oklch, var(--color-base-content) 6%, transparent);
+    border: 1px solid color-mix(in oklch, var(--color-base-content) 10%, transparent);
+    font-size: 0.875rem;
+    color: color-mix(in oklch, var(--color-base-content) 80%, transparent);
+    transition: border-color 150ms;
 }
 
 .field-shell:focus-within {
-    @apply border-white/30;
+    border-color: color-mix(in oklch, var(--color-base-content) 30%, transparent);
 }
 
 .field-shell .field {
-    @apply h-full flex-1 px-0 border-0 bg-transparent;
+    height: 100%;
+    flex: 1;
+    padding-left: 0;
+    padding-right: 0;
+    border: none;
+    background: transparent;
 }
 
 .field-shell .field:focus,
 .field-shell .field:focus-visible {
-    @apply border-transparent outline-none ring-0;
+    border-color: transparent;
+    outline: none;
+    box-shadow: none;
 }
 
 .field-label {
-    @apply text-white/40 text-xs;
+    color: color-mix(in oklch, var(--color-base-content) 40%, transparent);
+    font-size: 0.75rem;
 }
 
 .field:disabled {
-    @apply bg-white/[0.06] text-white/80;
+    background-color: color-mix(in oklch, var(--color-base-content) 6%, transparent);
+    color: color-mix(in oklch, var(--color-base-content) 80%, transparent);
+
+    hover {
+        background-color: color-mix(in oklch, var(--color-base-content) 6%, transparent);
+        color: color-mix(in oklch, var(--color-base-content) 80%, transparent);
+    }
 }
 
 .field::placeholder {
-    @apply text-white/35;
+    color: color-mix(in oklch, var(--color-base-content) 35%, transparent);
 }

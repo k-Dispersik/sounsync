@@ -27,7 +27,7 @@ export default function Workspace() {
     }, [id, refetch]);
 
     return (
-        <div className="w-full h-screen bg-[#0d1117] flex flex-col overflow-hidden">
+        <div className="w-full h-screen bg-base-200 flex flex-col overflow-hidden">
             <TransportProvider>
                 <WorkspaceCursor cursors={cursors} />
                 <WorkspaceTopBar
@@ -42,13 +42,11 @@ export default function Workspace() {
                     <SampleSidebar tracks={project?.tracks || []} isLoading={isLoading} />
                     <div className="flex flex-col flex-1 overflow-hidden">
                         <div className="flex-1 overflow-hidden">
-                            {project && (
-                                <TimelineGrid
-                                    project={project}
-                                    isLoading={isLoading}
-                                    onTrackChanged={refetch}
-                                />
-                            )}
+                            <TimelineGrid
+                                project={project}
+                                isLoading={isLoading}
+                                onTrackChanged={refetch}
+                            />
                         </div>
                     </div>
                 </div>
