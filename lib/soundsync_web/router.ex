@@ -24,6 +24,7 @@ defmodule SoundsyncWeb.Router do
       patch "/:id/settings", ProjectController, :update_settings
       post "/:project_id/tracks", ProjectController, :create_track
       post "/:project_id/tracks/:track_id/clips", ProjectController, :create_clip
+      patch "/:project_id/tracks/:track_id/clips/:clip_id", ProjectController, :update_clip
       delete "/:project_id/tracks/:track_id", ProjectController, :delete_track
     end
   end

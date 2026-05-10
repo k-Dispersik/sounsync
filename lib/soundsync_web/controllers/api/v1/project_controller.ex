@@ -1,5 +1,6 @@
 defmodule SoundsyncWeb.API.V1.ProjectController do
   use SoundsyncWeb, :controller
+  use Params
 
   alias Core.ProjectsCtx.Projects
   alias Core.ProjectsCtx.Tracks
@@ -46,15 +47,54 @@ defmodule SoundsyncWeb.API.V1.ProjectController do
     end
   end
 
-  def create_clip(conn, %{"project_id" => project_id, "track_id" => track_id}) do
+  defparams(
+    create_clip_params(%{
+      title: :string,
+      type: :string,
+      start_time!: :integer,
+      duration!: :integer,
+      file_path: :string,
+      project_id!: :integer,
+      track_id!: :integer
+    })
+  )
+
+  def create_clip(conn, params) do
     OK.try do
-      project <- Projects.get(project_id, assoc: [tracks: [:clips]]) |> OK.required()
-      track <- Projects.get_track_by_id(project, String.to_integer(track_id)) |> OK.required()
-      clip <- Tracks.add_clip(track, track)
+      clip_attrs <- create_clip_params(params) |> Helpers.get_changes?()
+      project <- Projects.get(clip_attrs.project_id, assoc: [tracks: [:clips]]) |> OK.required()
+      track <- Projects.get_track_by_id(project, clip_attrs.track_id) |> OK.required()
+      clip <- Tracks.add_clip(track, clip_attrs)
     after
       JSON.clip(clip) |> Helpers.response(conn, :created)
     rescue
-      e -> Helpers.response(%{error: e}, conn, :internal_server_error)
+      e -> Helpers.response(%{error: inspect(e)}, conn, :internal_server_error)
+    end
+  end
+
+  defparams(
+    update_clip_params(%{
+      start_time: :integer,
+      duration: :integer,
+      title: :string,
+      type: :string,
+      file_path: :string,
+      project_id: :integer,
+      track_id: :integer,
+      clip_id: :integer
+    })
+  )
+
+  def update_clip(conn, params) do
+    OK.try do
+      clip_attrs <- update_clip_params(params) |> Helpers.get_changes?()
+      project <- Projects.get(clip_attrs.project_id, assoc: [tracks: [:clips]]) |> OK.required()
+      track <- Projects.get_track_by_id(project, clip_attrs.track_id) |> OK.required()
+      updated_clip <- Tracks.update_clip(track, clip_attrs.clip_id, clip_attrs)
+    after
+      JSON.clip(updated_clip) |> Helpers.response(conn, :ok)
+    rescue
+      e -> Helpers.response(%{error: inspect(e)}, conn, :internal_server_error)
     end
   end
 
@@ -62,7 +102,7 @@ defmodule SoundsyncWeb.API.V1.ProjectController do
     OK.try do
       project <- Projects.get(project_id, assoc: [:tracks]) |> OK.required()
       track <- Projects.get_track_by_id(project, String.to_integer(track_id)) |> OK.required()
-      _ <- Tracks.delete(track) |> IO.inspect(label: "Deleted track")
+      _ <- Tracks.delete(track)
     after
       Helpers.response(%{message: "Track deleted"}, conn, :ok)
     rescue

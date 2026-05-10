@@ -95,7 +95,15 @@ export default function TrackRow({
 
             {/* Clips */}
             {track.clips.map((clip) => (
-                <TrackClip key={clip.id} color={"rgba(255, 0, 255, 0.2)"} clip={clip} pixelsPerMillisecond={pixelsPerMillisecond} />))}
+                <TrackClip
+                    key={clip.id}
+                    projectId={track.project_id!}
+                    trackId={track.id}
+                    color={"rgba(255, 0, 255, 0.2)"}
+                    clip={clip}
+                    pixelsPerMillisecond={pixelsPerMillisecond}
+                />
+            ))}
         </div>
     );
 }

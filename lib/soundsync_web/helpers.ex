@@ -24,4 +24,13 @@ defmodule SoundsyncWeb.Helpers do
   def parse_time_signature(time_signature) when is_atom(time_signature) do
     Map.get(@time_signature_atom_to_string, time_signature)
   end
+
+  @doc """
+
+  """
+  def get_changes?(%Ecto.Changeset{valid?: true, changes: changes}) do
+    {:ok, changes}
+  end
+
+  def get_changes?(_), do: {:error, :invalid_changeset}
 end

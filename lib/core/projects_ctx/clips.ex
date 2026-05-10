@@ -7,13 +7,19 @@ defmodule Core.ProjectsCtx.Clips do
   def changeset(clip, attrs) do
     clip
     |> cast(attrs, [:title, :type, :start_time, :duration, :file_path])
-    |> validate_required([:type, :start_time, :duration])
   end
 
-  def new(attrs \\ %{}), do: %Clip{} |> changeset(attrs)
+  def new(attrs \\ %{}),
+    do:
+      %Clip{}
+      |> changeset(attrs)
+      |> validate_required([:type, :start_time, :duration])
 
   def create(attrs), do: new(attrs) |> Repo.insert()
 
-  # TODO: implement actual overlap validation
-  def validate_overlap(changeset, _track_id), do: changeset
+  def update(clip, attrs) do
+    clip
+    |> changeset(attrs)
+    |> Repo.update()
+  end
 end

@@ -22,7 +22,7 @@ export default function ThemeSwitcher() {
 
 function ThemeItem({ label, value }: { label: string; value: string }) {
     return (
-        <li>
+        <div>
             <input
                 type="radio"
                 name="theme-dropdown"
@@ -30,6 +30,6 @@ function ThemeItem({ label, value }: { label: string; value: string }) {
                 aria-label={label}
                 value={value}
             />
-        </li>
+        </div>
     );
 }

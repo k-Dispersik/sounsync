@@ -1,16 +1,18 @@
 import { Plus, Mic } from "lucide-react";
 import { createTrack } from "../api/tracks";
 import type { Track } from "../../../shared/types/index";
+import { useClipModal } from "../contextProviders/ClipModalProvider";
 
 interface Props {
     projectId: number;
     tracks: Track[];
-    selectedCell: { trackId: number; beatIndex: number } | null;
-    openCreateClipModal: (trackId: number, beatIndex: number) => void;
+    selectedCell: { trackId: number; beatIndex: number; startTimeMs: number } | null;
     onTrackChanged: () => void;
 }
 
-export default function WorkspaceToolbar({ projectId, tracks, selectedCell, openCreateClipModal, onTrackChanged }: Props) {
+export default function WorkspaceToolbar({ projectId, tracks, selectedCell, onTrackChanged }: Props) {
+    const { openCreateClip } = useClipModal();
+
     const handleAddTrack = async () => {
         await createTrack(projectId, { row: tracks.length + 1 });
         onTrackChanged();
@@ -33,13 +35,12 @@ export default function WorkspaceToolbar({ projectId, tracks, selectedCell, open
             {selectedCell && (
                 <button
                     className="flex items-center gap-1.5 text-xs text-base-content/50 hover:text-base-content/80 transition-colors"
-                    onClick={() => openCreateClipModal(selectedCell.trackId, selectedCell.beatIndex)}
+                    onClick={() => openCreateClip(projectId, selectedCell.trackId, selectedCell.startTimeMs)}
                 >
                     <Plus size={13} />
                     Add Clip
                 </button>
             )}
-
         </div>
     );
 }

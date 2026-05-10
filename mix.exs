@@ -55,7 +55,8 @@ defmodule Soundsync.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"},
-      {:ok, "~> 2.3"}
+      {:ok, "~> 2.3"},
+      {:params, "~> 2.3"}
     ]
   end
 

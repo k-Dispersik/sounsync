@@ -43,10 +43,15 @@ export default function TimelineGrid({
     });
     const {
         selectedPosition,
-        selectedCell,
+        selectedCell: rawSelectedCell,
         handleRulerBeatClick,
         handleTrackBeatClick,
     } = useTimelineSelection();
+
+    const millisecondsPerBeat = gridBeatWidth / pixelsPerMillisecond;
+    const selectedCell = rawSelectedCell
+        ? { ...rawSelectedCell, startTimeMs: rawSelectedCell.beatIndex * millisecondsPerBeat }
+        : null;
 
     const handleRemoveTrack = async (trackId: number) => {
         if (!project) {
@@ -63,7 +68,6 @@ export default function TimelineGrid({
                 projectId={Number(project?.id)}
                 tracks={tracks}
                 selectedCell={selectedCell}
-                openCreateClipModal={handleOpenCreateClipModal}
                 onTrackChanged={onTrackChanged}
             />
             <div className="flex flex-col h-full overflow-hidden bg-base-100 select-none">

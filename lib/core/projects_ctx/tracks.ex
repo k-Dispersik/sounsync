@@ -23,4 +23,11 @@ defmodule Core.ProjectsCtx.Tracks do
     |> Clips.changeset(clip_attrs)
     |> Repo.insert()
   end
+
+  def update_clip(%Track{clips: clips}, clip_id, attrs) do
+    case Enum.find(clips, &(&1.id == clip_id)) do
+      nil -> {:error, "Clip not found in this track"}
+      clip -> Clips.update(clip, attrs)
+    end
+  end
 end

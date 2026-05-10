@@ -20,3 +20,16 @@ export async function createClip(
     );
     return data;
 }
+
+export async function updateClip(
+    projectId: number,
+    trackId: number,
+    clipId: number,
+    dto: Partial<CreateClipDTO>
+): Promise<Clip> {
+    const { data } = await apiClient.patch<Clip>(
+        `/projects/${projectId}/tracks/${trackId}/clips/${clipId}`,
+        dto
+    );
+    return data;
+}

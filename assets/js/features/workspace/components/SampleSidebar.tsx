@@ -2,13 +2,15 @@ import React from "react";
 import { Search, Upload, Music2, Clock } from "lucide-react";
 import useSampleSidebar from "../hooks/useSampleSidebar";
 import type { Track } from "../../../shared/types/index";
+import { useClipModal } from "../contextProviders/ClipModalProvider";
 
 const CAT_ICONS: Record<string, string> = {
     drums: "🥁",
-    bass: "🎸",
-    synth: "🎹",
-    vocals: "🎤",
-    fx: "✨",
+    bass: "🎵",
+    piano: "🎹",
+    guitar: "🎸",
+    recording: "🎤",
+    effect: "✨",
 };
 
 function SidebarTab({
@@ -30,9 +32,9 @@ function SidebarTab({
     );
 }
 
-export default function SampleSidebar({ tracks, isLoading }: { tracks?: Track[]; isLoading?: boolean }) {
-    // Get samples based on current project tracks 
+export default function SampleSidebar({ projectId, tracks, isLoading }: { projectId: number; tracks?: Track[]; isLoading?: boolean }) {
     const samples = useSampleSidebar(tracks ?? []);
+    const { openEditClip } = useClipModal();
 
     return (
         <aside className="w-52 flex-shrink-0 bg-base-200 border-r border-base-content/[0.07] flex flex-col">
@@ -71,6 +73,7 @@ export default function SampleSidebar({ tracks, isLoading }: { tracks?: Track[];
                     samples.map((s) => (
                         <div
                             key={s.id}
+                            onClick={() => openEditClip(s.project_id, s.track_id!, s)}
                             className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-base-content/[0.04] group transition-colors"
                         >
                             <span className="text-base leading-none">{CAT_ICONS[s.type] ?? "🎵"}</span>
