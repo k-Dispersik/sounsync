@@ -7,15 +7,15 @@ interface Props {
     projectId: number;
     tracks: Track[];
     selectedCell: { trackId: number; beatIndex: number; startTimeMs: number } | null;
-    onTrackChanged: () => void;
+    onTrackAdded: (track: Track) => void;
 }
 
-export default function WorkspaceToolbar({ projectId, tracks, selectedCell, onTrackChanged }: Props) {
+export default function WorkspaceToolbar({ projectId, tracks, selectedCell, onTrackAdded }: Props) {
     const { openCreateClip } = useClipModal();
 
     const handleAddTrack = async () => {
-        await createTrack(projectId, { row: tracks.length + 1 });
-        onTrackChanged();
+        const track = await createTrack(projectId, { row: tracks.length + 1 });
+        onTrackAdded(track);
     };
 
     return (

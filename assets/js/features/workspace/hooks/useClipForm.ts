@@ -43,7 +43,11 @@ const LIBRARY: LibrarySample[] = [
     { id: "e2", title: "Vinyl Crackle", type: "effect", duration: 4000 },
 ];
 
-export function useClipForm(state: NonNullable<ClipModalState>, onSuccess: () => void) {
+import type { Clip } from "js/shared/types";
+
+export type ClipSuccessCallback = (trackId: number, clip: Clip, isEdit: boolean) => void;
+
+export function useClipForm(state: NonNullable<ClipModalState>, onSuccess: ClipSuccessCallback) {
     const { broadcast } = useRealtime();
     const sessionId = getOrCreateSessionId();
     const isEdit = state.kind === "edit";
@@ -101,21 +105,21 @@ export function useClipForm(state: NonNullable<ClipModalState>, onSuccess: () =>
             const attrs = buildAttrs();
 
             if (isEdit) {
-                await updateClip(state.projectId, state.trackId, state.clip.id, attrs);
+                const clip = await updateClip(state.projectId, state.trackId, state.clip.id, attrs);
+                onSuccess(state.trackId, clip, true);
             } else {
-                await createClip(state.projectId, state.trackId, {
+                const clip = await createClip(state.projectId, state.trackId, {
                     ...attrs,
                     start_time: state.startTime,
                     row_index: 0,
                 });
                 broadcast(RealtimeEvents.CLIP_CREATED, {
                     session_id: sessionId,
-                    project_id: state.projectId,
                     track_id: state.trackId,
+                    clip,
                 });
+                onSuccess(state.trackId, clip, false);
             }
-
-            onSuccess();
         } finally {
             setIsSaving(false);
         }

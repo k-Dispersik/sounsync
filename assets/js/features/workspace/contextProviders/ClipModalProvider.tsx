@@ -1,5 +1,6 @@
 import { createContext, useContext, useState } from "react";
 import type { Clip } from "js/shared/types";
+import type { ClipSuccessCallback } from "js/features/workspace/hooks/useClipForm";
 import ClipModal from "js/features/workspace/components/ClipModal";
 
 export type ClipModalState =
@@ -22,7 +23,7 @@ export function useClipModal() {
 
 interface Props {
     children: React.ReactNode;
-    onSuccess: () => void;
+    onSuccess: ClipSuccessCallback;
 }
 
 export default function ClipModalProvider({ children, onSuccess }: Props) {
@@ -36,9 +37,9 @@ export default function ClipModalProvider({ children, onSuccess }: Props) {
 
     const handleClose = () => setState(null);
 
-    const handleSuccess = () => {
+    const handleSuccess: ClipSuccessCallback = (trackId, clip, isEdit) => {
         setState(null);
-        onSuccess();
+        onSuccess(trackId, clip, isEdit);
     };
 
     return (

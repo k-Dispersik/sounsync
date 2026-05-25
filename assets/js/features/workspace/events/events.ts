@@ -1,3 +1,5 @@
+import type { Clip } from "js/shared/types";
+
 export const RealtimeEvents = {
     CURSOR_MOVE: "workspace:cursor:move",
     CURSOR_CLICK: "workspace:cursor:click",
@@ -16,4 +18,4 @@ export type WorkspaceEvent =
     | { type: "peer_connected"; payload: { session_id: string } }
     | { type: "peer_disconnected"; payload: { session_id: string } }
     | { type: "clip_moved"; payload: { session_id: string; clip_id: number; track_id: number; start_time: number } }
-    | { type: "clip_created"; payload: { session_id: string; project_id: number; track_id: number } };
+    | { type: "clip_created"; payload: { session_id: string; track_id: number; clip: Clip } };

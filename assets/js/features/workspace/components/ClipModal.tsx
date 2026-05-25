@@ -1,14 +1,14 @@
 import { useEffect, useRef } from "react";
 import { X, Music2, Upload, Check, Search } from "lucide-react";
 import type { ClipModalState } from "../contextProviders/ClipModalProvider";
-import { useClipForm, TYPE_META, CLIP_TYPES, type Tab, type ClipType, type LibrarySample } from "../hooks/useClipForm";
+import { useClipForm, TYPE_META, CLIP_TYPES, type Tab, type ClipType, type LibrarySample, type ClipSuccessCallback } from "../hooks/useClipForm";
 
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface Props {
     state: NonNullable<ClipModalState>;
     onClose: () => void;
-    onSuccess: () => void;
+    onSuccess: ClipSuccessCallback;
 }
 
 export default function ClipModal({ state, onClose, onSuccess }: Props) {

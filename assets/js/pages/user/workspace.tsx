@@ -9,7 +9,7 @@ import { useWorkspaceRealtime } from "../../features/workspace/hooks/useWorkspac
 import { useWorkspaceEvent } from "../../features/workspace/hooks/useWorkspaceEvent";
 import { RealtimeEvents } from "../../features/workspace/events/events";
 import { useProject } from "../../features/workspace/hooks/useProject";
-import type { ProjectSettings } from "../../shared/types";
+import type { Clip, ProjectSettings, Track } from "../../shared/types";
 import TransportProvider from "js/features/workspace/contextProviders/TransportProvider";
 import ClipModalProvider from "js/features/workspace/contextProviders/ClipModalProvider";
 import RealtimeProvider from "js/features/workspace/contextProviders/RealtimeProvider";
@@ -19,22 +19,42 @@ const WORKSPACE_ID = "test-workspace";
 function WorkspaceContent() {
     const { id } = useParams<{ id: string }>();
     const { cursors } = useWorkspaceRealtime(WORKSPACE_ID);
-    const { project, isLoading, refetch } = useProject(Number(id));
+    const {
+        project, isLoading,
+        addClip, updateClipInState, updateSettings, addTrack, removeTrack,
+    } = useProject(Number(id));
 
-    useWorkspaceEvent<{ session_id: string }>(RealtimeEvents.CLIP_CREATED, () => refetch());
+    // Remote peer created a clip — add it directly without API call
+    useWorkspaceEvent<{ session_id: string; track_id: number; clip: Clip }>(
+        RealtimeEvents.CLIP_CREATED,
+        ({ track_id, clip }) => addClip(track_id, clip)
+    );
+
+    const handleClipSuccess = useCallback((trackId: number, clip: Clip, isEdit: boolean) => {
+        if (isEdit) {
+            updateClipInState(trackId, clip.id, clip);
+        } else {
+            addClip(trackId, clip);
+        }
+    }, [addClip, updateClipInState]);
 
     const handleProjectSettingsChange = useCallback(async (settings: ProjectSettings) => {
-        if (!id) {
-            return;
-        }
-
+        if (!id) return;
         await updateProjectSettings(Number(id), settings);
-        refetch();
-    }, [id, refetch]);
+        updateSettings(settings);
+    }, [id, updateSettings]);
+
+    const handleTrackAdded = useCallback((track: Track) => {
+        addTrack(track);
+    }, [addTrack]);
+
+    const handleTrackRemoved = useCallback((trackId: number) => {
+        removeTrack(trackId);
+    }, [removeTrack]);
 
     return (
         <TransportProvider>
-            <ClipModalProvider onSuccess={refetch}>
+            <ClipModalProvider onSuccess={handleClipSuccess}>
                 <WorkspaceCursor cursors={cursors} />
                 <WorkspaceTopBar
                     isLoading={isLoading}
@@ -55,7 +75,8 @@ function WorkspaceContent() {
                             <TimelineGrid
                                 project={project}
                                 isLoading={isLoading}
-                                onTrackChanged={refetch}
+                                onTrackAdded={handleTrackAdded}
+                                onTrackRemoved={handleTrackRemoved}
                             />
                         </div>
                     </div>

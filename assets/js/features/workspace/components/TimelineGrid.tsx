@@ -1,7 +1,7 @@
 import { type CSSProperties } from "react";
 import Ruler from "./Ruler";
 import TrackRow from "./TrackRow";
-import type { Project } from "../../../shared/types/index";
+import type { Project, Track } from "../../../shared/types/index";
 import { Trash2 } from "lucide-react";
 import { deleteTrack } from "../api/tracks";
 import WorkspaceToolbar from "./WorkspaceToolbar";
@@ -13,14 +13,16 @@ interface Props {
     isLoading: boolean;
     /** Pixel width of one beat — default 48 */
     beatWidth?: number;
-    onTrackChanged: () => void;
+    onTrackAdded: (track: Track) => void;
+    onTrackRemoved: (trackId: number) => void;
 }
 
 export default function TimelineGrid({
     project,
     isLoading,
     beatWidth = 48,
-    onTrackChanged,
+    onTrackAdded,
+    onTrackRemoved,
 }: Props) {
     const tracks = project?.tracks ?? [];
     const {
@@ -59,7 +61,7 @@ export default function TimelineGrid({
         }
 
         await deleteTrack(project.id, trackId);
-        onTrackChanged();
+        onTrackRemoved(trackId);
     };
 
     return (
@@ -68,7 +70,7 @@ export default function TimelineGrid({
                 projectId={Number(project?.id)}
                 tracks={tracks}
                 selectedCell={selectedCell}
-                onTrackChanged={onTrackChanged}
+                onTrackAdded={onTrackAdded}
             />
             <div className="flex flex-col h-full overflow-hidden bg-base-100 select-none">
                 {/* ── Header row ── */}
