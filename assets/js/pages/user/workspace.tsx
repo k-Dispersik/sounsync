@@ -6,6 +6,8 @@ import WorkspaceTopBar from "../../features/workspace/components/WorkspaceTopBar
 import SampleSidebar from "../../features/workspace/components/SampleSidebar";
 import { updateProjectSettings } from "../../features/workspace/api/projects";
 import { useWorkspaceRealtime } from "../../features/workspace/hooks/useWorkspaceRealtime";
+import { useWorkspaceEvent } from "../../features/workspace/hooks/useWorkspaceEvent";
+import { RealtimeEvents } from "../../features/workspace/events/events";
 import { useProject } from "../../features/workspace/hooks/useProject";
 import type { ProjectSettings } from "../../shared/types";
 import TransportProvider from "js/features/workspace/contextProviders/TransportProvider";
@@ -18,6 +20,8 @@ function WorkspaceContent() {
     const { id } = useParams<{ id: string }>();
     const { cursors } = useWorkspaceRealtime(WORKSPACE_ID);
     const { project, isLoading, refetch } = useProject(Number(id));
+
+    useWorkspaceEvent<{ session_id: string }>(RealtimeEvents.CLIP_CREATED, () => refetch());
 
     const handleProjectSettingsChange = useCallback(async (settings: ProjectSettings) => {
         if (!id) {

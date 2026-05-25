@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ClipModalState } from "../contextProviders/ClipModalProvider";
 import { createClip, updateClip } from "../api/clips";
+import { useRealtime } from "../contextProviders/RealtimeProvider";
+import { RealtimeEvents } from "../events/events";
+import { getOrCreateSessionId } from "../services/signaling/workspaceChannel";
 
 export type ClipType = "piano" | "guitar" | "drums" | "bass" | "recording" | "effect";
 export type Tab = "library" | "upload";
@@ -41,6 +44,8 @@ const LIBRARY: LibrarySample[] = [
 ];
 
 export function useClipForm(state: NonNullable<ClipModalState>, onSuccess: () => void) {
+    const { broadcast } = useRealtime();
+    const sessionId = getOrCreateSessionId();
     const isEdit = state.kind === "edit";
 
     const [tab, setTab] = useState<Tab>("library");
@@ -102,6 +107,11 @@ export function useClipForm(state: NonNullable<ClipModalState>, onSuccess: () =>
                     ...attrs,
                     start_time: state.startTime,
                     row_index: 0,
+                });
+                broadcast(RealtimeEvents.CLIP_CREATED, {
+                    session_id: sessionId,
+                    project_id: state.projectId,
+                    track_id: state.trackId,
                 });
             }
 

@@ -4,6 +4,7 @@ export const RealtimeEvents = {
     PEER_CONNECTED: "workspace:peer:connected",
     PEER_DISCONNECTED: "workspace:peer:disconnected",
     CLIP_MOVED: "workspace:clip:moved",
+    CLIP_CREATED: "workspace:clip:created",
 } as const;
 
 export type RealtimeEventName = (typeof RealtimeEvents)[keyof typeof RealtimeEvents];
@@ -14,4 +15,5 @@ export type WorkspaceEvent =
     | { type: "cursor_click"; payload: { session_id: string; x: number; y: number } }
     | { type: "peer_connected"; payload: { session_id: string } }
     | { type: "peer_disconnected"; payload: { session_id: string } }
-    | { type: "clip_moved"; payload: { session_id: string; clip_id: number; track_id: number; start_time: number } };
+    | { type: "clip_moved"; payload: { session_id: string; clip_id: number; track_id: number; start_time: number } }
+    | { type: "clip_created"; payload: { session_id: string; project_id: number; track_id: number } };
