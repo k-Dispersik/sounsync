@@ -1,10 +1,9 @@
-import { useEffect, useRef, useState } from "react";
-import WorkspaceChannel, { getOrCreateSessionId } from "../services/signaling/workspaceChannel";
-import { WorkspaceRtc } from "../services/transport/workspaceRtc";
+import { useState } from "react";
 import { useCursorSync } from "./useCursorSync";
 import { useCursorEvents } from "./useCursorEvents";
 import { useWorkspaceEvent } from "./useWorkspaceEvent";
 import { RealtimeEvents } from "../events/events";
+import { useRealtime } from "../contextProviders/RealtimeProvider";
 
 interface CursorState {
     x: number;
@@ -12,27 +11,8 @@ interface CursorState {
     clicking?: boolean;
 }
 
-export function useWorkspaceRealtime(workspaceId: string) {
-    // sessionId is read from sessionStorage before the effect runs
-    const sessionId = useRef(getOrCreateSessionId()).current;
-
-    const [rtc, setRtc] = useState<WorkspaceRtc | null>(null);
-
-    // ─── Lifecycle ────────────────────────────────────────────────────────────
-    useEffect(() => {
-        const channel = new WorkspaceChannel(workspaceId).join();
-        const r = new WorkspaceRtc(workspaceId, channel.sessionId);
-        setRtc(r);
-
-        (window as unknown as { __rtc?: WorkspaceRtc }).__rtc = r;
-
-        return () => {
-            r.destroy();
-            setRtc(null);
-            channel.leave();
-            delete (window as unknown as { __rtc?: WorkspaceRtc }).__rtc;
-        };
-    }, [workspaceId]);
+export function useWorkspaceRealtime(_workspaceId: string) {
+    const { rtc, sessionId } = useRealtime();
 
     // ─── Cursor state ─────────────────────────────────────────────────────────
     const [cursors, setCursors] = useState<Record<string, CursorState>>({});

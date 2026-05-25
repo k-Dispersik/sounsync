@@ -1,8 +1,11 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { GripVertical, Pencil } from 'lucide-react'
 import { Clip } from 'js/shared/types'
 import { useClipInteraction } from '../hooks/useClipInteraction'
 import { useClipModal } from '../contextProviders/ClipModalProvider'
+import { useWorkspaceEvent } from '../hooks/useWorkspaceEvent'
+import { RealtimeEvents } from '../events/events'
+import { getOrCreateSessionId } from '../services/signaling/workspaceChannel'
 
 export interface TrackClipProps {
     /** Base accent colour (hex, rgb, etc.) used for header, bars and border */
@@ -56,12 +59,27 @@ export default function TrackClip({
         useClipInteraction({ clip, projectId, trackId, pixelsPerMillisecond });
     const { openEditClip } = useClipModal();
 
+
+    const [remoteStartTime, setRemoteStartTime] = useState<number | null>(null);
+    const sessionId = getOrCreateSessionId();
+
+    useWorkspaceEvent<{ session_id: string; clip_id: number; track_id: number; start_time: number }>(
+        RealtimeEvents.CLIP_MOVED,
+        ({ session_id, clip_id, start_time }) => {
+            if (clip_id === clip.id && session_id !== sessionId) {
+                setRemoteStartTime(start_time);
+            }
+        }
+    );
+
+    const displayStartTime = isDragging ? tempStartTime : (remoteStartTime ?? clip.start_time);
+
     return (
         <div
             key={clip.id}
             className="absolute top-2 bottom-2 z-20"
             style={{
-                left: tempStartTime * pixelsPerMillisecond,
+                left: displayStartTime * pixelsPerMillisecond,
                 width: Math.max(2, clip.duration * pixelsPerMillisecond - 2),
             }}
         >
