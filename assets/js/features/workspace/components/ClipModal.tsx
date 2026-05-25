@@ -3,8 +3,6 @@ import { X, Music2, Upload, Check, Search } from "lucide-react";
 import type { ClipModalState } from "../contextProviders/ClipModalProvider";
 import { useClipForm, TYPE_META, CLIP_TYPES, type Tab, type ClipType, type LibrarySample, type ClipSuccessCallback } from "../hooks/useClipForm";
 
-// ─────────────────────────────────────────────────────────────────────────────
-
 interface Props {
     state: NonNullable<ClipModalState>;
     onClose: () => void;
@@ -64,8 +62,6 @@ export default function ClipModal({ state, onClose, onSuccess }: Props) {
     );
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
-
 function ModalHeader({ isEdit, onClose }: { isEdit: boolean; onClose: () => void }) {
     return (
         <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-base-content/[0.07]">
@@ -95,8 +91,8 @@ function TabBar({ tab, onChange }: { tab: Tab; onChange: (t: Tab) => void }) {
                     key={key}
                     onClick={() => onChange(key)}
                     className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 -mb-px transition-colors ${tab === key
-                            ? "border-primary text-primary"
-                            : "border-transparent text-base-content/40 hover:text-base-content/70"
+                        ? "border-primary text-primary"
+                        : "border-transparent text-base-content/40 hover:text-base-content/70"
                         }`}
                 >
                     {icon}
@@ -280,8 +276,8 @@ function FilterPill({ label, active, onClick }: {
             type="button"
             onClick={onClick}
             className={`h-6 px-2.5 rounded-full text-xs font-medium transition-colors ${active
-                    ? "bg-primary text-primary-content"
-                    : "bg-base-content/[0.06] text-base-content/50 hover:bg-base-content/[0.10] hover:text-base-content/80"
+                ? "bg-primary text-primary-content"
+                : "bg-base-content/[0.06] text-base-content/50 hover:bg-base-content/[0.10] hover:text-base-content/80"
                 }`}
         >
             {label}
