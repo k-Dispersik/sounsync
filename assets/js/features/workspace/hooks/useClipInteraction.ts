@@ -18,7 +18,21 @@ export function useClipInteraction({ clip, projectId, trackId, pixelsPerMillisec
 
     const [isDragging, setIsDragging] = useState(false);
     const [tempStartTime, setTempStartTime] = useState(clip.start_time);
+    const [committedStartTime, setCommittedStartTime] = useState(clip.start_time);
     const tempStartTimeRef = useRef(tempStartTime);
+    const committedStartTimeRef = useRef(committedStartTime);
+    const lastSyncedClipStartTimeRef = useRef(clip.start_time);
+
+    useEffect(() => {
+        if (isDragging) return;
+        if (clip.start_time === lastSyncedClipStartTimeRef.current) return;
+
+        lastSyncedClipStartTimeRef.current = clip.start_time;
+        setTempStartTime(clip.start_time);
+        setCommittedStartTime(clip.start_time);
+        tempStartTimeRef.current = clip.start_time;
+        committedStartTimeRef.current = clip.start_time;
+    }, [clip.start_time, isDragging]);
 
     useEffect(() => {
         if (!isDragging) return;
@@ -38,10 +52,19 @@ export function useClipInteraction({ clip, projectId, trackId, pixelsPerMillisec
         }
 
         function handleMouseUp() {
+            const previousCommittedStartTime = committedStartTimeRef.current;
+            const nextStartTime = Math.round(tempStartTimeRef.current);
             setIsDragging(false);
-            updateClip(projectId, trackId, clip.id, {
-                start_time: Math.round(tempStartTimeRef.current),
+            setCommittedStartTime(nextStartTime);
+            committedStartTimeRef.current = nextStartTime;
+
+            void updateClip(projectId, trackId, clip.id, {
+                start_time: nextStartTime,
                 duration: clip.duration,
+            }).catch((error) => {
+                console.error('Failed to persist clip position', error);
+                setCommittedStartTime(previousCommittedStartTime);
+                committedStartTimeRef.current = previousCommittedStartTime;
             });
         }
 
@@ -52,11 +75,29 @@ export function useClipInteraction({ clip, projectId, trackId, pixelsPerMillisec
             window.removeEventListener('mousemove', handleMouseMove);
             window.removeEventListener('mouseup', handleMouseUp);
         };
-    }, [isDragging]);
+    }, [
+        broadcast,
+        clip.duration,
+        clip.id,
+        clip.start_time,
+        isDragging,
+        pixelsPerMillisecond,
+        projectId,
+        sessionId,
+        trackId,
+    ]);
+
+    const startDrag = () => {
+        const currentStartTime = committedStartTimeRef.current;
+        setTempStartTime(currentStartTime);
+        tempStartTimeRef.current = currentStartTime;
+        setIsDragging(true);
+    };
 
     return {
         isDragging,
         tempStartTime,
-        startDrag: () => setIsDragging(true),
+        committedStartTime,
+        startDrag,
     };
 }

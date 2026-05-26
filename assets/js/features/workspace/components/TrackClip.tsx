@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { GripVertical, Pencil } from 'lucide-react'
 import { Clip } from 'js/shared/types'
 import { useClipInteraction } from '../hooks/useClipInteraction'
@@ -55,7 +55,7 @@ export default function TrackClip({
         return Array.from({ length: barCount }, () => 20 + rand() * 80)
     }, [color, barCount])
 
-    const { isDragging, tempStartTime, startDrag } =
+    const { isDragging, tempStartTime, committedStartTime, startDrag } =
         useClipInteraction({ clip, projectId, trackId, pixelsPerMillisecond });
     const { openEditClip } = useClipModal();
 
@@ -72,7 +72,11 @@ export default function TrackClip({
         }
     );
 
-    const displayStartTime = isDragging ? tempStartTime : (remoteStartTime ?? clip.start_time);
+    useEffect(() => {
+        setRemoteStartTime(null);
+    }, [clip.start_time]);
+
+    const displayStartTime = isDragging ? tempStartTime : (remoteStartTime ?? committedStartTime);
 
     return (
         <div
