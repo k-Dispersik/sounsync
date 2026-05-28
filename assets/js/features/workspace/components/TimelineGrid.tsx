@@ -7,6 +7,9 @@ import { deleteTrack } from "../api/tracks";
 import WorkspaceToolbar from "./WorkspaceToolbar";
 import { useTimeline } from "js/features/workspace/hooks/useTimeline";
 import { useTimelineSelection } from "js/features/workspace/hooks/useTimelineSelection";
+import { RealtimeEvents } from "../events/events";
+import { useWorkspaceEvent } from '../hooks/useWorkspaceEvent';
+import { useRealtime } from '../contextProviders/RealtimeProvider';
 
 interface Props {
     project: Project | null;
@@ -55,6 +58,8 @@ export default function TimelineGrid({
         ? { ...rawSelectedCell, startTimeMs: rawSelectedCell.beatIndex * millisecondsPerBeat }
         : null;
 
+    const { broadcast } = useRealtime();
+
     const handleRemoveTrack = async (trackId: number) => {
         if (!project) {
             return;
@@ -62,7 +67,24 @@ export default function TimelineGrid({
 
         await deleteTrack(project.id, trackId);
         onTrackRemoved(trackId);
+        broadcast(RealtimeEvents.TRACK_REMOVED, { track_id: trackId });
     };
+
+
+    useWorkspaceEvent<{ track_id: number; }>(
+        RealtimeEvents.TRACK_REMOVED,
+        ({ track_id }) => { onTrackRemoved(track_id); console.log(`Track ${track_id} removed by another user`); }
+    );
+
+    const handleTrackAdded = (track: Track) => {
+        onTrackAdded(track);
+        broadcast(RealtimeEvents.TRACK_ADDED, { track });
+    };
+
+    useWorkspaceEvent<{ track: Track; }>(
+        RealtimeEvents.TRACK_ADDED,
+        ({ track }) => { onTrackAdded(track); }
+    );
 
     return (
         <>
@@ -70,7 +92,7 @@ export default function TimelineGrid({
                 projectId={Number(project?.id)}
                 tracks={tracks}
                 selectedCell={selectedCell}
-                onTrackAdded={onTrackAdded}
+                onTrackAdded={handleTrackAdded}
             />
             <div className="flex flex-col h-full overflow-hidden bg-base-100 select-none">
                 {/* ── Header row ── */}
