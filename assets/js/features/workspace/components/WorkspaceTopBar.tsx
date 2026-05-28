@@ -12,6 +12,10 @@ import { TIME_SIGNATURES, type TimeSignatureValue } from "js/shared/types/projec
 import Transport from "./Transport";
 import { useTransportContext } from "../contextProviders/TransportProvider";
 import UserSettings from "js/shared/components/UserSettings";
+import { getOrCreateSessionId } from "../services/signaling/workspaceChannel";
+import { RealtimeEvents } from "../events/events";
+import { useRealtime } from "../contextProviders/RealtimeProvider";
+import { useWorkspaceEvent } from "../hooks/useWorkspaceEvent";
 
 const AVATARS = [
     { initials: "A", color: "#6366f1" },
@@ -45,6 +49,19 @@ export default function WorkspaceTopBar({ projectTitle, projectSettings, onChang
             ? new Date(playheadPosition).toISOString().slice(11, 23)
             : "00:00:00.000";
 
+    const { broadcast } = useRealtime();
+
+    const handleupdateProjectSettings = async (newSettings: ProjectSettings) => {
+        onChangeProjectSettings?.(newSettings);
+        broadcast(RealtimeEvents.PROJECT_SETTINGS_UPDATED, { session_id: getOrCreateSessionId(), settings: newSettings });
+    };
+
+    useWorkspaceEvent<{ session_id: string; settings: ProjectSettings }>(
+        RealtimeEvents.PROJECT_SETTINGS_UPDATED,
+        ({ settings }) => { onChangeProjectSettings?.(settings); }
+    );
+
+
     return (
         <header className="flex items-center gap-4 px-4 h-14 bg-base-200 border-b border-base-content/[0.07] flex-shrink-0 relative z-50">
             <Logo size={16} showText={true} />
@@ -64,8 +81,8 @@ export default function WorkspaceTopBar({ projectTitle, projectSettings, onChang
             </div>
 
             <div className="flex items-center gap-3 mr-4">
-                <TimeSignatureDropdown settings={settings} onChange={onChangeProjectSettings} />
-                <BPMInput settings={settings} onChange={onChangeProjectSettings} />
+                <TimeSignatureDropdown settings={settings} onChange={handleupdateProjectSettings} />
+                <BPMInput settings={settings} onChange={handleupdateProjectSettings} />
                 <input className="field w-32" disabled value={playheadTime} />
             </div>
 

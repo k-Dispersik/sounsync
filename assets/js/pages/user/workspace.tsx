@@ -12,7 +12,8 @@ import { useProject } from "../../features/workspace/hooks/useProject";
 import type { Clip, ProjectSettings, Track } from "../../shared/types";
 import TransportProvider from "js/features/workspace/contextProviders/TransportProvider";
 import ClipModalProvider from "js/features/workspace/contextProviders/ClipModalProvider";
-import RealtimeProvider from "js/features/workspace/contextProviders/RealtimeProvider";
+import RealtimeProvider, { useRealtime } from "js/features/workspace/contextProviders/RealtimeProvider";
+import { getOrCreateSessionId } from "js/features/workspace/services/signaling/workspaceChannel";
 
 const WORKSPACE_ID = "test-workspace";
 
