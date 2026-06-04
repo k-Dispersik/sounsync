@@ -18,3 +18,8 @@ export type SamplePatch = {
 };
 
 export type SoundPatch = SynthPatch | SamplePatch;
+
+export type SchedulerEvent = {
+    time: number; // ms
+    sound: SoundPatch;
+};
