@@ -11,7 +11,7 @@ import { ReactNode } from "react";
 import { useTransportContext } from "../contextProviders/TransportProvider";
 
 export default function Transport() {
-    const { isPlaying, play, pause, stop, setPosition } = useTransportContext();
+    const { isPlaying, play, pause, stop } = useTransportContext();
 
     return (
         <>
