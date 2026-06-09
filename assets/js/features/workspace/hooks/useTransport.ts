@@ -1,51 +1,43 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
+import { Player } from '../services/audio/Player';
 
-export function useTransport() {
+export function useTransport(player: Player) {
     const [playheadPosition, setPlayheadPosition] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
 
-    const startTimeRef = useRef<number | null>(null);
-    const startOffsetRef = useRef(0);
+    const raf = useRef<number | null>(null);
+    const lastStart = useRef<number>(0);
 
     const play = () => {
-        startTimeRef.current = performance.now();
-        startOffsetRef.current = playheadPosition;
+        player.start(playheadPosition);
+        lastStart.current = performance.now();
         setIsPlaying(true);
+
+        const loop = () => {
+            setPlayheadPosition(player["getCurrentTime"]?.() ?? 0);
+            raf.current = requestAnimationFrame(loop);
+        };
+
+        raf.current = requestAnimationFrame(loop);
+    };
+
+    const pause = () => {
+        player.pause();
+        setIsPlaying(false);
+        if (raf.current) cancelAnimationFrame(raf.current);
     };
 
     const stop = () => {
+        player.stop();
         setIsPlaying(false);
         setPlayheadPosition(0);
-        startTimeRef.current = null;
-        startOffsetRef.current = 0;
-    };
-    const pause = () => {
-        setIsPlaying(false);
-        startTimeRef.current = null;
-        startOffsetRef.current = playheadPosition;
+        if (raf.current) cancelAnimationFrame(raf.current);
     };
 
     const setPosition = (ms: number) => {
+        player.seek(ms);
         setPlayheadPosition(ms);
     };
-
-    useEffect(() => {
-        if (!isPlaying) return;
-
-        let frameId: number;
-
-        const loop = (now: number) => {
-            if (startTimeRef.current == null) return;
-
-            const elapsed = now - startTimeRef.current;
-            setPlayheadPosition(startOffsetRef.current + elapsed);
-
-            frameId = requestAnimationFrame(loop);
-        };
-
-        frameId = requestAnimationFrame(loop);
-        return () => cancelAnimationFrame(frameId);
-    }, [isPlaying]);
 
     return {
         playheadPosition,
