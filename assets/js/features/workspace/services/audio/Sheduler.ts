@@ -1,11 +1,8 @@
-
-
-import { AudioEngine } from "./AudioEngine";
 import { SchedulerEvent } from "./types";
 
 
 // TODO: add lookaheadexport 
-class Scheduler {
+export class Scheduler {
     private events: SchedulerEvent[] = [];
 
     add(event: SchedulerEvent) {
@@ -16,6 +13,3 @@ class Scheduler {
         return this.events;
     }
 }
-
-
-export default Scheduler;

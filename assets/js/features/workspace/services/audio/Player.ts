@@ -1,5 +1,5 @@
 import { AudioEngine } from "./AudioEngine";
-import Scheduler from "./Sheduler";
+import { Scheduler } from "./Sheduler";
 import { SchedulerEvent } from "./types";
 
 export class Player {
