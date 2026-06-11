@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
-import { Clip } from 'js/shared/types';
-import { updateClip } from '../api/clips';
-import { useRealtime } from '../contextProviders/RealtimeProvider';
-import { RealtimeEvents } from '../events/events';
-import { getOrCreateSessionId } from '../services/signaling/workspaceChannel';
+import { useEffect, useRef, useState } from "react";
+import { Clip } from "js/shared/types";
+import { updateClip } from "../api/clips";
+import { useRealtime } from "../contextProviders/RealtimeProvider";
+import { RealtimeEvents } from "../events/events";
+import { getOrCreateSessionId } from "../services/signaling/workspaceChannel";
 
 interface Props {
     clip: Clip;
@@ -38,7 +38,7 @@ export function useClipInteraction({ clip, projectId, trackId, pixelsPerMillisec
         if (!isDragging) return;
 
         function handleMouseMove(e: MouseEvent) {
-            setTempStartTime(prev => {
+            setTempStartTime((prev) => {
                 const next = Math.max(0, prev + e.movementX / pixelsPerMillisecond);
                 tempStartTimeRef.current = next;
                 broadcast(RealtimeEvents.CLIP_MOVED, {
@@ -62,18 +62,18 @@ export function useClipInteraction({ clip, projectId, trackId, pixelsPerMillisec
                 start_time: nextStartTime,
                 duration: clip.duration,
             }).catch((error) => {
-                console.error('Failed to persist clip position', error);
+                console.error("Failed to persist clip position", error);
                 setCommittedStartTime(previousCommittedStartTime);
                 committedStartTimeRef.current = previousCommittedStartTime;
             });
         }
 
-        window.addEventListener('mousemove', handleMouseMove);
-        window.addEventListener('mouseup', handleMouseUp);
+        window.addEventListener("mousemove", handleMouseMove);
+        window.addEventListener("mouseup", handleMouseUp);
 
         return () => {
-            window.removeEventListener('mousemove', handleMouseMove);
-            window.removeEventListener('mouseup', handleMouseUp);
+            window.removeEventListener("mousemove", handleMouseMove);
+            window.removeEventListener("mouseup", handleMouseUp);
         };
     }, [
         broadcast,

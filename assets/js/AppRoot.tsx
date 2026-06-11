@@ -1,7 +1,7 @@
 import PageTemplate from "./template/pageTemplate";
 
 const App = () => {
-  return <PageTemplate />;
+    return <PageTemplate />;
 };
 
 export default App;

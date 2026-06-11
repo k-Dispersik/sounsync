@@ -21,7 +21,10 @@ export async function createProject(dto: CreateProjectDTO): Promise<Project> {
     return data;
 }
 
-export async function updateProjectSettings(id: number, settings: ProjectSettings): Promise<Project> {
+export async function updateProjectSettings(
+    id: number,
+    settings: ProjectSettings,
+): Promise<Project> {
     const { data } = await apiClient.patch<Project>(`/projects/${id}/settings`, { settings });
     return data;
 }

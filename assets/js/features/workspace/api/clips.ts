@@ -12,11 +12,11 @@ export interface CreateClipDTO {
 export async function createClip(
     projectId: number,
     trackId: number,
-    dto: CreateClipDTO
+    dto: CreateClipDTO,
 ): Promise<Clip> {
     const { data } = await apiClient.post<Clip>(
         `/projects/${projectId}/tracks/${trackId}/clips`,
-        dto
+        dto,
     );
     return data;
 }
@@ -25,11 +25,11 @@ export async function updateClip(
     projectId: number,
     trackId: number,
     clipId: number,
-    dto: Partial<CreateClipDTO>
+    dto: Partial<CreateClipDTO>,
 ): Promise<Clip> {
     const { data } = await apiClient.patch<Clip>(
         `/projects/${projectId}/tracks/${trackId}/clips/${clipId}`,
-        dto
+        dto,
     );
     return data;
 }

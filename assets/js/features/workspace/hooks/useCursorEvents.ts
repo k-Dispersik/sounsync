@@ -8,7 +8,7 @@ const THROTTLE_MS = 50;
  */
 export function useCursorEvents(
     sendMove: (x: number, y: number) => void,
-    sendClick: (x: number, y: number) => void
+    sendClick: (x: number, y: number) => void,
 ): void {
     const lastSentRef = useRef(0);
 

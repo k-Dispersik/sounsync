@@ -6,17 +6,24 @@ export default function ThemeSwitcher() {
 
     return (
         <>
-            <button className="w-full btn btn-ghost justify-start" onClick={() => setIsOpen(!isOpen)} >
+            <button
+                className="w-full btn btn-ghost justify-start"
+                onClick={() => setIsOpen(!isOpen)}
+            >
                 Themes
-                <ChevronDown size={14} className={`transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                <ChevronDown
+                    size={14}
+                    className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
+                />
             </button>
-            <div className={`${isOpen ? "block" : "hidden"} transition-all transform origin-top-left`}>
+            <div
+                className={`${isOpen ? "block" : "hidden"} transition-all transform origin-top-left`}
+            >
                 <ThemeItem label="Default" value="default" />
                 <ThemeItem label="Dark" value="dark" />
                 <ThemeItem label="Light" value="light" />
             </div>
         </>
-
     );
 }
 

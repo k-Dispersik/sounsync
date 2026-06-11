@@ -1,7 +1,15 @@
 import { useEffect, useRef } from "react";
 import { X, Music2, Upload, Check, Search } from "lucide-react";
 import type { ClipModalState } from "../contextProviders/ClipModalProvider";
-import { useClipForm, TYPE_META, CLIP_TYPES, type Tab, type ClipType, type LibrarySample, type ClipSuccessCallback } from "../hooks/useClipForm";
+import {
+    useClipForm,
+    TYPE_META,
+    CLIP_TYPES,
+    type Tab,
+    type ClipType,
+    type LibrarySample,
+    type ClipSuccessCallback,
+} from "../hooks/useClipForm";
 
 interface Props {
     state: NonNullable<ClipModalState>;
@@ -90,10 +98,11 @@ function TabBar({ tab, onChange }: { tab: Tab; onChange: (t: Tab) => void }) {
                 <button
                     key={key}
                     onClick={() => onChange(key)}
-                    className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 -mb-px transition-colors ${tab === key
-                        ? "border-primary text-primary"
-                        : "border-transparent text-base-content/40 hover:text-base-content/70"
-                        }`}
+                    className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 -mb-px transition-colors ${
+                        tab === key
+                            ? "border-primary text-primary"
+                            : "border-transparent text-base-content/40 hover:text-base-content/70"
+                    }`}
                 >
                     {icon}
                     {label}
@@ -104,9 +113,13 @@ function TabBar({ tab, onChange }: { tab: Tab; onChange: (t: Tab) => void }) {
 }
 
 function LibraryTab({
-    search, onSearchChange,
-    typeFilter, onTypeFilterChange,
-    samples, selected, onSelect,
+    search,
+    onSearchChange,
+    typeFilter,
+    onTypeFilterChange,
+    samples,
+    selected,
+    onSelect,
 }: {
     search: string;
     onSearchChange: (v: string) => void;
@@ -121,8 +134,12 @@ function LibraryTab({
             <SearchBar value={search} onChange={onSearchChange} />
 
             <div className="flex flex-wrap gap-1.5">
-                <FilterPill label="All" active={typeFilter === "all"} onClick={() => onTypeFilterChange("all")} />
-                {CLIP_TYPES.map(t => (
+                <FilterPill
+                    label="All"
+                    active={typeFilter === "all"}
+                    onClick={() => onTypeFilterChange("all")}
+                />
+                {CLIP_TYPES.map((t) => (
                     <FilterPill
                         key={t}
                         label={`${TYPE_META[t].icon} ${TYPE_META[t].label}`}
@@ -145,13 +162,17 @@ function SearchBar({ value, onChange }: { value: string; onChange: (v: string) =
                 className="bg-transparent text-sm text-base-content/80 placeholder:text-base-content/25 outline-none w-full"
                 placeholder="Search sounds…"
                 value={value}
-                onChange={e => onChange(e.target.value)}
+                onChange={(e) => onChange(e.target.value)}
             />
         </div>
     );
 }
 
-function SampleList({ samples, selected, onSelect }: {
+function SampleList({
+    samples,
+    selected,
+    onSelect,
+}: {
     samples: LibrarySample[];
     selected: LibrarySample | null;
     onSelect: (s: LibrarySample) => void;
@@ -163,14 +184,23 @@ function SampleList({ samples, selected, onSelect }: {
                     No sounds found
                 </div>
             )}
-            {samples.map(s => (
-                <SampleRow key={s.id} sample={s} isActive={selected?.id === s.id} onSelect={onSelect} />
+            {samples.map((s) => (
+                <SampleRow
+                    key={s.id}
+                    sample={s}
+                    isActive={selected?.id === s.id}
+                    onSelect={onSelect}
+                />
             ))}
         </div>
     );
 }
 
-function SampleRow({ sample, isActive, onSelect }: {
+function SampleRow({
+    sample,
+    isActive,
+    onSelect,
+}: {
     sample: LibrarySample;
     isActive: boolean;
     onSelect: (s: LibrarySample) => void;
@@ -182,22 +212,32 @@ function SampleRow({ sample, isActive, onSelect }: {
         <button
             type="button"
             onClick={() => onSelect(sample)}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${isActive ? "bg-primary/10" : "hover:bg-base-content/[0.03]"
-                }`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
+                isActive ? "bg-primary/10" : "hover:bg-base-content/[0.03]"
+            }`}
         >
             <span className="text-base leading-none w-5 text-center">{meta.icon}</span>
             <div className="flex-1 min-w-0">
-                <p className={`text-sm truncate ${isActive ? "text-primary font-medium" : "text-base-content/75"}`}>
+                <p
+                    className={`text-sm truncate ${isActive ? "text-primary font-medium" : "text-base-content/75"}`}
+                >
                     {sample.title}
                 </p>
-                <p className="text-[11px] text-base-content/30">{meta.label} · {duration}</p>
+                <p className="text-[11px] text-base-content/30">
+                    {meta.label} · {duration}
+                </p>
             </div>
             {isActive && <Check size={14} className="text-primary flex-shrink-0" />}
         </button>
     );
 }
 
-function UploadTab({ title, onTitleChange, type, onTypeChange }: {
+function UploadTab({
+    title,
+    onTitleChange,
+    type,
+    onTypeChange,
+}: {
     title: string;
     onTitleChange: (v: string) => void;
     type: ClipType;
@@ -206,19 +246,23 @@ function UploadTab({ title, onTitleChange, type, onTypeChange }: {
     return (
         <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-base-content/50 uppercase tracking-wider">Title</label>
+                <label className="text-xs font-medium text-base-content/50 uppercase tracking-wider">
+                    Title
+                </label>
                 <input
                     className="w-full h-9 px-3 rounded-lg bg-base-content/[0.05] border border-base-content/[0.08] text-sm text-base-content/90 placeholder:text-base-content/25 outline-none focus:border-primary/50 transition-colors"
                     placeholder="My clip…"
                     value={title}
-                    onChange={e => onTitleChange(e.target.value)}
+                    onChange={(e) => onTitleChange(e.target.value)}
                 />
             </div>
 
             <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-base-content/50 uppercase tracking-wider">Type</label>
+                <label className="text-xs font-medium text-base-content/50 uppercase tracking-wider">
+                    Type
+                </label>
                 <div className="flex flex-wrap gap-1.5">
-                    {CLIP_TYPES.map(t => (
+                    {CLIP_TYPES.map((t) => (
                         <FilterPill
                             key={t}
                             label={`${TYPE_META[t].icon} ${TYPE_META[t].label}`}
@@ -240,7 +284,13 @@ function UploadTab({ title, onTitleChange, type, onTypeChange }: {
     );
 }
 
-function ModalFooter({ isEdit, isSaving, canSubmit, onClose, onSubmit }: {
+function ModalFooter({
+    isEdit,
+    isSaving,
+    canSubmit,
+    onClose,
+    onSubmit,
+}: {
     isEdit: boolean;
     isSaving: boolean;
     canSubmit: boolean;
@@ -266,7 +316,11 @@ function ModalFooter({ isEdit, isSaving, canSubmit, onClose, onSubmit }: {
     );
 }
 
-function FilterPill({ label, active, onClick }: {
+function FilterPill({
+    label,
+    active,
+    onClick,
+}: {
     label: string;
     active: boolean;
     onClick: () => void;
@@ -275,10 +329,11 @@ function FilterPill({ label, active, onClick }: {
         <button
             type="button"
             onClick={onClick}
-            className={`h-6 px-2.5 rounded-full text-xs font-medium transition-colors ${active
-                ? "bg-primary text-primary-content"
-                : "bg-base-content/[0.06] text-base-content/50 hover:bg-base-content/[0.10] hover:text-base-content/80"
-                }`}
+            className={`h-6 px-2.5 rounded-full text-xs font-medium transition-colors ${
+                active
+                    ? "bg-primary text-primary-content"
+                    : "bg-base-content/[0.06] text-base-content/50 hover:bg-base-content/[0.10] hover:text-base-content/80"
+            }`}
         >
             {label}
         </button>

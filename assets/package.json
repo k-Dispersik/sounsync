@@ -1,4 +1,12 @@
 {
+    "scripts": {
+        "typecheck": "tsc --noEmit",
+        "lint": "eslint js --max-warnings 0",
+        "lint:fix": "eslint js --fix",
+        "format": "prettier --write \"js/**/*.{ts,tsx}\" \"css/**/*.css\"",
+        "format:check": "prettier --check \"js/**/*.{ts,tsx}\" \"css/**/*.css\"",
+        "verify": "npm run typecheck && npm run lint && npm run format:check"
+    },
     "dependencies": {
         "@tanstack/react-query": "^5.99.1",
         "axios": "^1.15.0",
@@ -9,9 +17,16 @@
         "react-router-dom": "^7.5.1"
     },
     "devDependencies": {
+        "@eslint/js": "^10.0.1",
         "@types/phoenix": "^1.6.7",
         "@types/react": "^19.1.0",
         "@types/react-dom": "^19.1.0",
-        "typescript": "^5.8.3"
+        "eslint": "^10.10.0",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-plugin-react-hooks": "^7.1.1",
+        "globals": "^17.12.0",
+        "prettier": "^3.9.6",
+        "typescript": "^5.8.3",
+        "typescript-eslint": "^8.69.0"
     }
 }

@@ -13,26 +13,29 @@ const CAT_ICONS: Record<string, string> = {
     effect: "✨",
 };
 
-function SidebarTab({
-    icon,
-    active = false,
-}: {
-    icon: React.ReactNode;
-    active?: boolean;
-}) {
+function SidebarTab({ icon, active = false }: { icon: React.ReactNode; active?: boolean }) {
     return (
         <button
-            className={`flex-1 flex items-center justify-center h-10 border-b-2 transition-colors ${active
-                ? "border-primary text-primary"
-                : "border-transparent text-base-content/30 hover:text-base-content/60"
-                }`}
+            className={`flex-1 flex items-center justify-center h-10 border-b-2 transition-colors ${
+                active
+                    ? "border-primary text-primary"
+                    : "border-transparent text-base-content/30 hover:text-base-content/60"
+            }`}
         >
             {icon}
         </button>
     );
 }
 
-export default function SampleSidebar({ projectId, tracks, isLoading }: { projectId: number; tracks?: Track[]; isLoading?: boolean }) {
+export default function SampleSidebar({
+    projectId,
+    tracks,
+    isLoading,
+}: {
+    projectId: number;
+    tracks?: Track[];
+    isLoading?: boolean;
+}) {
     const samples = useSampleSidebar(tracks ?? []);
     const { openEditClip } = useClipModal();
 
@@ -61,7 +64,6 @@ export default function SampleSidebar({ projectId, tracks, isLoading }: { projec
 
             {/* Sample list */}
             <div className="flex-1 overflow-y-auto py-1">
-
                 {isLoading ? (
                     <div className="p-4 flex flex-col gap-2">
                         {Array.from({ length: 4 }).map((_, i) => (
@@ -69,14 +71,15 @@ export default function SampleSidebar({ projectId, tracks, isLoading }: { projec
                         ))}
                     </div>
                 ) : (
-
                     samples.map((s) => (
                         <div
                             key={s.id}
                             onClick={() => openEditClip(s.project_id, s.track_id!, s)}
                             className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-base-content/[0.04] group transition-colors"
                         >
-                            <span className="text-base leading-none">{CAT_ICONS[s.type] ?? "🎵"}</span>
+                            <span className="text-base leading-none">
+                                {CAT_ICONS[s.type] ?? "🎵"}
+                            </span>
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm text-base-content/75 truncate group-hover:text-base-content transition-colors">
                                     {s.title}

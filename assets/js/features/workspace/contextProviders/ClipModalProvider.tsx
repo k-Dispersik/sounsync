@@ -45,13 +45,7 @@ export default function ClipModalProvider({ children, onSuccess }: Props) {
     return (
         <ClipModalContext.Provider value={{ openCreateClip, openEditClip }}>
             {children}
-            {state && (
-                <ClipModal
-                    state={state}
-                    onClose={handleClose}
-                    onSuccess={handleSuccess}
-                />
-            )}
+            {state && <ClipModal state={state} onClose={handleClose} onSuccess={handleSuccess} />}
         </ClipModalContext.Provider>
     );
 }

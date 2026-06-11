@@ -20,8 +20,14 @@ export type WorkspaceEvent =
     | { type: "cursor_click"; payload: { session_id: string; x: number; y: number } }
     | { type: "peer_connected"; payload: { session_id: string } }
     | { type: "peer_disconnected"; payload: { session_id: string } }
-    | { type: "project_settings_updated"; payload: { session_id: string; settings: ProjectSettings } }
+    | {
+          type: "project_settings_updated";
+          payload: { session_id: string; settings: ProjectSettings };
+      }
     | { type: "track_added"; payload: { session_id: string; track: Track } }
     | { type: "track_removed"; payload: { session_id: string; track_id: number } }
-    | { type: "clip_moved"; payload: { session_id: string; clip_id: number; track_id: number; start_time: number } }
+    | {
+          type: "clip_moved";
+          payload: { session_id: string; clip_id: number; track_id: number; start_time: number };
+      }
     | { type: "clip_created"; payload: { session_id: string; track_id: number; clip: Clip } };

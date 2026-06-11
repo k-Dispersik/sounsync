@@ -1,10 +1,5 @@
 import { ReactNode, useState } from "react";
-import {
-    Share2,
-    Download,
-    ChevronDown,
-    Plus
-} from "lucide-react";
+import { Share2, Download, ChevronDown, Plus } from "lucide-react";
 import { Logo } from "js/shared/components/Logo";
 import { useProjectBPM } from "js/features/workspace/hooks/useProjectBPM";
 import type { ProjectSettings } from "../../../shared/types";
@@ -40,7 +35,12 @@ function isTimeSignatureValue(value: string): value is TimeSignatureValue {
     return TIME_SIGNATURES.includes(value as TimeSignatureValue);
 }
 
-export default function WorkspaceTopBar({ projectTitle, projectSettings, onChangeProjectSettings, isLoading }: Props) {
+export default function WorkspaceTopBar({
+    projectTitle,
+    projectSettings,
+    onChangeProjectSettings,
+    isLoading,
+}: Props) {
     const settings = projectSettings ?? DEFAULT_PROJECT_SETTINGS;
     const { playheadPosition } = useTransportContext();
 
@@ -53,14 +53,18 @@ export default function WorkspaceTopBar({ projectTitle, projectSettings, onChang
 
     const handleupdateProjectSettings = async (newSettings: ProjectSettings) => {
         onChangeProjectSettings?.(newSettings);
-        broadcast(RealtimeEvents.PROJECT_SETTINGS_UPDATED, { session_id: getOrCreateSessionId(), settings: newSettings });
+        broadcast(RealtimeEvents.PROJECT_SETTINGS_UPDATED, {
+            session_id: getOrCreateSessionId(),
+            settings: newSettings,
+        });
     };
 
     useWorkspaceEvent<{ session_id: string; settings: ProjectSettings }>(
         RealtimeEvents.PROJECT_SETTINGS_UPDATED,
-        ({ settings }) => { onChangeProjectSettings?.(settings); }
+        ({ settings }) => {
+            onChangeProjectSettings?.(settings);
+        },
     );
-
 
     return (
         <header className="flex items-center gap-4 px-4 h-14 bg-base-200 border-b border-base-content/[0.07] flex-shrink-0 relative z-50">
@@ -117,12 +121,21 @@ function TimeSignatureDropdown({
 
     return (
         <div className="dropdown cursor-pointer">
-            <div tabIndex={0} role="button" className="field flex items-center gap-2 cursor-pointer">
+            <div
+                tabIndex={0}
+                role="button"
+                className="field flex items-center gap-2 cursor-pointer"
+            >
                 <span className="field-label">Time Signature</span>
-                <span className="font-mono font-semibold">{isSaving ? "..." : settings.timeSignature}</span>
+                <span className="font-mono font-semibold">
+                    {isSaving ? "..." : settings.timeSignature}
+                </span>
                 <ChevronDown size={14} />
             </div>
-            <ul tabIndex={-1} className="dropdown-content menu bg-base-200 border border-base-content/10 rounded-lg z-40 w-24 p-2 shadow-lg">
+            <ul
+                tabIndex={-1}
+                className="dropdown-content menu bg-base-200 border border-base-content/10 rounded-lg z-40 w-24 p-2 shadow-lg"
+            >
                 {TIME_SIGNATURES.map((value) => {
                     if (!isTimeSignatureValue(value)) {
                         return null;
@@ -130,7 +143,11 @@ function TimeSignatureDropdown({
 
                     return (
                         <li key={value}>
-                            <button onClick={() => void handleTimeSignatureChange(value)} className="flex justify-between" disabled={isSaving}>
+                            <button
+                                onClick={() => void handleTimeSignatureChange(value)}
+                                className="flex justify-between"
+                                disabled={isSaving}
+                            >
                                 {value}
                             </button>
                         </li>
@@ -141,8 +158,6 @@ function TimeSignatureDropdown({
     );
 }
 
-
-
 function BPMInput({
     settings,
     onChange,
@@ -150,7 +165,10 @@ function BPMInput({
     settings: ProjectSettings;
     onChange?: (settings: ProjectSettings) => Promise<void>;
 }) {
-    const { draftBPM, isOpen, isSaving, open, commit, setDraftBPM, keyDown } = useProjectBPM({ settings, onChange });
+    const { draftBPM, isOpen, isSaving, open, commit, setDraftBPM, keyDown } = useProjectBPM({
+        settings,
+        onChange,
+    });
 
     return (
         <>
@@ -171,18 +189,15 @@ function BPMInput({
                     />
                 </label>
             ) : (
-                <button
-                    type="button"
-                    className="field flex items-center gap-2"
-                    onClick={open}>
+                <button type="button" className="field flex items-center gap-2" onClick={open}>
                     <span className="text-white/40 text-xs">BPM</span>
-                    <span className="font-mono font-semibold">{isSaving ? "..." : settings.BPM}</span>
+                    <span className="font-mono font-semibold">
+                        {isSaving ? "..." : settings.BPM}
+                    </span>
                 </button>
-            )
-            }
+            )}
         </>
     );
-
 }
 
 function CollaboratorAvatars({ users }: { users?: { initials: string; color: string }[] }) {

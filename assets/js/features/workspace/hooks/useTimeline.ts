@@ -46,7 +46,10 @@ export function useTimeline({ project, beatWidth }: Props) {
     const gridBeatWidth = millisecondsPerBeat * pixelsPerMillisecond;
     const contentWidth = resolvedTimelineLengthMs * pixelsPerMillisecond;
     const fullBarsInView = Math.floor(contentWidth / (beatsPerBar * gridBeatWidth));
-    const barEndLines = Array.from({ length: fullBarsInView }, (_, barIndex) => (barIndex + 1) * beatsPerBar * gridBeatWidth);
+    const barEndLines = Array.from(
+        { length: fullBarsInView },
+        (_, barIndex) => (barIndex + 1) * beatsPerBar * gridBeatWidth,
+    );
 
     const handleTrackBeatHover = (beatIndex: number, trackId: number) => {
         setHoveredBeat(beatIndex);

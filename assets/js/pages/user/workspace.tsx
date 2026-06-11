@@ -12,7 +12,9 @@ import { useProject } from "../../features/workspace/hooks/useProject";
 import type { Clip, ProjectSettings, Track } from "../../shared/types";
 import TransportProvider from "js/features/workspace/contextProviders/TransportProvider";
 import ClipModalProvider from "js/features/workspace/contextProviders/ClipModalProvider";
-import RealtimeProvider, { useRealtime } from "js/features/workspace/contextProviders/RealtimeProvider";
+import RealtimeProvider, {
+    useRealtime,
+} from "js/features/workspace/contextProviders/RealtimeProvider";
 import { getOrCreateSessionId } from "js/features/workspace/services/signaling/workspaceChannel";
 
 const WORKSPACE_ID = "test-workspace";
@@ -21,37 +23,54 @@ function WorkspaceContent() {
     const { id } = useParams<{ id: string }>();
     const { cursors } = useWorkspaceRealtime(WORKSPACE_ID);
     const {
-        project, isLoading,
-        addClip, updateClipInState, updateSettings, addTrack, removeTrack,
+        project,
+        isLoading,
+        addClip,
+        updateClipInState,
+        updateSettings,
+        addTrack,
+        removeTrack,
     } = useProject(Number(id));
 
     // Remote peer created a clip — add it directly without API call
     useWorkspaceEvent<{ session_id: string; track_id: number; clip: Clip }>(
         RealtimeEvents.CLIP_CREATED,
-        ({ track_id, clip }) => addClip(track_id, clip)
+        ({ track_id, clip }) => addClip(track_id, clip),
     );
 
-    const handleClipSuccess = useCallback((trackId: number, clip: Clip, isEdit: boolean) => {
-        if (isEdit) {
-            updateClipInState(trackId, clip.id, clip);
-        } else {
-            addClip(trackId, clip);
-        }
-    }, [addClip, updateClipInState]);
+    const handleClipSuccess = useCallback(
+        (trackId: number, clip: Clip, isEdit: boolean) => {
+            if (isEdit) {
+                updateClipInState(trackId, clip.id, clip);
+            } else {
+                addClip(trackId, clip);
+            }
+        },
+        [addClip, updateClipInState],
+    );
 
-    const handleProjectSettingsChange = useCallback(async (settings: ProjectSettings) => {
-        if (!id) return;
-        await updateProjectSettings(Number(id), settings);
-        updateSettings(settings);
-    }, [id, updateSettings]);
+    const handleProjectSettingsChange = useCallback(
+        async (settings: ProjectSettings) => {
+            if (!id) return;
+            await updateProjectSettings(Number(id), settings);
+            updateSettings(settings);
+        },
+        [id, updateSettings],
+    );
 
-    const handleTrackAdded = useCallback((track: Track) => {
-        addTrack(track);
-    }, [addTrack]);
+    const handleTrackAdded = useCallback(
+        (track: Track) => {
+            addTrack(track);
+        },
+        [addTrack],
+    );
 
-    const handleTrackRemoved = useCallback((trackId: number) => {
-        removeTrack(trackId);
-    }, [removeTrack]);
+    const handleTrackRemoved = useCallback(
+        (trackId: number) => {
+            removeTrack(trackId);
+        },
+        [removeTrack],
+    );
 
     return (
         <TransportProvider>

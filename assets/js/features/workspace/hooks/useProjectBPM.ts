@@ -53,7 +53,7 @@ export function useProjectBPM({ settings, onChange }: Props) {
         if (event.key === "Escape") {
             close();
         }
-    }
+    };
 
     return {
         BPM,
@@ -64,6 +64,6 @@ export function useProjectBPM({ settings, onChange }: Props) {
         close,
         commit,
         setDraftBPM,
-        keyDown
+        keyDown,
     };
 }

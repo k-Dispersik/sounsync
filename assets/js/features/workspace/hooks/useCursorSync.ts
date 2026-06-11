@@ -30,7 +30,7 @@ export interface CursorCallbacks {
 export function useCursorSync(
     rtc: WorkspaceRtc | null,
     sessionId: string,
-    callbacks: CursorCallbacks
+    callbacks: CursorCallbacks,
 ) {
     const { broadcast } = useWorkspaceBroadcast(rtc);
 
@@ -42,14 +42,14 @@ export function useCursorSync(
         (x: number, y: number) => {
             broadcast(RealtimeEvents.CURSOR_MOVE, { session_id: sessionId, x, y });
         },
-        [broadcast, sessionId]
+        [broadcast, sessionId],
     );
 
     const sendClick = useCallback(
         (x: number, y: number) => {
             broadcast(RealtimeEvents.CURSOR_CLICK, { session_id: sessionId, x, y });
         },
-        [broadcast, sessionId]
+        [broadcast, sessionId],
     );
 
     useWorkspaceEvent<CursorMovePayload>(
@@ -60,8 +60,8 @@ export function useCursorSync(
                 if (session_id === sessionId) return;
                 callbacksRef.current.onRemoteMove(session_id, x, y);
             },
-            [sessionId]
-        )
+            [sessionId],
+        ),
     );
 
     useWorkspaceEvent<CursorClickPayload>(
@@ -71,8 +71,8 @@ export function useCursorSync(
                 if (session_id === sessionId) return;
                 callbacksRef.current.onRemoteClick(session_id, x, y);
             },
-            [sessionId]
-        )
+            [sessionId],
+        ),
     );
 
     return { sendMove, sendClick };

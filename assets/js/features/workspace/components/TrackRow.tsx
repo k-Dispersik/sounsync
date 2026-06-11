@@ -69,26 +69,23 @@ export default function TrackRow({
                 return (
                     <div
                         key={`grid-line-${track.id}-${beat}`}
-                        className={`pointer-events-none absolute top-0 bottom-0 w-px ${isBar ? "bg-base-content/[0.06]" : "bg-base-content/[0.03]"
-                            }`}
+                        className={`pointer-events-none absolute top-0 bottom-0 w-px ${
+                            isBar ? "bg-base-content/[0.06]" : "bg-base-content/[0.03]"
+                        }`}
                         style={{ left }}
                     />
                 );
             })}
 
-            <BarEndMarkers
-                barEndLines={barEndLines}
-                barEndKeyPrefix={`bar-end-${track.id}`}
-            />
+            <BarEndMarkers barEndLines={barEndLines} barEndKeyPrefix={`bar-end-${track.id}`} />
 
             <PlayheadMarker pixelsPerMillisecond={pixelsPerMillisecond} />
 
             {(hoveredBeat !== null || (selectedBeat !== null && selectedTrackId === track.id)) && (
                 <div
-                    className={`pointer-events-none absolute inset-y-0 z-10 w-px ${selectedBeat !== null
-                        ? "bg-cyan-300/80"
-                        : "bg-cyan-200/45"
-                        }`}
+                    className={`pointer-events-none absolute inset-y-0 z-10 w-px ${
+                        selectedBeat !== null ? "bg-cyan-300/80" : "bg-cyan-200/45"
+                    }`}
                     style={{ left: "var(--playhead-x)" }}
                 />
             )}

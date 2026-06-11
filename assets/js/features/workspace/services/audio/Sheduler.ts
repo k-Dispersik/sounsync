@@ -1,7 +1,6 @@
 import { SchedulerEvent } from "./types";
 
-
-// TODO: add lookaheadexport 
+// TODO: add lookaheadexport
 export class Scheduler {
     private events: SchedulerEvent[] = [];
 

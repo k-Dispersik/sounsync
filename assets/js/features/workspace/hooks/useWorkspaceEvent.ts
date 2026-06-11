@@ -10,7 +10,7 @@ import type { RealtimeEventName } from "../events/events";
  */
 export function useWorkspaceEvent<T = unknown>(
     event: RealtimeEventName,
-    handler: (payload: T) => void
+    handler: (payload: T) => void,
 ): void {
     const handlerRef = useRef(handler);
     handlerRef.current = handler;

@@ -9,9 +9,10 @@ interface SelectedPosition {
 export function useTimelineSelection() {
     const [selectedPosition, setSelectedPosition] = useState<SelectedPosition | null>(null);
 
-    const selectedCell = selectedPosition && selectedPosition.trackId !== null
-        ? { trackId: selectedPosition.trackId, beatIndex: selectedPosition.beatIndex }
-        : null;
+    const selectedCell =
+        selectedPosition && selectedPosition.trackId !== null
+            ? { trackId: selectedPosition.trackId, beatIndex: selectedPosition.beatIndex }
+            : null;
 
     const handleRulerBeatClick = (beatIndex: number) => {
         setSelectedPosition({ beatIndex, trackId: null, rowIndex: null });

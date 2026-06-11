@@ -5,10 +5,7 @@ interface TimelineMarkersProps {
     barEndKeyPrefix?: string;
 }
 
-export function BarEndMarkers({
-    barEndLines,
-    barEndKeyPrefix = "bar-end",
-}: TimelineMarkersProps) {
+export function BarEndMarkers({ barEndLines, barEndKeyPrefix = "bar-end" }: TimelineMarkersProps) {
     return (
         <>
             {barEndLines.map((x, index) => (
@@ -18,8 +15,6 @@ export function BarEndMarkers({
                     style={{ left: x - 1 }}
                 />
             ))}
-
-
         </>
     );
 }

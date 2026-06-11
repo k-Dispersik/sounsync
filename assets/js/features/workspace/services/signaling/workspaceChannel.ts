@@ -27,17 +27,17 @@ export default class WorkspaceChannel {
     }
 
     join() {
-        console.log(`[Workspace:${this.workspaceId}] calling join(), socket state: ${socket.connectionState()}`);
+        console.log(
+            `[Workspace:${this.workspaceId}] calling join(), socket state: ${socket.connectionState()}`,
+        );
         this.channel
             .join()
-            .receive("ok", (resp) =>
-                console.log(`[Workspace:${this.workspaceId}] joined`, resp)
-            )
+            .receive("ok", (resp) => console.log(`[Workspace:${this.workspaceId}] joined`, resp))
             .receive("error", (err) =>
-                console.error(`[Workspace:${this.workspaceId}] join failed`, err)
+                console.error(`[Workspace:${this.workspaceId}] join failed`, err),
             )
             .receive("timeout", () =>
-                console.warn(`[Workspace:${this.workspaceId}] join timed out`)
+                console.warn(`[Workspace:${this.workspaceId}] join timed out`),
             );
         return this;
     }

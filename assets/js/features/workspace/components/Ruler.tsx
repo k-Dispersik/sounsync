@@ -44,19 +44,27 @@ export default function Ruler({
         "--ruler-width": `${contentWidth}px`,
         "--hover-indicator-x": `${(hoveredBeat ?? 0) * beatWidth + beatWidth / 2}px`,
     } as CSSProperties;
-    const secondMarkers = Array.from({ length: Math.floor(contentWidth / (1000 * pixelsPerMillisecond)) }, (_, index) => ({
-        second: index + 1,
-        left: (index + 1) * 1000 * pixelsPerMillisecond,
-    } satisfies TimelineMarker));
-    const secondMarkerByBeat = new Map(
-        secondMarkers.map((marker) => [Math.floor(marker.left / beatWidth), marker] as const)
+    const secondMarkers = Array.from(
+        { length: Math.floor(contentWidth / (1000 * pixelsPerMillisecond)) },
+        (_, index) =>
+            ({
+                second: index + 1,
+                left: (index + 1) * 1000 * pixelsPerMillisecond,
+            }) satisfies TimelineMarker,
     );
-    const rulerTicks = Array.from({ length: totalBeats }, (_, beatIndex) => ({
-        beatIndex,
-        left: beatIndex * beatWidth,
-        secondMarker: secondMarkerByBeat.get(beatIndex) ?? null,
-        isBarStart: beatIndex % beatsPerBar === 0,
-    } satisfies RulerTick));
+    const secondMarkerByBeat = new Map(
+        secondMarkers.map((marker) => [Math.floor(marker.left / beatWidth), marker] as const),
+    );
+    const rulerTicks = Array.from(
+        { length: totalBeats },
+        (_, beatIndex) =>
+            ({
+                beatIndex,
+                left: beatIndex * beatWidth,
+                secondMarker: secondMarkerByBeat.get(beatIndex) ?? null,
+                isBarStart: beatIndex % beatsPerBar === 0,
+            }) satisfies RulerTick,
+    );
 
     return (
         <div
@@ -64,11 +72,12 @@ export default function Ruler({
             style={rulerStyle}
         >
             {rulerTicks.map(({ beatIndex, left, secondMarker, isBarStart }) => {
-                const indicatorClassName = selectedBeat === beatIndex
-                    ? "bg-cyan-200/80"
-                    : hoveredBeat === beatIndex
-                        ? "bg-cyan-100/60"
-                        : "bg-transparent";
+                const indicatorClassName =
+                    selectedBeat === beatIndex
+                        ? "bg-cyan-200/80"
+                        : hoveredBeat === beatIndex
+                          ? "bg-cyan-100/60"
+                          : "bg-transparent";
 
                 return (
                     <Fragment key={beatIndex}>

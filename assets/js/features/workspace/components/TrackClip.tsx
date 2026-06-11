@@ -1,44 +1,41 @@
-import { useEffect, useMemo, useState } from 'react'
-import { GripVertical, Pencil } from 'lucide-react'
-import { Clip } from 'js/shared/types'
-import { useClipInteraction } from '../hooks/useClipInteraction'
-import { useClipModal } from '../contextProviders/ClipModalProvider'
-import { useWorkspaceEvent } from '../hooks/useWorkspaceEvent'
-import { RealtimeEvents } from '../events/events'
-import { getOrCreateSessionId } from '../services/signaling/workspaceChannel'
+import { useEffect, useMemo, useState } from "react";
+import { GripVertical, Pencil } from "lucide-react";
+import { Clip } from "js/shared/types";
+import { useClipInteraction } from "../hooks/useClipInteraction";
+import { useClipModal } from "../contextProviders/ClipModalProvider";
+import { useWorkspaceEvent } from "../hooks/useWorkspaceEvent";
+import { RealtimeEvents } from "../events/events";
+import { getOrCreateSessionId } from "../services/signaling/workspaceChannel";
 
 export interface TrackClipProps {
     /** Base accent colour (hex, rgb, etc.) used for header, bars and border */
-    color: string
+    color: string;
     /**
      * Number of waveform bars to render.
      * @default 50
      */
-    clip: Clip
-    projectId: number
-    trackId: number
-    pixelsPerMillisecond: number
-    barCount?: number
+    clip: Clip;
+    projectId: number;
+    trackId: number;
+    pixelsPerMillisecond: number;
+    barCount?: number;
     /** Extra class names applied to the root element */
-    className?: string
+    className?: string;
     /** Called when the user clicks the clip */
-    onClick?: () => void
-
+    onClick?: () => void;
 }
-
 
 /** helpers*/
 function seededRng(seed: string) {
-    let h = 0
+    let h = 0;
     for (let i = 0; i < seed.length; i++) {
-        h = Math.imul(31, h) + seed.charCodeAt(i)
+        h = Math.imul(31, h) + seed.charCodeAt(i);
     }
     return () => {
-        h = Math.imul(1664525, h) + 1013904223
-        return ((h >>> 0) / 0xffffffff)
-    }
+        h = Math.imul(1664525, h) + 1013904223;
+        return (h >>> 0) / 0xffffffff;
+    };
 }
-
 
 export default function TrackClip({
     color,
@@ -46,31 +43,36 @@ export default function TrackClip({
     trackId,
     barCount = 50,
     pixelsPerMillisecond,
-    className = '',
+    className = "",
     onClick,
     clip,
 }: TrackClipProps) {
     const barHeights = useMemo(() => {
-        const rand = seededRng(color)
-        return Array.from({ length: barCount }, () => 20 + rand() * 80)
-    }, [color, barCount])
+        const rand = seededRng(color);
+        return Array.from({ length: barCount }, () => 20 + rand() * 80);
+    }, [color, barCount]);
 
-    const { isDragging, tempStartTime, committedStartTime, startDrag } =
-        useClipInteraction({ clip, projectId, trackId, pixelsPerMillisecond });
+    const { isDragging, tempStartTime, committedStartTime, startDrag } = useClipInteraction({
+        clip,
+        projectId,
+        trackId,
+        pixelsPerMillisecond,
+    });
     const { openEditClip } = useClipModal();
-
 
     const [remoteStartTime, setRemoteStartTime] = useState<number | null>(null);
     const sessionId = getOrCreateSessionId();
 
-    useWorkspaceEvent<{ session_id: string; clip_id: number; track_id: number; start_time: number }>(
-        RealtimeEvents.CLIP_MOVED,
-        ({ session_id, clip_id, start_time }) => {
-            if (clip_id === clip.id && session_id !== sessionId) {
-                setRemoteStartTime(start_time);
-            }
+    useWorkspaceEvent<{
+        session_id: string;
+        clip_id: number;
+        track_id: number;
+        start_time: number;
+    }>(RealtimeEvents.CLIP_MOVED, ({ session_id, clip_id, start_time }) => {
+        if (clip_id === clip.id && session_id !== sessionId) {
+            setRemoteStartTime(start_time);
         }
-    );
+    });
 
     useEffect(() => {
         setRemoteStartTime(null);
@@ -106,14 +108,20 @@ export default function TrackClip({
                     />
                     <button
                         className="ml-auto w-4 h-4 flex items-center justify-center rounded opacity-0 group-hover/clip:opacity-100 hover:text-primary transition-all"
-                        onClick={(e) => { e.stopPropagation(); openEditClip(projectId, trackId, clip); }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            openEditClip(projectId, trackId, clip);
+                        }}
                     >
                         <Pencil size={10} />
                     </button>
                 </div>
 
                 {/* ── Waveform bars ── */}
-                <div className="px-1 flex items-end gap-px" style={{ height: 'calc(100% - 1.5rem)' }}>
+                <div
+                    className="px-1 flex items-end gap-px"
+                    style={{ height: "calc(100% - 1.5rem)" }}
+                >
                     {barHeights.map((h, i) => (
                         <div
                             key={i}
@@ -126,9 +134,7 @@ export default function TrackClip({
                         />
                     ))}
                 </div>
-
-
             </div>
         </div>
-    )
+    );
 }

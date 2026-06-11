@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 
 export default function useModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-
     const dialogRef = useRef<HTMLDialogElement>(null);
 
     useEffect(() => {

@@ -58,11 +58,7 @@ export default function TransportProvider({ children }: { children: React.ReactN
         };
     }, [player, isPlaying, playheadPosition]);
 
-    return (
-        <TransportContext.Provider value={transport}>
-            {children}
-        </TransportContext.Provider>
-    );
+    return <TransportContext.Provider value={transport}>{children}</TransportContext.Provider>;
 }
 
 export function useTransportContext() {

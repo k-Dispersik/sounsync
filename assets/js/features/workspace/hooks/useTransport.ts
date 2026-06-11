@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { Player } from '../services/audio/Player';
+import { useState, useRef } from "react";
+import { Player } from "../services/audio/Player";
 
 export function useTransport(player: Player) {
     const [playheadPosition, setPlayheadPosition] = useState(0);

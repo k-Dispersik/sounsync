@@ -69,7 +69,10 @@ export class WorkspaceRtc {
         const { pc } = state;
 
         // Offering side creates the channel.
-        state.dataChannel = pc.createDataChannel("ephemeral", { ordered: false, maxRetransmits: 0 });
+        state.dataChannel = pc.createDataChannel("ephemeral", {
+            ordered: false,
+            maxRetransmits: 0,
+        });
         this.bindDataChannel(state.dataChannel, peerId);
 
         try {
@@ -108,7 +111,12 @@ export class WorkspaceRtc {
                     await this.flushPendingIce(state);
                     const answer = await state.pc.createAnswer();
                     await state.pc.setLocalDescription(answer);
-                    this.signaling.push({ type: "answer", sdp: answer, from: this.sessionId, to: peerId });
+                    this.signaling.push({
+                        type: "answer",
+                        sdp: answer,
+                        from: this.sessionId,
+                        to: peerId,
+                    });
                 }
 
                 if (msg.type === "answer") {
@@ -154,7 +162,10 @@ export class WorkspaceRtc {
         };
         channel.onmessage = ({ data }) => {
             try {
-                const { event, payload } = JSON.parse(data as string) as { event: string; payload: unknown };
+                const { event, payload } = JSON.parse(data as string) as {
+                    event: string;
+                    payload: unknown;
+                };
                 workspaceBus.emit(event, payload);
             } catch (err) {
                 console.error("[WorkspaceRtc] failed to parse message", err);

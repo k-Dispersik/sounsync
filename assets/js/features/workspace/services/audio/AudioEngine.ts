@@ -4,8 +4,8 @@ import { SampleBank } from "./SampleBank";
 export class AudioEngine {
     constructor(
         private ctx: AudioContext,
-        private samples: SampleBank
-    ) { }
+        private samples: SampleBank,
+    ) {}
 
     play(patch: SoundPatch) {
         if (patch.kind === "synth") {
@@ -21,21 +21,15 @@ export class AudioEngine {
 
         osc.type = patch.osc.type;
 
-        osc.frequency.setValueAtTime(
-            patch.osc.startFreq,
-            this.ctx.currentTime
-        );
+        osc.frequency.setValueAtTime(patch.osc.startFreq, this.ctx.currentTime);
 
         osc.frequency.exponentialRampToValueAtTime(
             patch.osc.endFreq,
-            this.ctx.currentTime + patch.env.decay
+            this.ctx.currentTime + patch.env.decay,
         );
 
         gain.gain.setValueAtTime(1, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(
-            0.001,
-            this.ctx.currentTime + patch.env.decay
-        );
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + patch.env.decay);
 
         osc.connect(gain);
         gain.connect(this.ctx.destination);

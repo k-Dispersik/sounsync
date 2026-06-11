@@ -10,8 +10,8 @@ export class Player {
 
     constructor(
         private scheduler: Scheduler,
-        private engine: AudioEngine
-    ) { }
+        private engine: AudioEngine,
+    ) {}
 
     start(offset = 0) {
         this.offset = offset;

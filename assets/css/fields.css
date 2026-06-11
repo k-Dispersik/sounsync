@@ -9,7 +9,9 @@
     font-size: 0.875rem;
     color: color-mix(in oklch, var(--color-base-content) 80%, transparent);
     outline: none;
-    transition: border-color 150ms, color 150ms;
+    transition:
+        border-color 150ms,
+        color 150ms;
 }
 
 .field:focus,

@@ -34,19 +34,16 @@ export function useWorkspaceRealtime(_workspaceId: string) {
     // ─── Connected peers ──────────────────────────────────────────────────────
     const [connectedPeers, setConnectedPeers] = useState<Set<string>>(new Set());
 
-    useWorkspaceEvent<{ session_id: string }>(
-        RealtimeEvents.PEER_CONNECTED,
-        ({ session_id }) => setConnectedPeers((prev) => new Set([...prev, session_id]))
+    useWorkspaceEvent<{ session_id: string }>(RealtimeEvents.PEER_CONNECTED, ({ session_id }) =>
+        setConnectedPeers((prev) => new Set([...prev, session_id])),
     );
 
-    useWorkspaceEvent<{ session_id: string }>(
-        RealtimeEvents.PEER_DISCONNECTED,
-        ({ session_id }) =>
-            setConnectedPeers((prev) => {
-                const next = new Set(prev);
-                next.delete(session_id);
-                return next;
-            })
+    useWorkspaceEvent<{ session_id: string }>(RealtimeEvents.PEER_DISCONNECTED, ({ session_id }) =>
+        setConnectedPeers((prev) => {
+            const next = new Set(prev);
+            next.delete(session_id);
+            return next;
+        }),
     );
 
     return {
@@ -54,6 +51,6 @@ export function useWorkspaceRealtime(_workspaceId: string) {
         cursors,
         connectedPeers,
         tracks: [] as never[],
-        updateTrack: (_id: string, _data: unknown) => { },
+        updateTrack: (_id: string, _data: unknown) => {},
     };
 }

@@ -64,7 +64,7 @@ export function useClipForm(state: NonNullable<ClipModalState>, onSuccess: ClipS
         if (!isEdit) return;
 
         const clip = state.clip;
-        const match = LIBRARY.find(s => s.title === clip.title && s.type === clip.type);
+        const match = LIBRARY.find((s) => s.title === clip.title && s.type === clip.type);
 
         if (match) {
             setTab("library");
@@ -78,17 +78,16 @@ export function useClipForm(state: NonNullable<ClipModalState>, onSuccess: ClipS
     }, []);
 
     const visibleSamples = useMemo(
-        () => LIBRARY.filter(s => {
-            const matchType = typeFilter === "all" || s.type === typeFilter;
-            const matchSearch = !search || s.title.toLowerCase().includes(search.toLowerCase());
-            return matchType && matchSearch;
-        }),
-        [typeFilter, search]
+        () =>
+            LIBRARY.filter((s) => {
+                const matchType = typeFilter === "all" || s.type === typeFilter;
+                const matchSearch = !search || s.title.toLowerCase().includes(search.toLowerCase());
+                return matchType && matchSearch;
+            }),
+        [typeFilter, search],
     );
 
-    const canSubmit = tab === "library"
-        ? selected !== null
-        : uploadTitle.trim().length > 0;
+    const canSubmit = tab === "library" ? selected !== null : uploadTitle.trim().length > 0;
 
     const buildAttrs = () => {
         if (tab === "library" && selected) {
@@ -127,12 +126,18 @@ export function useClipForm(state: NonNullable<ClipModalState>, onSuccess: ClipS
 
     return {
         isEdit,
-        tab, setTab,
-        typeFilter, setTypeFilter,
-        search, setSearch,
-        selected, setSelected,
-        uploadTitle, setUploadTitle,
-        uploadType, setUploadType,
+        tab,
+        setTab,
+        typeFilter,
+        setTypeFilter,
+        search,
+        setSearch,
+        selected,
+        setSelected,
+        uploadTitle,
+        setUploadTitle,
+        uploadType,
+        setUploadType,
         isSaving,
         canSubmit,
         visibleSamples,

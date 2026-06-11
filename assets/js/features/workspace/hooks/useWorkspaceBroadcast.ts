@@ -11,7 +11,7 @@ export function useWorkspaceBroadcast(rtc: WorkspaceRtc | null) {
         (event: RealtimeEventName, payload: unknown) => {
             rtc?.send(event, payload);
         },
-        [rtc]
+        [rtc],
     );
 
     return { broadcast };

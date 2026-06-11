@@ -13,6 +13,6 @@ if (container) {
             <QueryClientProvider client={queryClient}>
                 <AppRouter />
             </QueryClientProvider>
-        </React.StrictMode>
+        </React.StrictMode>,
     );
 }

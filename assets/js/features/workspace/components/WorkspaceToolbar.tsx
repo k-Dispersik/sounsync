@@ -35,7 +35,9 @@ export default function WorkspaceToolbar({ projectId, tracks, selectedCell, onTr
             {selectedCell && (
                 <button
                     className="flex items-center gap-1.5 text-xs text-base-content/50 hover:text-base-content/80 transition-colors"
-                    onClick={() => openCreateClip(projectId, selectedCell.trackId, selectedCell.startTimeMs)}
+                    onClick={() =>
+                        openCreateClip(projectId, selectedCell.trackId, selectedCell.startTimeMs)
+                    }
                 >
                     <Plus size={13} />
                     Add Clip

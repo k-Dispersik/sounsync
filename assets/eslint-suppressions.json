@@ -1,0 +1,94 @@
+{
+  "js/features/workspace/components/ClipModal.tsx": {
+    "@typescript-eslint/no-misused-promises": {
+      "count": 1
+    },
+    "react-hooks/exhaustive-deps": {
+      "count": 1
+    }
+  },
+  "js/features/workspace/components/SampleSidebar.tsx": {
+    "@typescript-eslint/no-unused-vars": {
+      "count": 1
+    }
+  },
+  "js/features/workspace/components/TimelineGrid.tsx": {
+    "@typescript-eslint/no-misused-promises": {
+      "count": 1
+    },
+    "@typescript-eslint/no-unused-vars": {
+      "count": 1
+    },
+    "complexity": {
+      "count": 1
+    }
+  },
+  "js/features/workspace/components/TrackRow.tsx": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "js/features/workspace/components/WorkspaceToolbar.tsx": {
+    "@typescript-eslint/no-misused-promises": {
+      "count": 1
+    }
+  },
+  "js/features/workspace/components/WorkspaceTopBar.tsx": {
+    "@typescript-eslint/no-floating-promises": {
+      "count": 2
+    },
+    "@typescript-eslint/no-misused-promises": {
+      "count": 1
+    },
+    "@typescript-eslint/no-unused-vars": {
+      "count": 1
+    },
+    "@typescript-eslint/require-await": {
+      "count": 1
+    }
+  },
+  "js/features/workspace/hooks/useClipForm.ts": {
+    "react-hooks/exhaustive-deps": {
+      "count": 1
+    }
+  },
+  "js/features/workspace/hooks/useProject.ts": {
+    "@typescript-eslint/no-floating-promises": {
+      "count": 1
+    }
+  },
+  "js/features/workspace/hooks/useTimeline.ts": {
+    "complexity": {
+      "count": 1
+    }
+  },
+  "js/features/workspace/hooks/useWorkspaceRealtime.ts": {
+    "@typescript-eslint/no-unused-vars": {
+      "count": 2
+    }
+  },
+  "js/features/workspace/services/audio/SoundBank.ts": {
+    "@typescript-eslint/no-unsafe-assignment": {
+      "count": 3
+    },
+    "@typescript-eslint/no-unsafe-member-access": {
+      "count": 2
+    }
+  },
+  "js/features/workspace/services/transport/workspaceRtc.ts": {
+    "@typescript-eslint/no-misused-promises": {
+      "count": 1
+    },
+    "complexity": {
+      "count": 1
+    }
+  },
+  "js/pages/user/workspace.tsx": {
+    "@typescript-eslint/no-unused-vars": {
+      "count": 2
+    },
+    "no-restricted-imports": {
+      "count": 13
+    }
+  }
+}

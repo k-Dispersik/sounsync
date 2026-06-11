@@ -8,8 +8,8 @@ import WorkspaceToolbar from "./WorkspaceToolbar";
 import { useTimeline } from "js/features/workspace/hooks/useTimeline";
 import { useTimelineSelection } from "js/features/workspace/hooks/useTimelineSelection";
 import { RealtimeEvents } from "../events/events";
-import { useWorkspaceEvent } from '../hooks/useWorkspaceEvent';
-import { useRealtime } from '../contextProviders/RealtimeProvider';
+import { useWorkspaceEvent } from "../hooks/useWorkspaceEvent";
+import { useRealtime } from "../contextProviders/RealtimeProvider";
 
 interface Props {
     project: Project | null;
@@ -70,21 +70,19 @@ export default function TimelineGrid({
         broadcast(RealtimeEvents.TRACK_REMOVED, { track_id: trackId });
     };
 
-
-    useWorkspaceEvent<{ track_id: number; }>(
-        RealtimeEvents.TRACK_REMOVED,
-        ({ track_id }) => { onTrackRemoved(track_id); console.log(`Track ${track_id} removed by another user`); }
-    );
+    useWorkspaceEvent<{ track_id: number }>(RealtimeEvents.TRACK_REMOVED, ({ track_id }) => {
+        onTrackRemoved(track_id);
+        console.log(`Track ${track_id} removed by another user`);
+    });
 
     const handleTrackAdded = (track: Track) => {
         onTrackAdded(track);
         broadcast(RealtimeEvents.TRACK_ADDED, { track });
     };
 
-    useWorkspaceEvent<{ track: Track; }>(
-        RealtimeEvents.TRACK_ADDED,
-        ({ track }) => { onTrackAdded(track); }
-    );
+    useWorkspaceEvent<{ track: Track }>(RealtimeEvents.TRACK_ADDED, ({ track }) => {
+        onTrackAdded(track);
+    });
 
     return (
         <>
@@ -98,9 +96,7 @@ export default function TimelineGrid({
                 {/* ── Header row ── */}
                 <div className="flex flex-shrink-0 border-b border-base-content/10">
                     {/* Corner cell */}
-                    <div
-                        className="flex h-8 w-[168px] flex-shrink-0 items-center border-r border-base-content/10 bg-base-300/80 px-4"
-                    >
+                    <div className="flex h-8 w-[168px] flex-shrink-0 items-center border-r border-base-content/10 bg-base-300/80 px-4">
                         <span className="text-[10px] uppercase tracking-widest text-base-content/30 font-semibold">
                             Tracks
                         </span>
@@ -139,11 +135,11 @@ export default function TimelineGrid({
                                         }`}
                                     style={{ height: 80 }}
                                 >
-
                                     <Trash2
                                         onClick={() => handleRemoveTrack(track.id)}
                                         size={18}
-                                        className="text-base-content/20 cursor-pointer hover:text-base-content/50 transition-colors" />
+                                        className="text-base-content/20 cursor-pointer hover:text-base-content/50 transition-colors"
+                                    />
 
                                     <span className="text-sm text-base-content/70 truncate font-medium">
                                         {`Track ${track.row_index + 1}`}
@@ -162,7 +158,10 @@ export default function TimelineGrid({
                             }
                         }}
                     >
-                        <div className="w-[var(--timeline-width)]" style={{ "--timeline-width": `${contentWidth}px` } as CSSProperties}>
+                        <div
+                            className="w-[var(--timeline-width)]"
+                            style={{ "--timeline-width": `${contentWidth}px` } as CSSProperties}
+                        >
                             {isLoading ? (
                                 <div className="flex flex-col gap-2 p-4">
                                     {Array.from({ length: 4 }).map((_, i) => (

@@ -10,7 +10,7 @@ export default function useSampleSidebar(tracks: Track[]): SidebarClip[] {
 
     useEffect(() => {
         const enriched = tracks.flatMap((track) =>
-            track.clips.map((clip) => ({ ...clip, project_id: track.project_id }))
+            track.clips.map((clip) => ({ ...clip, project_id: track.project_id })),
         );
         setClips(enriched);
     }, [tracks]);
