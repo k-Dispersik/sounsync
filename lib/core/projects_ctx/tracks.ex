@@ -1,11 +1,15 @@
 defmodule Core.ProjectsCtx.Tracks do
+  @moduledoc """
+  Project tracks and the clips placed on them.
+  """
+
   use Core.Helpers, schema: Core.DB.Track
 
   import Ecto.Changeset
 
   alias Core.DB.Track
-  alias Soundsync.Repo
   alias Core.ProjectsCtx.Clips
+  alias Soundsync.Repo
 
   def changeset(track, attrs) do
     track

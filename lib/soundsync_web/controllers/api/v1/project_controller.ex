@@ -5,8 +5,8 @@ defmodule SoundsyncWeb.API.V1.ProjectController do
   alias Core.ProjectsCtx.Projects
   alias Core.ProjectsCtx.Tracks
 
-  alias SoundsyncWeb.JSON
   alias SoundsyncWeb.Helpers
+  alias SoundsyncWeb.JSON
 
   require OK
 

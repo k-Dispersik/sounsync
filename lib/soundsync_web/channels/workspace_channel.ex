@@ -1,4 +1,8 @@
 defmodule SoundsyncWeb.WorkspaceChannel do
+  @moduledoc """
+  Workspace channel: holds the connections of everyone in one editing session.
+  """
+
   use Phoenix.Channel
 
   require Logger

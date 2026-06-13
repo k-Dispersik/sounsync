@@ -1,4 +1,10 @@
 defmodule SoundsyncWeb.Formatter do
+  @moduledoc """
+  Turns database schemas into maps that are safe to send outside.
+
+  The single place that decides which fields are public.
+  """
+
   def format(%Core.DB.User{} = user) do
     %{
       id: user.id,

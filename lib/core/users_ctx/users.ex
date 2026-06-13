@@ -1,10 +1,13 @@
 defmodule Core.UsersCtx.Users do
+  @moduledoc """
+  Users context: changeset, creation, updates and password hashing.
+  """
+
   use Core.Helpers, schema: Core.DB.User
 
   import Ecto.Changeset
 
   alias Core.ProjectsCtx.Projects
-  alias Bcrypt
   alias Soundsync.Repo
 
   def changeset(user, attrs) do

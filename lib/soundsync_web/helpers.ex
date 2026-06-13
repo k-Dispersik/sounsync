@@ -1,4 +1,9 @@
 defmodule SoundsyncWeb.Helpers do
+  @moduledoc """
+  Small pieces shared by controllers: the response wrapper and conversion of a
+  time signature between the schema atom and the string used by the API.
+  """
+
   import Plug.Conn
   import Phoenix.Controller
 

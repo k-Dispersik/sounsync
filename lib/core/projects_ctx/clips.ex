@@ -1,4 +1,8 @@
 defmodule Core.ProjectsCtx.Clips do
+  @moduledoc """
+  Clips on a track: changeset, creation and updates.
+  """
+
   import Ecto.Changeset
 
   alias Core.DB.Clip

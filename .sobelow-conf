@@ -1,0 +1,16 @@
+[
+  # The gate must fail on any finding, otherwise it is decorative.
+  exit: "low",
+  threshold: :low,
+  verbose: true,
+  format: "txt",
+  # Config.CSP is the Content-Security-Policy header for the browser pipeline.
+  # The policy cannot be written blind: its shape depends on how the bundle is
+  # served, so it is deferred to a task of its own.
+  ignore: ["Config.CSP"],
+  ignore_files: [],
+  out: nil,
+  private: false,
+  router: nil,
+  skip: false
+]

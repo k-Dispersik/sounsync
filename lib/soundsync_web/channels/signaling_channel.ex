@@ -1,4 +1,8 @@
 defmodule SoundsyncWeb.SignalingChannel do
+  @moduledoc """
+  WebRTC signaling channel: relays offer / answer / ICE between peers.
+  """
+
   use Phoenix.Channel
 
   require Logger

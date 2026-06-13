@@ -1,4 +1,11 @@
 defmodule SoundsyncWeb.JSON do
+  @moduledoc """
+  Builds the JSON bodies returned by the API.
+
+  The shape of a single record comes from `SoundsyncWeb.Formatter`; this module
+  assembles those records into the body of a particular response.
+  """
+
   alias SoundsyncWeb.Formatter
 
   def encode!(data) do

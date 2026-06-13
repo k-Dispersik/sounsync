@@ -1,4 +1,8 @@
 defmodule Core.ProjectsCtx.Projects do
+  @moduledoc """
+  Projects context: changeset, creation, updates, queries and tracks.
+  """
+
   use Core.Helpers, schema: Core.DB.Project
 
   import Ecto.Changeset
@@ -33,7 +37,7 @@ defmodule Core.ProjectsCtx.Projects do
     |> Repo.update()
   end
 
-  def list(), do: Project.query() |> Repo.all()
+  def list, do: Project.query() |> Repo.all()
 
   @doc """
   Lists projects:
