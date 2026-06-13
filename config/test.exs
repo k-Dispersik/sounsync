@@ -1,8 +1,8 @@
 import Config
 
 config :soundsync, Soundsync.Repo,
-  username: "postgres",
-  password: "postgres",
+  username: "root",
+  password: "root",
   hostname: "localhost",
   database: "soundsync_test#{System.get_env("MIX_TEST_PARTITION")}",
   pool: Ecto.Adapters.SQL.Sandbox,
