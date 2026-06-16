@@ -10,6 +10,7 @@ defmodule Soundsync.MixProject do
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
+      dialyzer: dialyzer(),
       listeners: [Phoenix.CodeReloader]
     ]
   end
@@ -58,7 +59,18 @@ defmodule Soundsync.MixProject do
       {:ok, "~> 2.3"},
       {:params, "~> 2.3"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false}
+      {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false}
+    ]
+  end
+
+  # The PLT lives in priv/plts so CI can cache it between runs: building the
+  # table from scratch takes about ten minutes.
+  defp dialyzer do
+    [
+      plt_local_path: "priv/plts",
+      plt_core_path: "priv/plts",
+      plt_add_apps: [:mix, :ex_unit]
     ]
   end
 

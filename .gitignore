@@ -41,3 +41,6 @@ soundsync-*.tar
 npm-debug.log
 /assets/node_modules/
 
+
+# Dialyzer PLT, cached by CI and never committed.
+/priv/plts/
