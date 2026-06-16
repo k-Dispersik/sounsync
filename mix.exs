@@ -24,7 +24,7 @@ defmodule Soundsync.MixProject do
 
   def cli do
     [
-      preferred_envs: [precommit: :test]
+      preferred_envs: [precommit: :test, "precommit.full": :test]
     ]
   end
 
@@ -87,7 +87,20 @@ defmodule Soundsync.MixProject do
         "esbuild soundsync --minify",
         "phx.digest"
       ],
-      precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"]
+      # --check-formatted and --check-unused instead of fixing things in place:
+      # the gate should fail on untidy code, not smuggle unrelated changes into
+      # someone's commit.
+      precommit: [
+        "compile --warnings-as-errors",
+        "format --check-formatted",
+        "deps.unlock --check-unused",
+        "credo --strict",
+        "sobelow --config",
+        "test"
+      ],
+      # Dialyzer costs minutes even with a warm PLT, so it lives in a separate
+      # alias: for CI and before opening a pull request.
+      "precommit.full": ["precommit", "dialyzer"]
     ]
   end
 end
