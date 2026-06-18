@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+#
+# Pre-commit gate: the same checks CI runs, only locally.
+# Enable once after cloning:
+#
+#   git config core.hooksPath .githooks
+#
+# Deliberate bypass, e.g. to save unfinished work:
+#
+#   git commit --no-verify
+#
+set -euo pipefail
+
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+
+echo "-> mix precommit"
+mix precommit
+
+echo "-> npm run verify"
+npm --prefix assets run verify
+
+echo "gates are green"
