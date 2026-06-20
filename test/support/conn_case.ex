@@ -12,6 +12,7 @@ defmodule SoundsyncWeb.ConnCase do
       import Plug.Conn
       import Phoenix.ConnTest
       import SoundsyncWeb.ConnCase
+      import Soundsync.Fixtures
     end
   end
 

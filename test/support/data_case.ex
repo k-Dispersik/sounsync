@@ -13,6 +13,7 @@ defmodule Soundsync.DataCase do
       import Ecto.Changeset
       import Ecto.Query
       import Soundsync.DataCase
+      import Soundsync.Fixtures
     end
   end
 
