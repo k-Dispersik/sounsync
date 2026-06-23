@@ -40,7 +40,6 @@ export default function TimelineGrid({
         handleTrackBeatHover,
         handleRulerBeatHover,
         handleBeatLeave,
-        handleOpenCreateClipModal,
         barEndLines,
     } = useTimeline({
         project,

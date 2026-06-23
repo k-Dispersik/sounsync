@@ -66,10 +66,6 @@ export function useTimeline({ project, beatWidth }: Props) {
         setHoveredTrackId(null);
     };
 
-    const handleOpenCreateClipModal = (_trackId: number, _beatIndex: number) => {
-        // TODO: open modal and pass trackId and second
-    };
-
     return {
         scrollRef,
         hoveredBeat,
@@ -83,6 +79,5 @@ export function useTimeline({ project, beatWidth }: Props) {
         handleTrackBeatHover,
         handleRulerBeatHover,
         handleBeatLeave,
-        handleOpenCreateClipModal,
     };
 }
