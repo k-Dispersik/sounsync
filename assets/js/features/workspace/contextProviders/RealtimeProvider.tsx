@@ -27,13 +27,10 @@ export default function RealtimeProvider({ workspaceId, children }: Props) {
         const r = new WorkspaceRtc(workspaceId, channel.sessionId);
         setRtc(r);
 
-        (window as unknown as { __rtc?: WorkspaceRtc }).__rtc = r;
-
         return () => {
             r.destroy();
             setRtc(null);
             channel.leave();
-            delete (window as unknown as { __rtc?: WorkspaceRtc }).__rtc;
         };
     }, [workspaceId]);
 

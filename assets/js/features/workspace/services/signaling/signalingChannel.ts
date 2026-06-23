@@ -1,5 +1,8 @@
 import { Channel } from "phoenix";
 import { socket } from "./socket";
+import { createLogger } from "js/shared/lib/logger";
+
+const log = createLogger("Signaling");
 
 export class SignalingChannel {
     private channel: Channel;
@@ -11,8 +14,8 @@ export class SignalingChannel {
     join(): this {
         this.channel
             .join()
-            .receive("ok", () => console.log("[Signaling] joined"))
-            .receive("error", (err) => console.error("[Signaling] join failed", err));
+            .receive("ok", () => log.debug("joined"))
+            .receive("error", (err) => log.error("join failed", err));
         return this;
     }
 

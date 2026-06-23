@@ -1,5 +1,8 @@
 import { Channel } from "phoenix";
 import { socket } from "./socket";
+import { createLogger } from "js/shared/lib/logger";
+
+const log = createLogger("WorkspaceChannel");
 
 export const getOrCreateSessionId = (): string => {
     const key = "session_id";
@@ -27,18 +30,12 @@ export default class WorkspaceChannel {
     }
 
     join() {
-        console.log(
-            `[Workspace:${this.workspaceId}] calling join(), socket state: ${socket.connectionState()}`,
-        );
+        log.debug(`${this.workspaceId}: joining, socket state ${socket.connectionState()}`);
         this.channel
             .join()
-            .receive("ok", (resp) => console.log(`[Workspace:${this.workspaceId}] joined`, resp))
-            .receive("error", (err) =>
-                console.error(`[Workspace:${this.workspaceId}] join failed`, err),
-            )
-            .receive("timeout", () =>
-                console.warn(`[Workspace:${this.workspaceId}] join timed out`),
-            );
+            .receive("ok", (resp) => log.debug(`${this.workspaceId}: joined`, resp))
+            .receive("error", (err) => log.error(`${this.workspaceId}: join failed`, err))
+            .receive("timeout", () => log.warn(`${this.workspaceId}: join timed out`));
         return this;
     }
 

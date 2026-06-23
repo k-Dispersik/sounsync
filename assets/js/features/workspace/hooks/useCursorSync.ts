@@ -56,7 +56,6 @@ export function useCursorSync(
         RealtimeEvents.CURSOR_MOVE,
         useCallback(
             ({ session_id, x, y }: CursorMovePayload) => {
-                console.log("handle", session_id, x, y);
                 if (session_id === sessionId) return;
                 callbacksRef.current.onRemoteMove(session_id, x, y);
             },

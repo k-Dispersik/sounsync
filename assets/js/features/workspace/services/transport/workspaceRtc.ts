@@ -1,6 +1,9 @@
 import { SignalingChannel } from "../signaling/signalingChannel";
 import { workspaceBus } from "../workspaceBus";
 import { RealtimeEvents } from "../../events/events";
+import { createLogger } from "js/shared/lib/logger";
+
+const log = createLogger("WorkspaceRtc");
 
 const ICE_SERVERS: RTCIceServer[] = [{ urls: "stun:stun.l.google.com:19302" }];
 
@@ -81,7 +84,7 @@ export class WorkspaceRtc {
             await pc.setLocalDescription(offer);
             this.signaling.push({ type: "offer", sdp: offer, from: this.sessionId, to: peerId });
         } catch (err) {
-            console.error(`[WorkspaceRtc] offer error → ${peerId}`, err);
+            log.error(`offer error for peer ${peerId}`, err);
         } finally {
             state.makingOffer = false;
         }
@@ -136,7 +139,7 @@ export class WorkspaceRtc {
                     }
                 }
             } catch (err) {
-                console.error("[WorkspaceRtc] signaling error", err);
+                log.error("signaling error", err);
             }
         });
     }
@@ -152,11 +155,11 @@ export class WorkspaceRtc {
 
     private bindDataChannel(channel: RTCDataChannel, peerId: string): void {
         channel.onopen = () => {
-            console.log(`[WorkspaceRtc] DataChannel open (peer: ${peerId})`);
+            log.debug(`data channel open (peer: ${peerId})`);
             workspaceBus.emit(RealtimeEvents.PEER_CONNECTED, { session_id: peerId });
         };
         channel.onclose = () => {
-            console.log(`[WorkspaceRtc] DataChannel closed (peer: ${peerId})`);
+            log.debug(`data channel closed (peer: ${peerId})`);
             workspaceBus.emit(RealtimeEvents.PEER_DISCONNECTED, { session_id: peerId });
             this.peers.delete(peerId);
         };
@@ -168,7 +171,7 @@ export class WorkspaceRtc {
                 };
                 workspaceBus.emit(event, payload);
             } catch (err) {
-                console.error("[WorkspaceRtc] failed to parse message", err);
+                log.error("failed to parse message", err);
             }
         };
     }

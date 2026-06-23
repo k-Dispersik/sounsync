@@ -10,6 +10,9 @@ import { useTimelineSelection } from "js/features/workspace/hooks/useTimelineSel
 import { RealtimeEvents } from "../events/events";
 import { useWorkspaceEvent } from "../hooks/useWorkspaceEvent";
 import { useRealtime } from "../contextProviders/RealtimeProvider";
+import { createLogger } from "js/shared/lib/logger";
+
+const log = createLogger("TimelineGrid");
 
 interface Props {
     project: Project | null;
@@ -71,7 +74,7 @@ export default function TimelineGrid({
 
     useWorkspaceEvent<{ track_id: number }>(RealtimeEvents.TRACK_REMOVED, ({ track_id }) => {
         onTrackRemoved(track_id);
-        console.log(`Track ${track_id} removed by another user`);
+        log.debug(`track ${track_id} removed by another user`);
     });
 
     const handleTrackAdded = (track: Track) => {

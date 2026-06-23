@@ -4,6 +4,9 @@ import { updateClip } from "../api/clips";
 import { useRealtime } from "../contextProviders/RealtimeProvider";
 import { RealtimeEvents } from "../events/events";
 import { getOrCreateSessionId } from "../services/signaling/workspaceChannel";
+import { createLogger } from "js/shared/lib/logger";
+
+const log = createLogger("ClipInteraction");
 
 interface Props {
     clip: Clip;
@@ -62,7 +65,7 @@ export function useClipInteraction({ clip, projectId, trackId, pixelsPerMillisec
                 start_time: nextStartTime,
                 duration: clip.duration,
             }).catch((error) => {
-                console.error("Failed to persist clip position", error);
+                log.error("failed to persist clip position", error);
                 setCommittedStartTime(previousCommittedStartTime);
                 committedStartTimeRef.current = previousCommittedStartTime;
             });

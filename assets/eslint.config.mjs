@@ -34,6 +34,8 @@ export default tseslint.config(
             "react-hooks/rules-of-hooks": "error",
             "react-hooks/exhaustive-deps": "error",
 
+            "no-console": "error",
+
             "@typescript-eslint/no-explicit-any": "error",
             "@typescript-eslint/no-floating-promises": "error",
             "@typescript-eslint/no-unused-vars": [
@@ -67,9 +69,14 @@ export default tseslint.config(
         },
     },
 
+    {
+        // The one module that is allowed to call console directly.
+        files: ["js/shared/lib/logger.ts"],
+        rules: { "no-console": "off" },
+    },
+
     /*
      * Next in line, switched on once the code passes them:
-     *   no-console, with a dedicated logger module as the only exception
      *   max-lines: 150 for a component, 80 for a hook
      *   no-restricted-syntax: raw colors, tailwind palette classes,
      *     daisyUI classes outside shared/ui
