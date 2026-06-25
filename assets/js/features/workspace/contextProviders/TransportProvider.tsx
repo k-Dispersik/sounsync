@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo, useState } from "react";
 import { Player } from "../services/audio/Player";
-import { Scheduler } from "../services/audio/Sheduler";
+import { Scheduler } from "../services/audio/Scheduler";
 import { AudioEngine } from "../services/audio/AudioEngine";
 import { SampleBank } from "../services/audio/SampleBank";
 

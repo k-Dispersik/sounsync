@@ -1,6 +1,7 @@
 import { SchedulerEvent } from "./types";
 
-// TODO: add lookaheadexport
+// Events are kept in insertion order. The lookahead window that decides which
+// of them to hand to the audio clock is not implemented yet.
 export class Scheduler {
     private events: SchedulerEvent[] = [];
 
