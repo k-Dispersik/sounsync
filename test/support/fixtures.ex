@@ -41,11 +41,8 @@ defmodule Soundsync.Fixtures do
         settings: %{bpm: 120, time_signature: :four_four, timeline_length_ms: 60_000}
       })
 
-    {:ok, _user} = Users.create_project(user, attrs)
-
-    user.id
-    |> Projects.list_by_user()
-    |> Enum.find(&(&1.title == attrs.title))
+    {:ok, project} = Users.create_project(user, attrs)
+    project
   end
 
   @doc "Creates a track on the given project."

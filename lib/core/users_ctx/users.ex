@@ -27,18 +27,24 @@ defmodule Core.UsersCtx.Users do
     |> Repo.insert()
   end
 
+  @doc """
+  Updates the user's own fields.
+
+  Membership in projects is deliberately not touched here: this function used
+  to `put_assoc(:projects, ...)`, so renaming a user wiped every project they
+  belonged to. Membership is managed by `Core.ProjectsCtx.Projects.add_member/2`.
+  """
   def update(user, attrs) do
     user
     |> changeset(attrs)
     |> hash_password()
-    |> put_assoc(:projects, attrs[:projects] || [])
     |> Repo.update()
   end
 
+  @doc "Creates a project and makes the user a member of it."
   def create_project(user, project_attrs) do
     with {:ok, project} <- Projects.create(project_attrs) do
-      user = Repo.preload(user, :projects)
-      update(user, %{projects: [project | user.projects]})
+      Projects.add_member(project, user)
     end
   end
 

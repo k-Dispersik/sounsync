@@ -77,14 +77,12 @@ case Repo.get_by(User, email: email) do
   nil ->
     {:ok, user} = Users.create(%{name: "Demo User", email: email, password: password})
 
-    {:ok, _user} =
+    {:ok, project} =
       Users.create_project(user, %{
         title: "Demo session",
         description: "Sample project for local development",
         settings: %{bpm: 128, time_signature: :four_four, timeline_length_ms: 60_000}
       })
-
-    [project] = Projects.list_by_user(user.id)
 
     Enum.each(tracks, fn {row_index, clips} ->
       {:ok, track} = Projects.add_track(project, %{row_index: row_index})

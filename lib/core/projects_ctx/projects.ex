@@ -8,6 +8,7 @@ defmodule Core.ProjectsCtx.Projects do
   import Ecto.Changeset
 
   alias Core.DB.Project
+  alias Core.DB.User
   alias Core.ProjectsCtx.Tracks
 
   alias Soundsync.Repo
@@ -50,6 +51,23 @@ defmodule Core.ProjectsCtx.Projects do
     |> Project.join_users()
     |> Project.with_user(user_id)
     |> Repo.all()
+  end
+
+  @doc """
+  Adds a user to the project. Adding the same user twice is a no-op rather than
+  an error: the caller usually does not know whether the membership is there.
+  """
+  def add_member(%Project{} = project, %User{} = user) do
+    project = Repo.preload(project, :users)
+
+    if Enum.any?(project.users, &(&1.id == user.id)) do
+      {:ok, project}
+    else
+      project
+      |> Ecto.Changeset.change()
+      |> Ecto.Changeset.put_assoc(:users, [user | project.users])
+      |> Repo.update()
+    end
   end
 
   def add_track(%Project{} = project, track_attrs) do
