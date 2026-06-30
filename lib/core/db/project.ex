@@ -12,7 +12,8 @@ defmodule Core.DB.Project do
       defaults_to_struct: true
 
     has_many :tracks, Core.DB.Track, on_delete: :delete_all
-    many_to_many :users, Core.DB.User, join_through: "projects_users", on_delete: :delete_all
+    has_many :memberships, Core.DB.ProjectMember, on_delete: :delete_all
+    many_to_many :users, Core.DB.User, join_through: Core.DB.ProjectMember
 
     timestamps()
   end

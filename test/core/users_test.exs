@@ -2,6 +2,7 @@ defmodule Core.UsersCtxTest do
   use Soundsync.DataCase, async: true
 
   alias Core.DB.Project
+  alias Core.DB.ProjectMember
   alias Core.ProjectsCtx.Projects
   alias Core.UsersCtx.Users
 
@@ -60,12 +61,12 @@ defmodule Core.UsersCtxTest do
 
       {:ok, _updated} = Users.update(user, %{name: "Renamed"})
 
-      assert Repo.aggregate(from("projects_users", select: 1), :count) == 1
+      assert Repo.aggregate(ProjectMember, :count) == 1
     end
   end
 
   describe "create_project/2" do
-    test "returns the project and makes the user a member" do
+    test "returns the project and makes the user its owner" do
       user = user_fixture()
 
       assert {:ok, %Project{title: "First"} = project} =
@@ -73,6 +74,7 @@ defmodule Core.UsersCtxTest do
 
       assert [%Project{id: id}] = Repo.preload(user, :projects).projects
       assert id == project.id
+      assert Projects.member_role(project, user) == :owner
     end
   end
 
@@ -88,6 +90,15 @@ defmodule Core.UsersCtxTest do
       assert member_ids == Enum.sort([owner.id, guest.id])
     end
 
+    test "defaults a new member to the editor role" do
+      guest = user_fixture()
+      project = project_fixture()
+
+      {:ok, project} = Projects.add_member(project, guest)
+
+      assert Projects.member_role(project, guest) == :editor
+    end
+
     test "adding the same user twice changes nothing" do
       user = user_fixture()
       project = project_fixture(%{user: user})
@@ -95,6 +106,13 @@ defmodule Core.UsersCtxTest do
       assert {:ok, project} = Projects.add_member(project, user)
       assert [%{id: id}] = project.users
       assert id == user.id
+      assert Repo.aggregate(ProjectMember, :count) == 1
+    end
+
+    test "member_role/2 returns nil for someone who is not a member" do
+      project = project_fixture()
+
+      assert Projects.member_role(project, user_fixture()) == nil
     end
   end
 end

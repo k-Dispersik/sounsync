@@ -41,10 +41,10 @@ defmodule Core.UsersCtx.Users do
     |> Repo.update()
   end
 
-  @doc "Creates a project and makes the user a member of it."
+  @doc "Creates a project and makes the user its owner."
   def create_project(user, project_attrs) do
     with {:ok, project} <- Projects.create(project_attrs) do
-      Projects.add_member(project, user)
+      Projects.add_member(project, user, :owner)
     end
   end
 

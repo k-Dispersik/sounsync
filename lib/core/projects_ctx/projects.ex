@@ -6,8 +6,10 @@ defmodule Core.ProjectsCtx.Projects do
   use Core.Helpers, schema: Core.DB.Project
 
   import Ecto.Changeset
+  import Ecto.Query, only: [from: 2]
 
   alias Core.DB.Project
+  alias Core.DB.ProjectMember
   alias Core.DB.User
   alias Core.ProjectsCtx.Tracks
 
@@ -54,20 +56,27 @@ defmodule Core.ProjectsCtx.Projects do
   end
 
   @doc """
-  Adds a user to the project. Adding the same user twice is a no-op rather than
-  an error: the caller usually does not know whether the membership is there.
+  Adds a user to the project with the given role. Adding the same user twice is
+  a no-op rather than an error: the caller usually does not know whether the
+  membership is already there.
   """
-  def add_member(%Project{} = project, %User{} = user) do
-    project = Repo.preload(project, :users)
-
-    if Enum.any?(project.users, &(&1.id == user.id)) do
-      {:ok, project}
-    else
-      project
-      |> Ecto.Changeset.change()
-      |> Ecto.Changeset.put_assoc(:users, [user | project.users])
-      |> Repo.update()
+  def add_member(%Project{} = project, %User{} = user, role \\ :editor) do
+    %ProjectMember{}
+    |> ProjectMember.changeset(%{project_id: project.id, user_id: user.id, role: role})
+    |> Repo.insert(on_conflict: :nothing, conflict_target: [:project_id, :user_id])
+    |> case do
+      {:ok, _member} -> {:ok, Repo.preload(project, [:users, :memberships], force: true)}
+      {:error, changeset} -> {:error, changeset}
     end
+  end
+
+  @doc "Role of the user in the project, or `nil` if they are not a member."
+  def member_role(%Project{} = project, %User{} = user) do
+    Repo.one(
+      from m in ProjectMember,
+        where: m.project_id == ^project.id and m.user_id == ^user.id,
+        select: m.role
+    )
   end
 
   def add_track(%Project{} = project, track_attrs) do
