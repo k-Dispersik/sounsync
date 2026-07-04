@@ -8,6 +8,7 @@ defmodule Core.Accounts do
   """
 
   alias Core.DB.User
+  alias Core.DB.UserToken
   alias Core.UsersCtx.Users
   alias Soundsync.Repo
 
@@ -45,4 +46,46 @@ defmodule Core.Accounts do
   end
 
   def authenticate(_email, _password), do: {:error, :invalid_credentials}
+
+  @doc """
+  Issues a session token for the user and returns it base64url-encoded, ready
+  to be put in an `Authorization: Bearer` header.
+  """
+  def create_session_token(%User{} = user) do
+    {token, user_token} = UserToken.build_session_token(user)
+    Repo.insert!(user_token)
+    encode(token)
+  end
+
+  @doc """
+  Returns the user behind a session token, or `nil` if the token is unknown,
+  malformed or older than #{UserToken.session_validity_in_days()} days.
+  """
+  def get_user_by_session_token(token) when is_binary(token) do
+    case decode(token) do
+      {:ok, raw} -> raw |> UserToken.verify_session_token_query() |> Repo.one()
+      :error -> nil
+    end
+  end
+
+  def get_user_by_session_token(_token), do: nil
+
+  @doc "Revokes a single session token. Unknown tokens are ignored."
+  def delete_session_token(token) when is_binary(token) do
+    case decode(token) do
+      {:ok, raw} -> raw |> UserToken.by_token_query() |> Repo.delete_all()
+      :error -> {0, nil}
+    end
+
+    :ok
+  end
+
+  @doc "Revokes every session of the user, e.g. after a password change."
+  def delete_all_session_tokens(%User{} = user) do
+    user |> UserToken.by_user_query() |> Repo.delete_all()
+    :ok
+  end
+
+  defp encode(raw), do: Base.url_encode64(raw, padding: false)
+  defp decode(token), do: Base.url_decode64(token, padding: false)
 end
