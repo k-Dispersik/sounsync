@@ -11,6 +11,7 @@ defmodule Core.ProjectsCtx.Projects do
   alias Core.DB.Project
   alias Core.DB.ProjectMember
   alias Core.DB.User
+  alias Core.ProjectsCtx.Policy
   alias Core.ProjectsCtx.Tracks
 
   alias Soundsync.Repo
@@ -69,6 +70,18 @@ defmodule Core.ProjectsCtx.Projects do
       {:error, changeset} -> {:error, changeset}
     end
   end
+
+  @doc """
+  Checks a user against a project. The only entry point web code should use:
+  it resolves the role and hands the decision to `Core.ProjectsCtx.Policy`.
+  """
+  @spec authorize(Policy.action(), User.t() | nil, Project.t() | nil) ::
+          :ok | {:error, :forbidden}
+  def authorize(action, %User{} = user, %Project{} = project) do
+    Policy.authorize(action, member_role(project, user))
+  end
+
+  def authorize(action, _user, _project), do: Policy.authorize(action, nil)
 
   @doc "Role of the user in the project, or `nil` if they are not a member."
   def member_role(%Project{} = project, %User{} = user) do
