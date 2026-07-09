@@ -5,18 +5,28 @@ defmodule SoundsyncWeb.WorkspaceChannel do
 
   use Phoenix.Channel
 
+  alias SoundsyncWeb.ProjectTopic
+
   require Logger
 
   @impl true
   def join("workspace:" <> workspace_id, params, socket) do
-    session_id = Map.get(params, "session_id") || generate_session_id()
+    case ProjectTopic.authorize(workspace_id, socket.assigns.current_user) do
+      {:ok, project} ->
+        session_id = Map.get(params, "session_id") || generate_session_id()
 
-    socket =
-      socket
-      |> assign(:workspace_id, workspace_id)
-      |> assign(:session_id, session_id)
+        socket =
+          socket
+          |> assign(:workspace_id, workspace_id)
+          |> assign(:project_id, project.id)
+          |> assign(:session_id, session_id)
 
-    {:ok, %{workspace_id: workspace_id, session_id: session_id}, socket}
+        {:ok, %{workspace_id: workspace_id, session_id: session_id, project_id: project.id},
+         socket}
+
+      {:error, reason} ->
+        {:error, %{reason: to_string(reason)}}
+    end
   end
 
   @impl true

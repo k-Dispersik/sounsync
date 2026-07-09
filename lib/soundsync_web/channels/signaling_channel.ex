@@ -5,12 +5,24 @@ defmodule SoundsyncWeb.SignalingChannel do
 
   use Phoenix.Channel
 
+  alias SoundsyncWeb.ProjectTopic
+
   require Logger
 
   @impl true
   def join("signaling:" <> workspace_id, _params, socket) do
-    Logger.info("[Signaling:#{workspace_id}] peer joined")
-    {:ok, assign(socket, :workspace_id, workspace_id)}
+    case ProjectTopic.authorize(workspace_id, socket.assigns.current_user) do
+      {:ok, project} ->
+        Logger.info("[Signaling:#{workspace_id}] peer joined")
+
+        {:ok,
+         socket
+         |> assign(:workspace_id, workspace_id)
+         |> assign(:project_id, project.id)}
+
+      {:error, reason} ->
+        {:error, %{reason: to_string(reason)}}
+    end
   end
 
   @impl true
