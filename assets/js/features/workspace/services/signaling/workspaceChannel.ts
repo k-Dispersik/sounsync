@@ -1,5 +1,5 @@
 import { Channel } from "phoenix";
-import { socket } from "./socket";
+import { connectSocket, socket } from "./socket";
 import { createLogger } from "js/shared/lib/logger";
 
 const log = createLogger("WorkspaceChannel");
@@ -30,6 +30,7 @@ export default class WorkspaceChannel {
     }
 
     join() {
+        connectSocket();
         log.debug(`${this.workspaceId}: joining, socket state ${socket.connectionState()}`);
         this.channel
             .join()

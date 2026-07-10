@@ -1,5 +1,6 @@
 import { createContext, use, useCallback, useEffect, useMemo, useState } from "react";
 
+import { setUnauthorizedHandler } from "js/shared/api/client";
 import { createLogger } from "js/shared/lib/logger";
 import * as api from "./api";
 import { clearToken, readToken, writeToken } from "./storage";
@@ -48,6 +49,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return () => {
             cancelled = true;
         };
+    }, []);
+
+    // A token can stop being accepted between requests. When that happens the
+    // client tells us, and the guard sends the user to the sign-in page.
+    useEffect(() => {
+        setUnauthorizedHandler(() => {
+            setUser(null);
+            setStatus("anonymous");
+        });
+
+        return () => setUnauthorizedHandler(null);
     }, []);
 
     const start = useCallback((session: { token: string; user: AuthUser }) => {

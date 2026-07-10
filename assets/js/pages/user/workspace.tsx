@@ -17,11 +17,13 @@ import RealtimeProvider, {
 } from "js/features/workspace/contextProviders/RealtimeProvider";
 import { getOrCreateSessionId } from "js/features/workspace/services/signaling/workspaceChannel";
 
-const WORKSPACE_ID = "test-workspace";
+// The realtime room is named after the project, which is what the server
+// authorises against; a shared constant put every project in one room.
+const workspaceTopic = (projectId: string | undefined) => `project:${projectId ?? ""}`;
 
 function WorkspaceContent() {
     const { id } = useParams<{ id: string }>();
-    const { cursors } = useWorkspaceRealtime(WORKSPACE_ID);
+    const { cursors } = useWorkspaceRealtime(workspaceTopic(id));
     const {
         project,
         isLoading,
@@ -107,9 +109,11 @@ function WorkspaceContent() {
 }
 
 export default function Workspace() {
+    const { id } = useParams<{ id: string }>();
+
     return (
         <div className="w-full h-screen bg-base-200 flex flex-col overflow-hidden">
-            <RealtimeProvider workspaceId={WORKSPACE_ID}>
+            <RealtimeProvider workspaceId={workspaceTopic(id)}>
                 <WorkspaceContent />
             </RealtimeProvider>
         </div>

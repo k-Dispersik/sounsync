@@ -1,5 +1,5 @@
 import { Channel } from "phoenix";
-import { socket } from "./socket";
+import { connectSocket, socket } from "./socket";
 import { createLogger } from "js/shared/lib/logger";
 
 const log = createLogger("Signaling");
@@ -12,6 +12,8 @@ export class SignalingChannel {
     }
 
     join(): this {
+        connectSocket();
+
         this.channel
             .join()
             .receive("ok", () => log.debug("joined"))
