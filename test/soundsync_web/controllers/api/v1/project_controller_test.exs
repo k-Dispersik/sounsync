@@ -67,10 +67,20 @@ defmodule SoundsyncWeb.API.V1.ProjectControllerTest do
     end
   end
 
-  # POST /v1/projects is not covered here: the router points at :create while
-  # the controller defines create_project/2, so the route cannot be reached at
-  # all. Creating a project and becoming its owner is covered in
-  # Core.UsersCtxTest until the route names are put right.
+  describe "POST /v1/projects" do
+    test "B-2: the route reaches the action and makes the caller the owner", %{conn: conn} do
+      user = user_fixture()
+
+      body =
+        conn
+        |> as(user)
+        |> post(~p"/v1/projects", %{title: "Fresh", description: "d"})
+        |> json_response(201)
+
+      assert body["title"] == "Fresh"
+      assert Projects.member_role(Projects.get(body["id"]), user) == :owner
+    end
+  end
 
   describe "write actions" do
     setup %{project: project} do

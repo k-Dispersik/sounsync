@@ -30,7 +30,7 @@ defmodule SoundsyncWeb.API.V1.ProjectController do
     end
   end
 
-  def create_project(conn, %{"title" => title, "description" => description}) do
+  def create(conn, %{"title" => title, "description" => description}) do
     OK.try do
       created <-
         Users.create_project(conn.assigns.current_user, %{
