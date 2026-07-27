@@ -2,6 +2,7 @@ defmodule SoundsyncWeb.API.V1.AuthController do
   use SoundsyncWeb, :controller
 
   alias Core.Accounts
+  alias SoundsyncWeb.ErrorResponse
   alias SoundsyncWeb.Helpers
   alias SoundsyncWeb.JSON
 
@@ -13,11 +14,7 @@ defmodule SoundsyncWeb.API.V1.AuthController do
         respond_with_token(conn, user, :created)
 
       {:error, changeset} ->
-        Helpers.response(
-          %{error: "Registration failed", details: changeset_errors(changeset)},
-          conn,
-          :unprocessable_entity
-        )
+        ErrorResponse.send_error(conn, changeset, "Registration failed")
     end
   end
 
@@ -27,12 +24,12 @@ defmodule SoundsyncWeb.API.V1.AuthController do
         respond_with_token(conn, user, :ok)
 
       {:error, :invalid_credentials} ->
-        Helpers.response(%{error: "Invalid email or password"}, conn, :unauthorized)
+        ErrorResponse.send_error(conn, :unauthorized, "Invalid email or password")
     end
   end
 
   def login(conn, _params) do
-    Helpers.response(%{error: "email and password are required"}, conn, :unprocessable_entity)
+    ErrorResponse.send_error(conn, :invalid_params, "email and password are required")
   end
 
   def logout(conn, _params) do
@@ -49,13 +46,5 @@ defmodule SoundsyncWeb.API.V1.AuthController do
   defp respond_with_token(conn, user, status) do
     %{token: Accounts.create_session_token(user), user: JSON.user(user)}
     |> Helpers.response(conn, status)
-  end
-
-  defp changeset_errors(changeset) do
-    Ecto.Changeset.traverse_errors(changeset, fn {message, opts} ->
-      Regex.replace(~r"%{(\w+)}", message, fn _whole, key ->
-        opts |> Keyword.get(String.to_existing_atom(key), "") |> to_string()
-      end)
-    end)
   end
 end

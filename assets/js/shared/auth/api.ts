@@ -11,9 +11,13 @@ interface SessionResponse {
 /** Field name to the messages the server rejected it with. */
 export type FieldErrors = Record<string, string[]>;
 
+/** The shape every API error comes back in. */
 interface ErrorBody {
-    error?: string;
-    details?: FieldErrors;
+    error?: {
+        code?: string;
+        message?: string;
+        details?: FieldErrors;
+    };
 }
 
 /**
@@ -30,10 +34,10 @@ export function describeAuthError(error: unknown): { message: string; fields: Fi
         return { message: "Cannot reach the server. Check your connection.", fields: {} };
     }
 
-    const body = error.response.data;
+    const body = error.response.data?.error;
 
     return {
-        message: body?.error ?? "Something went wrong. Please try again.",
+        message: body?.message ?? "Something went wrong. Please try again.",
         fields: body?.details ?? {},
     };
 }

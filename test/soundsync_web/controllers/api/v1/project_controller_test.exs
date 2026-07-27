@@ -58,7 +58,8 @@ defmodule SoundsyncWeb.API.V1.ProjectControllerTest do
     test "S-1: a stranger gets 403", %{conn: conn, project: project} do
       conn = conn |> as(user_fixture()) |> get(~p"/v1/projects/#{project.id}")
 
-      assert json_response(conn, 403) == %{"error" => "Forbidden"}
+      assert %{"error" => %{"code" => "forbidden", "message" => "Forbidden"}} =
+               json_response(conn, 403)
     end
 
     test "a missing project is 404", %{conn: conn, owner: owner} do

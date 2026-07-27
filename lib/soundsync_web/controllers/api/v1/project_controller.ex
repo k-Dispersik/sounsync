@@ -6,6 +6,7 @@ defmodule SoundsyncWeb.API.V1.ProjectController do
   alias Core.ProjectsCtx.Tracks
   alias Core.UsersCtx.Users
 
+  alias SoundsyncWeb.ErrorResponse
   alias SoundsyncWeb.Helpers
   alias SoundsyncWeb.JSON
 
@@ -41,7 +42,7 @@ defmodule SoundsyncWeb.API.V1.ProjectController do
     after
       JSON.project(project, :detailed) |> Helpers.response(conn, :created)
     rescue
-      e -> Helpers.response(%{error: inspect(e)}, conn, :internal_server_error)
+      e -> ErrorResponse.send_error(conn, e)
     end
   end
 
@@ -54,7 +55,7 @@ defmodule SoundsyncWeb.API.V1.ProjectController do
     rescue
       :forbidden -> forbidden(conn)
       :value_required -> project_not_found(conn)
-      e -> Helpers.response(%{error: inspect(e)}, conn, :internal_server_error)
+      e -> ErrorResponse.send_error(conn, e)
     end
   end
 
@@ -81,7 +82,7 @@ defmodule SoundsyncWeb.API.V1.ProjectController do
     rescue
       :forbidden -> forbidden(conn)
       :value_required -> project_not_found(conn)
-      e -> Helpers.response(%{error: inspect(e)}, conn, :internal_server_error)
+      e -> ErrorResponse.send_error(conn, e)
     end
   end
 
@@ -109,7 +110,7 @@ defmodule SoundsyncWeb.API.V1.ProjectController do
     rescue
       :forbidden -> forbidden(conn)
       :value_required -> project_not_found(conn)
-      e -> Helpers.response(%{error: inspect(e)}, conn, :internal_server_error)
+      e -> ErrorResponse.send_error(conn, e)
     end
   end
 
@@ -123,7 +124,7 @@ defmodule SoundsyncWeb.API.V1.ProjectController do
     rescue
       :forbidden -> forbidden(conn)
       :value_required -> project_not_found(conn)
-      e -> Helpers.response(%{error: inspect(e)}, conn, :internal_server_error)
+      e -> ErrorResponse.send_error(conn, e)
     end
   end
 
@@ -142,12 +143,8 @@ defmodule SoundsyncWeb.API.V1.ProjectController do
       :value_required ->
         project_not_found(conn)
 
-      _e ->
-        Helpers.response(
-          %{error: "Failed to update project settings"},
-          conn,
-          :unprocessable_entity
-        )
+      reason ->
+        ErrorResponse.send_error(conn, reason, "Failed to update project settings")
     end
   end
 
@@ -160,10 +157,10 @@ defmodule SoundsyncWeb.API.V1.ProjectController do
     end
   end
 
-  defp forbidden(conn), do: Helpers.response(%{error: "Forbidden"}, conn, :forbidden)
+  defp forbidden(conn), do: ErrorResponse.send_error(conn, :forbidden)
 
   defp project_not_found(conn),
-    do: Helpers.response(%{error: "Project not found"}, conn, :not_found)
+    do: ErrorResponse.send_error(conn, :not_found, "Project not found")
 
   defp project_settings_attrs(%{"settings" => settings_params}) when is_map(settings_params) do
     %{

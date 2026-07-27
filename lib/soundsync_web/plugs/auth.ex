@@ -12,6 +12,7 @@ defmodule SoundsyncWeb.Plugs.Auth do
 
   alias Core.Accounts
   alias Core.DB.User
+  alias SoundsyncWeb.ErrorResponse
 
   def fetch_current_user(conn, _opts) do
     with ["Bearer " <> token] <- get_req_header(conn, "authorization"),
@@ -32,8 +33,7 @@ defmodule SoundsyncWeb.Plugs.Auth do
       conn
     else
       conn
-      |> put_status(:unauthorized)
-      |> Phoenix.Controller.json(%{error: "Unauthorized"})
+      |> ErrorResponse.send_error(:unauthorized)
       |> halt()
     end
   end

@@ -28,7 +28,9 @@ defmodule SoundsyncWeb.API.V1.AuthControllerTest do
       conn =
         post(conn, ~p"/v1/auth/register", %{name: "Ada", email: "nope", password: "123"})
 
-      assert %{"details" => details} = json_response(conn, 422)
+      assert %{"error" => %{"code" => "validation_failed", "details" => details}} =
+               json_response(conn, 422)
+
       assert details["email"] == ["has invalid format"]
       assert details["password"] == ["should be at least 6 character(s)"]
     end
@@ -43,7 +45,7 @@ defmodule SoundsyncWeb.API.V1.AuthControllerTest do
           password: @password
         })
 
-      assert json_response(conn, 422)["details"]["email"] == ["has already been taken"]
+      assert json_response(conn, 422)["error"]["details"]["email"] == ["has already been taken"]
     end
   end
 
@@ -118,7 +120,7 @@ defmodule SoundsyncWeb.API.V1.AuthControllerTest do
       ]
 
       for response <- requests do
-        assert json_response(response, 401) == %{"error" => "Unauthorized"}
+        assert %{"error" => %{"code" => "unauthorized"}} = json_response(response, 401)
       end
     end
 
