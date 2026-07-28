@@ -36,13 +36,15 @@ defmodule SoundsyncWeb.Router do
 
     scope "/projects" do
       get "/", ProjectController, :index
-      get "/:id", ProjectController, :show
       post "/", ProjectController, :create
+      get "/:id", ProjectController, :show
       patch "/:id/settings", ProjectController, :update_settings
-      post "/:project_id/tracks", ProjectController, :create_track
-      post "/:project_id/tracks/:track_id/clips", ProjectController, :create_clip
-      patch "/:project_id/tracks/:track_id/clips/:clip_id", ProjectController, :update_clip
-      delete "/:project_id/tracks/:track_id", ProjectController, :delete_track
+
+      post "/:project_id/tracks", TrackController, :create
+      delete "/:project_id/tracks/:id", TrackController, :delete
+
+      post "/:project_id/tracks/:track_id/clips", ClipController, :create
+      patch "/:project_id/tracks/:track_id/clips/:id", ClipController, :update
     end
   end
 

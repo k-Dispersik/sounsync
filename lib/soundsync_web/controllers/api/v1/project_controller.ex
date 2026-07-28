@@ -1,11 +1,13 @@
 defmodule SoundsyncWeb.API.V1.ProjectController do
+  @moduledoc """
+  Projects themselves: `/v1/projects`. Tracks and clips live in their own
+  controllers.
+  """
+
   use SoundsyncWeb, :controller
-  use Params
 
   alias Core.ProjectsCtx.Projects
-  alias Core.ProjectsCtx.Tracks
   alias Core.UsersCtx.Users
-
   alias SoundsyncWeb.ErrorResponse
   alias SoundsyncWeb.Helpers
   alias SoundsyncWeb.JSON
@@ -42,88 +44,6 @@ defmodule SoundsyncWeb.API.V1.ProjectController do
     after
       JSON.project(project, :detailed) |> Helpers.response(conn, :created)
     rescue
-      e -> ErrorResponse.send_error(conn, e)
-    end
-  end
-
-  def create_track(conn, %{"project_id" => project_id, "row" => row}) do
-    OK.try do
-      project <- fetch_project(conn, project_id, :write)
-      track <- Projects.add_track(project, %{row_index: row})
-    after
-      JSON.track(track) |> Helpers.response(conn, :created)
-    rescue
-      :forbidden -> forbidden(conn)
-      :value_required -> project_not_found(conn)
-      e -> ErrorResponse.send_error(conn, e)
-    end
-  end
-
-  defparams(
-    create_clip_params(%{
-      title: :string,
-      type: :string,
-      start_time!: :integer,
-      duration!: :integer,
-      file_path: :string,
-      project_id!: :integer,
-      track_id!: :integer
-    })
-  )
-
-  def create_clip(conn, params) do
-    OK.try do
-      clip_attrs <- create_clip_params(params) |> Helpers.get_changes?()
-      project <- fetch_project(conn, clip_attrs.project_id, :write)
-      track <- Projects.get_track_by_id(project, clip_attrs.track_id) |> OK.required()
-      clip <- Tracks.add_clip(track, clip_attrs)
-    after
-      JSON.clip(clip) |> Helpers.response(conn, :created)
-    rescue
-      :forbidden -> forbidden(conn)
-      :value_required -> project_not_found(conn)
-      e -> ErrorResponse.send_error(conn, e)
-    end
-  end
-
-  defparams(
-    update_clip_params(%{
-      start_time: :integer,
-      duration: :integer,
-      title: :string,
-      type: :string,
-      file_path: :string,
-      project_id: :integer,
-      track_id: :integer,
-      clip_id: :integer
-    })
-  )
-
-  def update_clip(conn, params) do
-    OK.try do
-      clip_attrs <- update_clip_params(params) |> Helpers.get_changes?()
-      project <- fetch_project(conn, clip_attrs.project_id, :write)
-      track <- Projects.get_track_by_id(project, clip_attrs.track_id) |> OK.required()
-      updated_clip <- Tracks.update_clip(track, clip_attrs.clip_id, clip_attrs)
-    after
-      JSON.clip(updated_clip) |> Helpers.response(conn, :ok)
-    rescue
-      :forbidden -> forbidden(conn)
-      :value_required -> project_not_found(conn)
-      e -> ErrorResponse.send_error(conn, e)
-    end
-  end
-
-  def delete_track(conn, %{"project_id" => project_id, "track_id" => track_id}) do
-    OK.try do
-      project <- fetch_project(conn, project_id, :write)
-      track <- Projects.get_track_by_id(project, String.to_integer(track_id)) |> OK.required()
-      _ <- Tracks.delete(track)
-    after
-      Helpers.response(%{message: "Track deleted"}, conn, :ok)
-    rescue
-      :forbidden -> forbidden(conn)
-      :value_required -> project_not_found(conn)
       e -> ErrorResponse.send_error(conn, e)
     end
   end

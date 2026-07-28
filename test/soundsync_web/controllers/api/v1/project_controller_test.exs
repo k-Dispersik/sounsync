@@ -82,73 +82,12 @@ defmodule SoundsyncWeb.API.V1.ProjectControllerTest do
     end
   end
 
-  describe "write actions" do
+  describe "PATCH /v1/projects/:id/settings" do
     setup %{project: project} do
       viewer = user_fixture()
       {:ok, _} = Projects.add_member(project, viewer, :viewer)
 
-      %{viewer: viewer, stranger: user_fixture()}
-    end
-
-    test "the owner may add a track", %{conn: conn, owner: owner, project: project} do
-      conn = conn |> as(owner) |> post(~p"/v1/projects/#{project.id}/tracks", %{row: 7})
-
-      assert json_response(conn, 201)["row_index"] == 7
-    end
-
-    test "an editor may add a track", %{conn: conn, project: project} do
-      editor = user_fixture()
-      {:ok, _} = Projects.add_member(project, editor, :editor)
-
-      conn = conn |> as(editor) |> post(~p"/v1/projects/#{project.id}/tracks", %{row: 7})
-
-      assert json_response(conn, 201)
-    end
-
-    test "a viewer may not add a track", %{conn: conn, viewer: viewer, project: project} do
-      conn = conn |> as(viewer) |> post(~p"/v1/projects/#{project.id}/tracks", %{row: 7})
-
-      assert json_response(conn, 403)
-    end
-
-    test "a stranger may not touch clips, settings or tracks", ctx do
-      %{conn: conn, stranger: stranger, project: project, track: track, clip: clip} = ctx
-      conn = as(conn, stranger)
-
-      assert json_response(
-               patch(conn, ~p"/v1/projects/#{project.id}/settings", @settings_body),
-               403
-             )
-
-      assert json_response(
-               delete(conn, ~p"/v1/projects/#{project.id}/tracks/#{track.id}"),
-               403
-             )
-
-      assert json_response(
-               post(conn, ~p"/v1/projects/#{project.id}/tracks/#{track.id}/clips", %{
-                 project_id: project.id,
-                 track_id: track.id,
-                 start_time: 0,
-                 duration: 1000
-               }),
-               403
-             )
-
-      assert json_response(
-               patch(
-                 conn,
-                 ~p"/v1/projects/#{project.id}/tracks/#{track.id}/clips/#{clip.id}",
-                 %{project_id: project.id, track_id: track.id, clip_id: clip.id, start_time: 10}
-               ),
-               403
-             )
-    end
-
-    test "a viewer may not change settings", %{conn: conn, viewer: viewer, project: project} do
-      conn = conn |> as(viewer) |> patch(~p"/v1/projects/#{project.id}/settings", @settings_body)
-
-      assert json_response(conn, 403)
+      %{viewer: viewer}
     end
 
     test "the owner may change settings", %{conn: conn, owner: owner, project: project} do
@@ -157,15 +96,19 @@ defmodule SoundsyncWeb.API.V1.ProjectControllerTest do
       assert json_response(conn, 200)["settings"]["BPM"] == 90
     end
 
-    test "the owner may delete a track", %{
-      conn: conn,
-      owner: owner,
-      project: project,
-      track: track
-    } do
-      conn = conn |> as(owner) |> delete(~p"/v1/projects/#{project.id}/tracks/#{track.id}")
+    test "a viewer may not", %{conn: conn, viewer: viewer, project: project} do
+      conn = conn |> as(viewer) |> patch(~p"/v1/projects/#{project.id}/settings", @settings_body)
 
-      assert json_response(conn, 200)
+      assert json_response(conn, 403)
+    end
+
+    test "a stranger may not", %{conn: conn, project: project} do
+      conn =
+        conn
+        |> as(user_fixture())
+        |> patch(~p"/v1/projects/#{project.id}/settings", @settings_body)
+
+      assert json_response(conn, 403)
     end
   end
 end
