@@ -31,9 +31,17 @@ defmodule SoundsyncWeb.API.V1.ProjectControllerTest do
       assert Enum.map(body, & &1["title"]) == ["Owned"]
     end
 
-    test "B-1: a project with tracks does not blow the list up", %{conn: conn, owner: owner} do
-      assert [%{"tracks" => [_track]}] =
-               conn |> as(owner) |> get(~p"/v1/projects") |> json_response(200)
+    test "B-1: a list of projects with tracks does not blow up", %{conn: conn, owner: owner} do
+      assert [summary] = conn |> as(owner) |> get(~p"/v1/projects") |> json_response(200)
+
+      assert summary["title"] == "Owned"
+      assert summary["settings"]["BPM"]
+    end
+
+    test "D-6: the summary carries no associations", %{conn: conn, owner: owner} do
+      assert [summary] = conn |> as(owner) |> get(~p"/v1/projects") |> json_response(200)
+
+      refute Map.has_key?(summary, "tracks")
     end
 
     test "a user with no projects gets an empty list", %{conn: conn} do
@@ -42,10 +50,14 @@ defmodule SoundsyncWeb.API.V1.ProjectControllerTest do
   end
 
   describe "GET /v1/projects/:id" do
-    test "the owner sees the project", %{conn: conn, owner: owner, project: project} do
+    test "the owner sees the project with its tracks and clips", ctx do
+      %{conn: conn, owner: owner, project: project} = ctx
+
       body = conn |> as(owner) |> get(~p"/v1/projects/#{project.id}") |> json_response(200)
 
       assert body["title"] == "Owned"
+      assert [%{"clips" => [clip]}] = body["tracks"]
+      assert clip["start_time"] == 0
     end
 
     test "a viewer sees it too", %{conn: conn, project: project} do

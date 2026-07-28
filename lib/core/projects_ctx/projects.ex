@@ -54,7 +54,6 @@ defmodule Core.ProjectsCtx.Projects do
     |> Project.join_users()
     |> Project.with_user(user_id)
     |> Repo.all()
-    |> Repo.preload(tracks: [:clips])
   end
 
   @doc """

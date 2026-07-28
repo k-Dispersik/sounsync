@@ -2,45 +2,33 @@ defmodule SoundsyncWeb.JSON do
   @moduledoc """
   Builds the JSON bodies returned by the API.
 
-  The shape of a single record comes from `SoundsyncWeb.Formatter`; this module
-  assembles those records into the body of a particular response.
+  Two shapes per resource, and no more. `:summary` is what a list returns: the
+  record's own fields, no associations, so a page of projects costs one query.
+  `:full` is what a single resource returns, associations included. Anything
+  in between means a client cannot know what it is holding.
   """
 
+  alias Core.DB.Clip
+  alias Core.DB.Project
+  alias Core.DB.Track
+  alias Core.DB.User
   alias SoundsyncWeb.Formatter
 
-  def encode!(data) do
-    Jason.encode!(data)
+  def encode!(data), do: Jason.encode!(data)
+
+  def user(%User{} = user), do: Formatter.format(user)
+
+  @doc """
+  `:summary` drops the associations even when they happen to be loaded, so the
+  answer does not depend on what a caller preloaded by accident.
+  """
+  def project(%Project{} = project, :summary) do
+    project |> Formatter.format() |> Map.delete(:tracks)
   end
 
-  def user(%Core.DB.User{} = user) do
-    Formatter.format(user)
-  end
+  def project(%Project{} = project, :full), do: Formatter.format(project)
 
-  def project(%Core.DB.Project{} = project, :short) do
-    Formatter.format(project)
-  end
+  def track(%Track{} = track), do: Formatter.format(track)
 
-  def project(%Core.DB.Project{tracks: tracks} = project, :detailed) do
-    Formatter.format(project) |> add_tracks(tracks)
-  end
-
-  def add_tracks(project_map, tracks) do
-    Map.put(project_map, :tracks, Enum.map(tracks, &Formatter.format/1))
-  end
-
-  def add_clips(project_map) do
-    Map.update!(project_map, :tracks, fn tracks ->
-      Enum.map(tracks, fn track ->
-        Map.put(track, :clips, Enum.map(track.clips, &Formatter.format/1))
-      end)
-    end)
-  end
-
-  def track(%Core.DB.Track{} = track) do
-    Formatter.format(track)
-  end
-
-  def clip(%Core.DB.Clip{} = clip) do
-    Formatter.format(clip)
-  end
+  def clip(%Clip{} = clip), do: Formatter.format(clip)
 end
