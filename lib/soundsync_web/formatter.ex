@@ -61,9 +61,9 @@ defmodule SoundsyncWeb.Formatter do
 
   def format(%ProjectSetting{} = settings) do
     %{
-      "BPM" => settings.bpm,
-      "timeSignature" => SoundsyncWeb.Helpers.parse_time_signature(settings.time_signature),
-      "timelineLengthMs" => settings.timeline_length_ms
+      bpm: settings.bpm,
+      time_signature: SoundsyncWeb.Helpers.parse_time_signature(settings.time_signature),
+      timeline_length_ms: settings.timeline_length_ms
     }
   end
 

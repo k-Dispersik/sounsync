@@ -4,9 +4,8 @@ defmodule SoundsyncWeb.API.V1.ProjectControllerTest do
   alias Core.Accounts
   alias Core.ProjectsCtx.Projects
 
-  # The wire format the API speaks today; task 29 moves it to snake_case.
   @settings_body %{
-    "settings" => %{"BPM" => 90, "timeSignature" => "4/4", "timelineLengthMs" => 60_000}
+    "settings" => %{"bpm" => 90, "time_signature" => "4/4", "timeline_length_ms" => 60_000}
   }
 
   setup %{conn: conn} do
@@ -35,7 +34,7 @@ defmodule SoundsyncWeb.API.V1.ProjectControllerTest do
       assert [summary] = conn |> as(owner) |> get(~p"/v1/projects") |> json_response(200)
 
       assert summary["title"] == "Owned"
-      assert summary["settings"]["BPM"]
+      assert summary["settings"]["bpm"]
     end
 
     test "D-6: the summary carries no associations", %{conn: conn, owner: owner} do
@@ -105,7 +104,7 @@ defmodule SoundsyncWeb.API.V1.ProjectControllerTest do
     test "the owner may change settings", %{conn: conn, owner: owner, project: project} do
       conn = conn |> as(owner) |> patch(~p"/v1/projects/#{project.id}/settings", @settings_body)
 
-      assert json_response(conn, 200)["settings"]["BPM"] == 90
+      assert json_response(conn, 200)["settings"]["bpm"] == 90
     end
 
     test "a viewer may not", %{conn: conn, viewer: viewer, project: project} do

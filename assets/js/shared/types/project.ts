@@ -19,9 +19,9 @@ export const TIME_SIGNATURES = [
 export type TimeSignatureValue = (typeof TIME_SIGNATURES)[number];
 
 export interface ProjectSettings {
-    BPM: number;
-    timeSignature: TimeSignatureValue;
-    timelineLengthMs: number;
+    bpm: number;
+    time_signature: TimeSignatureValue;
+    timeline_length_ms: number;
 }
 
 export interface Project {

@@ -26,9 +26,9 @@ interface Props {
 }
 
 const DEFAULT_PROJECT_SETTINGS: ProjectSettings = {
-    BPM: 120,
-    timeSignature: "4/4",
-    timelineLengthMs: 60_000,
+    bpm: 120,
+    time_signature: "4/4",
+    timeline_length_ms: 60_000,
 };
 
 function isTimeSignatureValue(value: string): value is TimeSignatureValue {
@@ -106,14 +106,14 @@ function TimeSignatureDropdown({
     const [isSaving, setIsSaving] = useState(false);
 
     const handleTimeSignatureChange = async (timeSignature: TimeSignatureValue) => {
-        if (!onChange || settings.timeSignature === timeSignature) {
+        if (!onChange || settings.time_signature === timeSignature) {
             return;
         }
 
         setIsSaving(true);
 
         try {
-            await onChange({ ...settings, timeSignature });
+            await onChange({ ...settings, time_signature: timeSignature });
         } finally {
             setIsSaving(false);
         }
@@ -128,7 +128,7 @@ function TimeSignatureDropdown({
             >
                 <span className="field-label">Time Signature</span>
                 <span className="font-mono font-semibold">
-                    {isSaving ? "..." : settings.timeSignature}
+                    {isSaving ? "..." : settings.time_signature}
                 </span>
                 <ChevronDown size={14} />
             </div>
@@ -192,7 +192,7 @@ function BPMInput({
                 <button type="button" className="field flex items-center gap-2" onClick={open}>
                     <span className="text-white/40 text-xs">BPM</span>
                     <span className="font-mono font-semibold">
-                        {isSaving ? "..." : settings.BPM}
+                        {isSaving ? "..." : settings.bpm}
                     </span>
                 </button>
             )}

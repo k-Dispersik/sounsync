@@ -7,39 +7,39 @@ interface Props {
 }
 
 export function useProjectBPM({ settings, onChange }: Props) {
-    const { BPM } = settings;
+    const { bpm } = settings;
     const [isOpen, setIsOpen] = useState(false);
-    const [draftBPM, setDraftBPM] = useState(String(BPM));
+    const [draftBPM, setDraftBPM] = useState(String(bpm));
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
         if (!isOpen) {
-            setDraftBPM(String(BPM));
+            setDraftBPM(String(bpm));
         }
-    }, [BPM, isOpen]);
+    }, [bpm, isOpen]);
 
     const open = () => setIsOpen(true);
 
     const close = () => {
-        setDraftBPM(String(BPM));
+        setDraftBPM(String(bpm));
         setIsOpen(false);
     };
 
     const commit = async () => {
         const parsedBPM = Number(draftBPM);
-        const nextBPM = Number.isFinite(parsedBPM) ? Math.min(300, Math.max(20, parsedBPM)) : BPM;
+        const nextBPM = Number.isFinite(parsedBPM) ? Math.min(300, Math.max(20, parsedBPM)) : bpm;
 
         setDraftBPM(String(nextBPM));
         setIsOpen(false);
 
-        if (!onChange || nextBPM === BPM) {
+        if (!onChange || nextBPM === bpm) {
             return;
         }
 
         setIsSaving(true);
 
         try {
-            await onChange({ ...settings, BPM: nextBPM });
+            await onChange({ ...settings, bpm: nextBPM });
         } finally {
             setIsSaving(false);
         }
@@ -56,7 +56,7 @@ export function useProjectBPM({ settings, onChange }: Props) {
     };
 
     return {
-        BPM,
+        bpm,
         draftBPM,
         isOpen,
         isSaving,

@@ -29,9 +29,9 @@ function getMinimumTimelineLengthMs(tracks: Track[]) {
 
 export function useTimeline({ project, beatWidth }: Props) {
     const tracks = project?.tracks ?? [];
-    const BPM = project?.settings?.BPM || 120;
-    const timeSignature = project?.settings?.timeSignature || "4/4";
-    const timelineLengthMs = project?.settings?.timelineLengthMs || 60_000;
+    const BPM = project?.settings?.bpm || 120;
+    const timeSignature = project?.settings?.time_signature || "4/4";
+    const timelineLengthMs = project?.settings?.timeline_length_ms || 60_000;
     const scrollRef = useRef<HTMLDivElement>(null);
     const [hoveredBeat, setHoveredBeat] = useState<number | null>(null);
     const [hoveredTrackId, setHoveredTrackId] = useState<number | null>(null);

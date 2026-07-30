@@ -26,7 +26,7 @@ defmodule SoundsyncWeb.JSONTest do
 
     assert summary.id == project.id
     assert summary.title == "Session"
-    assert summary.settings["BPM"] == 120
+    assert summary.settings.bpm == 120
     refute Map.has_key?(summary, :tracks)
   end
 
