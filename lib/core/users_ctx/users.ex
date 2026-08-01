@@ -3,10 +3,9 @@ defmodule Core.UsersCtx.Users do
   Users context: changeset, creation, updates and password hashing.
   """
 
-  use Core.Helpers, schema: Core.DB.User
-
   import Ecto.Changeset
 
+  alias Core.DB.User
   alias Core.Projects
   alias Soundsync.Repo
 
@@ -20,8 +19,16 @@ defmodule Core.UsersCtx.Users do
     |> unique_constraint(:email)
   end
 
+  @doc "Fetches a user by id, or `nil`."
+  def get(id), do: Repo.get(User, id)
+
+  @doc "Fetches a user by id. Raises if there is none."
+  def get!(id), do: Repo.get!(User, id)
+
+  def delete(%User{} = user), do: Repo.delete(user)
+
   def create(attrs) do
-    %Core.DB.User{}
+    %User{}
     |> changeset(attrs)
     |> hash_password()
     |> Repo.insert()

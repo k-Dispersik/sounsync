@@ -3,6 +3,7 @@ defmodule Core.UsersCtxTest do
 
   alias Core.DB.Project
   alias Core.DB.ProjectMember
+  alias Core.DB.User
   alias Core.Projects
   alias Core.UsersCtx.Users
 
@@ -75,6 +76,29 @@ defmodule Core.UsersCtxTest do
       assert [%Project{id: id}] = Repo.preload(user, :projects).projects
       assert id == project.id
       assert Projects.member_role(project, user) == :owner
+    end
+  end
+
+  describe "D-4: the CRUD helpers are plain functions now" do
+    test "get/1 returns the user or nil" do
+      user = user_fixture()
+
+      assert %User{id: id} = Users.get(user.id)
+      assert id == user.id
+      assert Users.get(0) == nil
+    end
+
+    test "get!/1 raises for a missing user" do
+      assert_raise Ecto.NoResultsError, fn -> Users.get!(0) end
+    end
+
+    test "delete/1 removes the user and their memberships" do
+      user = user_fixture()
+      project_fixture(%{user: user})
+
+      assert {:ok, _deleted} = Users.delete(user)
+      assert Users.get(user.id) == nil
+      assert Repo.aggregate(ProjectMember, :count) == 0
     end
   end
 
