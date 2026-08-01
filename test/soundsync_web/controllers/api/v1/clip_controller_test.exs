@@ -3,7 +3,7 @@ defmodule SoundsyncWeb.API.V1.ClipControllerTest do
 
   alias Core.Accounts
   alias Core.DB.Clip
-  alias Core.ProjectsCtx.Projects
+  alias Core.Projects
   alias Soundsync.Repo
 
   setup %{conn: conn} do

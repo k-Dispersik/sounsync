@@ -3,7 +3,7 @@ defmodule SoundsyncWeb.API.V1.TrackControllerTest do
 
   alias Core.Accounts
   alias Core.DB.Track
-  alias Core.ProjectsCtx.Projects
+  alias Core.Projects
   alias Soundsync.Repo
 
   setup %{conn: conn} do

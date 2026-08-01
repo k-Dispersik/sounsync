@@ -7,7 +7,7 @@ defmodule Core.UsersCtx.Users do
 
   import Ecto.Changeset
 
-  alias Core.ProjectsCtx.Projects
+  alias Core.Projects
   alias Soundsync.Repo
 
   def changeset(user, attrs) do
@@ -32,7 +32,7 @@ defmodule Core.UsersCtx.Users do
 
   Membership in projects is deliberately not touched here: this function used
   to `put_assoc(:projects, ...)`, so renaming a user wiped every project they
-  belonged to. Membership is managed by `Core.ProjectsCtx.Projects.add_member/2`.
+  belonged to. Membership is managed by `Core.Projects.add_member/2`.
   """
   def update(user, attrs) do
     user
@@ -43,7 +43,7 @@ defmodule Core.UsersCtx.Users do
 
   @doc "Creates a project and makes the user its owner."
   def create_project(user, project_attrs) do
-    with {:ok, project} <- Projects.create(project_attrs) do
+    with {:ok, project} <- Projects.create_project(project_attrs) do
       Projects.add_member(project, user, :owner)
     end
   end

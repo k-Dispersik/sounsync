@@ -2,7 +2,7 @@ defmodule SoundsyncWeb.API.V1.ProjectControllerTest do
   use SoundsyncWeb.ConnCase, async: true
 
   alias Core.Accounts
-  alias Core.ProjectsCtx.Projects
+  alias Core.Projects
 
   @settings_body %{
     "settings" => %{"bpm" => 90, "time_signature" => "4/4", "timeline_length_ms" => 60_000}
@@ -89,7 +89,7 @@ defmodule SoundsyncWeb.API.V1.ProjectControllerTest do
         |> json_response(201)
 
       assert body["title"] == "Fresh"
-      assert Projects.member_role(Projects.get(body["id"]), user) == :owner
+      assert Projects.member_role(Projects.get_project(body["id"]), user) == :owner
     end
   end
 

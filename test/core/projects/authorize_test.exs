@@ -1,7 +1,7 @@
-defmodule Core.ProjectsCtx.AuthorizeTest do
+defmodule Core.Projects.AuthorizeTest do
   use Soundsync.DataCase, async: true
 
-  alias Core.ProjectsCtx.Projects
+  alias Core.Projects
 
   setup do
     owner = user_fixture()

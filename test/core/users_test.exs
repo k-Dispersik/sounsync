@@ -3,7 +3,7 @@ defmodule Core.UsersCtxTest do
 
   alias Core.DB.Project
   alias Core.DB.ProjectMember
-  alias Core.ProjectsCtx.Projects
+  alias Core.Projects
   alias Core.UsersCtx.Users
 
   defp attrs(email), do: %{name: "Test User", email: email, password: "password123"}

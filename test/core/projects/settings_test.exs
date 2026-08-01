@@ -1,7 +1,7 @@
-defmodule Core.ProjectsCtx.SettingsTest do
+defmodule Core.Projects.SettingsTest do
   use Soundsync.DataCase, async: true
 
-  alias Core.ProjectsCtx.Projects
+  alias Core.Projects
   alias SoundsyncWeb.JSON
 
   test "B-11: a project stored with only a bpm still loads complete settings" do
@@ -13,7 +13,7 @@ defmodule Core.ProjectsCtx.SettingsTest do
       project.id
     ])
 
-    reloaded = Projects.get(project.id)
+    reloaded = Projects.get_project(project.id)
 
     assert reloaded.settings.bpm == 140
     refute is_nil(reloaded.settings.time_signature)

@@ -2,7 +2,7 @@ defmodule SoundsyncWeb.WorkspaceChannelTest do
   use SoundsyncWeb.ChannelCase, async: true
 
   alias Core.Accounts
-  alias Core.ProjectsCtx.Projects
+  alias Core.Projects
   alias SoundsyncWeb.UserSocket
   alias SoundsyncWeb.WorkspaceChannel
 

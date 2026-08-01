@@ -1,4 +1,4 @@
-defmodule Core.ProjectsCtx.PolicyTest do
+defmodule Core.Projects.PolicyTest do
   @moduledoc """
   Pure rules, so the table is spelled out in full rather than sampled: a
   permission matrix is exactly the kind of thing that quietly grows a hole.
@@ -6,7 +6,7 @@ defmodule Core.ProjectsCtx.PolicyTest do
 
   use ExUnit.Case, async: true
 
-  alias Core.ProjectsCtx.Policy
+  alias Core.Projects.Policy
 
   @matrix [
     {:read, :owner, :ok},

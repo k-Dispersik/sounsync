@@ -10,14 +10,14 @@ defmodule SoundsyncWeb.ProjectTopic do
 
   alias Core.DB.Project
   alias Core.DB.User
-  alias Core.ProjectsCtx.Projects
+  alias Core.Projects
 
   @type reason :: :invalid_topic | :not_found | :forbidden
 
   @spec authorize(String.t(), User.t() | nil) :: {:ok, Project.t()} | {:error, reason()}
   def authorize("project:" <> id, %User{} = user) do
     with {:ok, project_id} <- parse_id(id),
-         %Project{} = project <- Projects.get(project_id),
+         %Project{} = project <- Projects.get_project(project_id),
          :ok <- Projects.authorize(:read, user, project) do
       {:ok, project}
     else

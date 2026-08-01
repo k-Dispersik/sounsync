@@ -9,8 +9,8 @@ defmodule SoundsyncWeb.ProjectScope do
   """
 
   alias Core.DB.Project
-  alias Core.ProjectsCtx.Policy
-  alias Core.ProjectsCtx.Projects
+  alias Core.Projects
+  alias Core.Projects.Policy
 
   @spec fetch(Plug.Conn.t(), term(), Policy.action()) ::
           {:ok, Project.t()} | {:error, :not_found | :forbidden}
@@ -26,7 +26,7 @@ defmodule SoundsyncWeb.ProjectScope do
   @spec fetch_track(Project.t(), term()) :: {:ok, Core.DB.Track.t()} | {:error, :not_found}
   def fetch_track(%Project{} = project, id) do
     with {:ok, track_id} <- cast_id(id) do
-      case Projects.get_track_by_id(project, track_id) do
+      case Projects.get_track(project, track_id) do
         nil -> {:error, :not_found}
         track -> {:ok, track}
       end
@@ -48,7 +48,7 @@ defmodule SoundsyncWeb.ProjectScope do
   def cast_id(_id), do: {:error, :not_found}
 
   defp load(project_id) do
-    case Projects.get(project_id, assoc: [tracks: [:clips]]) do
+    case Projects.get_project(project_id, assoc: [tracks: [:clips]]) do
       nil -> {:error, :not_found}
       project -> {:ok, project}
     end

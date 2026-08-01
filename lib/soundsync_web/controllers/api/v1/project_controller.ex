@@ -7,7 +7,7 @@ defmodule SoundsyncWeb.API.V1.ProjectController do
   use SoundsyncWeb, :controller
   use Params
 
-  alias Core.ProjectsCtx.Projects
+  alias Core.Projects
   alias Core.UsersCtx.Users
   alias SoundsyncWeb.ErrorResponse
   alias SoundsyncWeb.Helpers
@@ -35,7 +35,7 @@ defmodule SoundsyncWeb.API.V1.ProjectController do
 
   def index(conn, _params) do
     conn.assigns.current_user.id
-    |> Projects.list_by_user()
+    |> Projects.list_projects_for_user()
     |> Enum.map(&JSON.project(&1, :summary))
     |> Helpers.response(conn, :ok)
   end
@@ -55,7 +55,7 @@ defmodule SoundsyncWeb.API.V1.ProjectController do
     OK.try do
       attrs <- RequestParams.cast(&create_project_params/1, params)
       created <- Users.create_project(conn.assigns.current_user, attrs)
-      project <- Projects.get(created.id, assoc: [tracks: [:clips]]) |> OK.required()
+      project <- Projects.get_project(created.id, assoc: [tracks: [:clips]]) |> OK.required()
     after
       JSON.project(project, :full) |> Helpers.response(conn, :created)
     rescue
@@ -68,8 +68,8 @@ defmodule SoundsyncWeb.API.V1.ProjectController do
     OK.try do
       attrs <- RequestParams.cast(&update_settings_params/1, params)
       project <- fetch_project(conn, id, :write)
-      _ <- Projects.update(project, %{settings: settings_attrs(attrs)})
-      updated_project <- Projects.get(id, assoc: [tracks: [:clips]]) |> OK.required()
+      _ <- Projects.update_project(project, %{settings: settings_attrs(attrs)})
+      updated_project <- Projects.get_project(id, assoc: [tracks: [:clips]]) |> OK.required()
     after
       JSON.project(updated_project, :full) |> Helpers.response(conn, :ok)
     rescue
@@ -90,7 +90,7 @@ defmodule SoundsyncWeb.API.V1.ProjectController do
   # Loading and authorising always travel together: a project fetched without
   # an access check is exactly the bug this pair exists to prevent.
   defp fetch_project(conn, id, action) do
-    with {:ok, project} <- Projects.get(id, assoc: [tracks: [:clips]]) |> OK.required(),
+    with {:ok, project} <- Projects.get_project(id, assoc: [tracks: [:clips]]) |> OK.required(),
          :ok <- Projects.authorize(action, conn.assigns.current_user, project) do
       {:ok, project}
     end

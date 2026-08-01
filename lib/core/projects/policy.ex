@@ -1,10 +1,10 @@
-defmodule Core.ProjectsCtx.Policy do
+defmodule Core.Projects.Policy do
   @moduledoc """
   Who may do what with a project.
 
   Deliberately pure: it takes a role, not a user and a database. That keeps the
   rules exhaustively testable without fixtures, and keeps the "what is this
-  person's role" question in one place — `Core.ProjectsCtx.Projects.authorize/3`,
+  person's role" question in one place — `Core.Projects.authorize/3`,
   which looks the role up and calls in here.
 
   A missing role (`nil`) means "not a member", which is never allowed anything.

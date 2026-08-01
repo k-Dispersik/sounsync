@@ -6,8 +6,7 @@
 # Idempotent: if the demo user already exists, the script does nothing.
 
 alias Core.DB.User
-alias Core.ProjectsCtx.Projects
-alias Core.ProjectsCtx.Tracks
+alias Core.Projects
 alias Core.UsersCtx.Users
 alias Soundsync.Repo
 
@@ -86,7 +85,7 @@ case Repo.get_by(User, email: email) do
 
     Enum.each(tracks, fn {row_index, clips} ->
       {:ok, track} = Projects.add_track(project, %{row_index: row_index})
-      Enum.each(clips, fn attrs -> {:ok, _clip} = Tracks.add_clip(track, attrs) end)
+      Enum.each(clips, fn attrs -> {:ok, _clip} = Projects.add_clip(track, attrs) end)
     end)
 
     IO.puts("Seeded #{email} / #{password} with project \"#{project.title}\".")

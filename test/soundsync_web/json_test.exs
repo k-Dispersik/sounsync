@@ -7,7 +7,7 @@ defmodule SoundsyncWeb.JSONTest do
   use Soundsync.DataCase, async: true
 
   alias Core.DB.Project
-  alias Core.ProjectsCtx.Projects
+  alias Core.Projects
   alias SoundsyncWeb.JSON
 
   setup do
@@ -16,8 +16,8 @@ defmodule SoundsyncWeb.JSONTest do
     clip_fixture(track, %{title: "Kick"})
 
     %{
-      project: Projects.get(project.id, assoc: [tracks: [:clips]]),
-      bare: Projects.get(project.id)
+      project: Projects.get_project(project.id, assoc: [tracks: [:clips]]),
+      bare: Projects.get_project(project.id)
     }
   end
 

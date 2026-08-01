@@ -9,8 +9,7 @@ defmodule Soundsync.Fixtures do
 
   alias Core.DB.Project
   alias Core.DB.Track
-  alias Core.ProjectsCtx.Projects
-  alias Core.ProjectsCtx.Tracks
+  alias Core.Projects
   alias Core.UsersCtx.Users
 
   @doc "Creates a user. The email is unique unless one is given."
@@ -54,7 +53,7 @@ defmodule Soundsync.Fixtures do
   @doc "Creates a clip on the given track."
   def clip_fixture(%Track{} = track, attrs \\ %{}) do
     {:ok, clip} =
-      Tracks.add_clip(
+      Projects.add_clip(
         track,
         Enum.into(attrs, %{
           title: "Test Clip",

@@ -6,8 +6,7 @@ defmodule SoundsyncWeb.API.V1.TrackController do
   use SoundsyncWeb, :controller
   use Params
 
-  alias Core.ProjectsCtx.Projects
-  alias Core.ProjectsCtx.Tracks
+  alias Core.Projects
   alias SoundsyncWeb.Helpers
   alias SoundsyncWeb.JSON
   alias SoundsyncWeb.Params, as: RequestParams
@@ -28,7 +27,7 @@ defmodule SoundsyncWeb.API.V1.TrackController do
   def delete(conn, %{"project_id" => project_id, "id" => id}) do
     with {:ok, project} <- ProjectScope.fetch(conn, project_id, :write),
          {:ok, track} <- ProjectScope.fetch_track(project, id),
-         {:ok, _deleted} <- Tracks.delete(track) do
+         {:ok, _deleted} <- Projects.delete_track(track) do
       send_resp(conn, :no_content, "")
     end
   end
