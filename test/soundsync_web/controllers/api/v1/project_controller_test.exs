@@ -93,6 +93,23 @@ defmodule SoundsyncWeb.API.V1.ProjectControllerTest do
     end
   end
 
+  describe "POST /v1/projects validation" do
+    test "D-5: a missing title is 422, not a 500", %{conn: conn, owner: owner} do
+      conn = conn |> as(owner) |> post(~p"/v1/projects", %{description: "no title"})
+
+      assert %{"error" => %{"code" => "validation_failed", "details" => details}} =
+               json_response(conn, 422)
+
+      assert details["title"] == ["can't be blank"]
+    end
+
+    test "a description is optional", %{conn: conn, owner: owner} do
+      body = conn |> as(owner) |> post(~p"/v1/projects", %{title: "Bare"}) |> json_response(201)
+
+      assert body["title"] == "Bare"
+    end
+  end
+
   describe "PATCH /v1/projects/:id/settings" do
     setup %{project: project} do
       viewer = user_fixture()
@@ -120,6 +137,31 @@ defmodule SoundsyncWeb.API.V1.ProjectControllerTest do
         |> patch(~p"/v1/projects/#{project.id}/settings", @settings_body)
 
       assert json_response(conn, 403)
+    end
+
+    test "D-22: a body without settings is 422, not a 500", ctx do
+      %{conn: conn, owner: owner, project: project} = ctx
+
+      conn = conn |> as(owner) |> patch(~p"/v1/projects/#{project.id}/settings", %{bpm: 90})
+
+      assert %{"error" => %{"code" => "validation_failed", "details" => details}} =
+               json_response(conn, 422)
+
+      assert details["settings"]
+    end
+
+    test "a partial body changes only what it names", ctx do
+      %{conn: conn, owner: owner, project: project} = ctx
+
+      body =
+        conn
+        |> as(owner)
+        |> patch(~p"/v1/projects/#{project.id}/settings", %{"settings" => %{"bpm" => 77}})
+        |> json_response(200)
+
+      assert body["settings"]["bpm"] == 77
+      assert body["settings"]["time_signature"] == "4/4"
+      assert body["settings"]["timeline_length_ms"] == 60_000
     end
   end
 end

@@ -21,6 +21,7 @@ defmodule SoundsyncWeb.ErrorResponse do
 
   @type reason ::
           :unauthorized
+          | :invalid_credentials
           | :forbidden
           | :not_found
           | :invalid_params
@@ -32,6 +33,9 @@ defmodule SoundsyncWeb.ErrorResponse do
 
   def send_error(conn, :unauthorized, message),
     do: respond(conn, 401, "unauthorized", message || "Unauthorized")
+
+  def send_error(conn, :invalid_credentials, message),
+    do: respond(conn, 401, "invalid_credentials", message || "Invalid email or password")
 
   def send_error(conn, :forbidden, message),
     do: respond(conn, 403, "forbidden", message || "Forbidden")

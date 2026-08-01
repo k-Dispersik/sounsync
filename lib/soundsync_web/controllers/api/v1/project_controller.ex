@@ -5,14 +5,33 @@ defmodule SoundsyncWeb.API.V1.ProjectController do
   """
 
   use SoundsyncWeb, :controller
+  use Params
 
   alias Core.ProjectsCtx.Projects
   alias Core.UsersCtx.Users
   alias SoundsyncWeb.ErrorResponse
   alias SoundsyncWeb.Helpers
   alias SoundsyncWeb.JSON
+  alias SoundsyncWeb.Params, as: RequestParams
 
   require OK
+
+  defparams(
+    create_project_params(%{
+      title!: :string,
+      description: :string
+    })
+  )
+
+  defparams(
+    update_settings_params(%{
+      settings!: %{
+        bpm: :integer,
+        time_signature: :string,
+        timeline_length_ms: :integer
+      }
+    })
+  )
 
   def index(conn, _params) do
     conn.assigns.current_user.id
@@ -32,27 +51,24 @@ defmodule SoundsyncWeb.API.V1.ProjectController do
     end
   end
 
-  def create(conn, %{"title" => title, "description" => description}) do
+  def create(conn, params) do
     OK.try do
-      created <-
-        Users.create_project(conn.assigns.current_user, %{
-          title: title,
-          description: description
-        })
-
+      attrs <- RequestParams.cast(&create_project_params/1, params)
+      created <- Users.create_project(conn.assigns.current_user, attrs)
       project <- Projects.get(created.id, assoc: [tracks: [:clips]]) |> OK.required()
     after
       JSON.project(project, :full) |> Helpers.response(conn, :created)
     rescue
+      %Ecto.Changeset{} = changeset -> ErrorResponse.send_error(conn, changeset)
       e -> ErrorResponse.send_error(conn, e)
     end
   end
 
   def update_settings(conn, %{"id" => id} = params) do
     OK.try do
+      attrs <- RequestParams.cast(&update_settings_params/1, params)
       project <- fetch_project(conn, id, :write)
-      settings_attrs = project_settings_attrs(params)
-      _ <- Projects.update(project, %{settings: settings_attrs})
+      _ <- Projects.update(project, %{settings: settings_attrs(attrs)})
       updated_project <- Projects.get(id, assoc: [tracks: [:clips]]) |> OK.required()
     after
       JSON.project(updated_project, :full) |> Helpers.response(conn, :ok)
@@ -62,6 +78,9 @@ defmodule SoundsyncWeb.API.V1.ProjectController do
 
       :value_required ->
         project_not_found(conn)
+
+      %Ecto.Changeset{} = changeset ->
+        ErrorResponse.send_error(conn, changeset)
 
       reason ->
         ErrorResponse.send_error(conn, reason, "Failed to update project settings")
@@ -82,13 +101,12 @@ defmodule SoundsyncWeb.API.V1.ProjectController do
   defp project_not_found(conn),
     do: ErrorResponse.send_error(conn, :not_found, "Project not found")
 
-  defp project_settings_attrs(%{"settings" => settings_params}) when is_map(settings_params) do
-    %{
-      bpm: Map.get(settings_params, "bpm"),
-      time_signature: Helpers.parse_time_signature(Map.get(settings_params, "time_signature")),
-      timeline_length_ms: Map.get(settings_params, "timeline_length_ms")
-    }
+  # The wire format spells the time signature "7/8"; the schema stores it as an
+  # atom. Only the keys the caller sent are touched.
+  defp settings_attrs(%{settings: settings}) do
+    case Map.pop(settings, :time_signature) do
+      {nil, rest} -> rest
+      {value, rest} -> Map.put(rest, :time_signature, Helpers.parse_time_signature(value))
+    end
   end
-
-  defp project_settings_attrs(_params), do: nil
 end

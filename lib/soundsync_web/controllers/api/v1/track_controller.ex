@@ -4,23 +4,26 @@ defmodule SoundsyncWeb.API.V1.TrackController do
   """
 
   use SoundsyncWeb, :controller
+  use Params
 
   alias Core.ProjectsCtx.Projects
   alias Core.ProjectsCtx.Tracks
   alias SoundsyncWeb.Helpers
   alias SoundsyncWeb.JSON
+  alias SoundsyncWeb.Params, as: RequestParams
   alias SoundsyncWeb.ProjectScope
 
   action_fallback SoundsyncWeb.FallbackController
 
-  def create(conn, %{"project_id" => project_id, "row" => row}) do
-    with {:ok, project} <- ProjectScope.fetch(conn, project_id, :write),
+  defparams(create_track_params(%{row!: :integer}))
+
+  def create(conn, %{"project_id" => project_id} = params) do
+    with {:ok, %{row: row}} <- RequestParams.cast(&create_track_params/1, params),
+         {:ok, project} <- ProjectScope.fetch(conn, project_id, :write),
          {:ok, track} <- Projects.add_track(project, %{row_index: row}) do
       track |> JSON.track() |> Helpers.response(conn, :created)
     end
   end
-
-  def create(_conn, _params), do: {:error, :invalid_params, "row is required"}
 
   def delete(conn, %{"project_id" => project_id, "id" => id}) do
     with {:ok, project} <- ProjectScope.fetch(conn, project_id, :write),

@@ -51,10 +51,15 @@ defmodule SoundsyncWeb.API.V1.TrackControllerTest do
       assert json_response(post(conn, ~p"/v1/projects/#{project.id}/tracks", %{row: 3}), 401)
     end
 
-    test "a missing row is 422, not a crash", %{conn: conn, owner: owner, project: project} do
+    test "D-5: a missing row is 422 with a per-field message, not a crash", ctx do
+      %{conn: conn, owner: owner, project: project} = ctx
+
       conn = conn |> as(owner) |> post(~p"/v1/projects/#{project.id}/tracks", %{})
 
-      assert %{"error" => %{"code" => "invalid_params"}} = json_response(conn, 422)
+      assert %{"error" => %{"code" => "validation_failed", "details" => details}} =
+               json_response(conn, 422)
+
+      assert details["row"] == ["can't be blank"]
     end
 
     test "an unknown project is 404", %{conn: conn, owner: owner} do

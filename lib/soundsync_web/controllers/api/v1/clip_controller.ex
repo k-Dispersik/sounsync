@@ -9,6 +9,7 @@ defmodule SoundsyncWeb.API.V1.ClipController do
   alias Core.ProjectsCtx.Tracks
   alias SoundsyncWeb.Helpers
   alias SoundsyncWeb.JSON
+  alias SoundsyncWeb.Params, as: RequestParams
   alias SoundsyncWeb.ProjectScope
 
   action_fallback SoundsyncWeb.FallbackController
@@ -34,7 +35,7 @@ defmodule SoundsyncWeb.API.V1.ClipController do
   )
 
   def create(conn, %{"project_id" => project_id, "track_id" => track_id} = params) do
-    with {:ok, attrs} <- cast_params(&create_clip_params/1, params),
+    with {:ok, attrs} <- RequestParams.cast(&create_clip_params/1, params),
          {:ok, project} <- ProjectScope.fetch(conn, project_id, :write),
          {:ok, track} <- ProjectScope.fetch_track(project, track_id),
          {:ok, clip} <- Tracks.add_clip(track, attrs) do
@@ -43,19 +44,12 @@ defmodule SoundsyncWeb.API.V1.ClipController do
   end
 
   def update(conn, %{"project_id" => project_id, "track_id" => track_id, "id" => id} = params) do
-    with {:ok, attrs} <- cast_params(&update_clip_params/1, params),
+    with {:ok, attrs} <- RequestParams.cast(&update_clip_params/1, params),
          {:ok, clip_id} <- ProjectScope.cast_id(id),
          {:ok, project} <- ProjectScope.fetch(conn, project_id, :write),
          {:ok, track} <- ProjectScope.fetch_track(project, track_id),
          {:ok, clip} <- update_clip(track, clip_id, attrs) do
       clip |> JSON.clip() |> Helpers.response(conn, :ok)
-    end
-  end
-
-  defp cast_params(caster, params) do
-    case caster.(params) do
-      %Ecto.Changeset{valid?: true, changes: changes} -> {:ok, changes}
-      %Ecto.Changeset{} = changeset -> {:error, changeset}
     end
   end
 
