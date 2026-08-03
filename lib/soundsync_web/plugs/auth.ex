@@ -11,7 +11,7 @@ defmodule SoundsyncWeb.Plugs.Auth do
   import Plug.Conn
 
   alias Core.Accounts
-  alias Core.DB.User
+  alias Core.Accounts.User
   alias SoundsyncWeb.ErrorResponse
 
   def fetch_current_user(conn, _opts) do

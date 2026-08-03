@@ -1,4 +1,9 @@
-defmodule Core.DB.User do
+defmodule Core.Accounts.User do
+  @moduledoc """
+  A person with an account. `password` holds the bcrypt hash, never the
+  password itself — see `Core.Accounts.register_user/1`.
+  """
+
   use Ecto.Schema
 
   schema "users" do

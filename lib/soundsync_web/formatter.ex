@@ -9,12 +9,12 @@ defmodule SoundsyncWeb.Formatter do
   will eventually render the wrong thing.
   """
 
+  alias Core.Accounts.User
   alias Core.DB.Clip
   alias Core.DB.ClipSetting
   alias Core.DB.Project
   alias Core.DB.ProjectSetting
   alias Core.DB.Track
-  alias Core.DB.User
 
   def format(%User{} = user) do
     %{

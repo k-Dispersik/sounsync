@@ -11,7 +11,7 @@ defmodule SoundsyncWeb.UserSocket do
   use Phoenix.Socket
 
   alias Core.Accounts
-  alias Core.DB.User
+  alias Core.Accounts.User
 
   channel "workspace:*", SoundsyncWeb.WorkspaceChannel
   channel "signaling:*", SoundsyncWeb.SignalingChannel

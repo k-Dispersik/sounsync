@@ -2,8 +2,8 @@ defmodule Core.AccountsTest do
   use Soundsync.DataCase, async: true
 
   alias Core.Accounts
-  alias Core.DB.User
-  alias Core.DB.UserToken
+  alias Core.Accounts.User
+  alias Core.Accounts.UserToken
 
   @password "password123"
 

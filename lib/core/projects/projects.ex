@@ -12,11 +12,11 @@ defmodule Core.Projects do
   import Ecto.Changeset
   import Ecto.Query, only: [from: 2]
 
+  alias Core.Accounts.User
   alias Core.DB.Clip
   alias Core.DB.Project
   alias Core.DB.ProjectMember
   alias Core.DB.Track
-  alias Core.DB.User
   alias Core.Projects.Policy
   alias Soundsync.Repo
 
@@ -46,7 +46,15 @@ defmodule Core.Projects do
     |> Repo.all()
   end
 
+  @doc "Creates a project with no members. Rarely what you want — see `create_project/2`."
   def create_project(attrs), do: attrs |> new_project() |> Repo.insert()
+
+  @doc "Creates a project and makes the given user its owner."
+  def create_project(%User{} = owner, attrs) do
+    with {:ok, project} <- create_project(attrs) do
+      add_member(project, owner, :owner)
+    end
+  end
 
   def update_project(%Project{} = project, attrs) do
     project

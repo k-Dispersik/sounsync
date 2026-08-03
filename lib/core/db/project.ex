@@ -13,7 +13,7 @@ defmodule Core.DB.Project do
 
     has_many :tracks, Core.DB.Track, on_delete: :delete_all
     has_many :memberships, Core.DB.ProjectMember, on_delete: :delete_all
-    many_to_many :users, Core.DB.User, join_through: Core.DB.ProjectMember
+    many_to_many :users, Core.Accounts.User, join_through: Core.DB.ProjectMember
 
     timestamps()
   end

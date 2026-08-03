@@ -8,8 +8,8 @@ defmodule SoundsyncWeb.ProjectTopic do
   name a project cannot be authorised at all, so it is refused outright.
   """
 
+  alias Core.Accounts.User
   alias Core.DB.Project
-  alias Core.DB.User
   alias Core.Projects
 
   @type reason :: :invalid_topic | :not_found | :forbidden

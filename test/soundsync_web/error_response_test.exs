@@ -6,7 +6,7 @@ defmodule SoundsyncWeb.ErrorResponseTest do
 
   use SoundsyncWeb.ConnCase, async: true
 
-  alias Core.UsersCtx.Users
+  alias Core.Accounts
   alias SoundsyncWeb.ErrorResponse
 
   defp body(conn), do: Jason.decode!(conn.resp_body)
@@ -37,7 +37,7 @@ defmodule SoundsyncWeb.ErrorResponseTest do
   end
 
   test "a changeset becomes 422 with per-field messages", %{conn: conn} do
-    {:error, changeset} = Users.create(%{name: "A", email: "nope", password: "123"})
+    {:error, changeset} = Accounts.register_user(%{name: "A", email: "nope", password: "123"})
 
     response = ErrorResponse.send_error(conn, changeset)
 

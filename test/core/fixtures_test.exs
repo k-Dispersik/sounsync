@@ -6,10 +6,10 @@ defmodule Soundsync.FixturesTest do
 
   use Soundsync.DataCase, async: true
 
+  alias Core.Accounts.User
   alias Core.DB.Clip
   alias Core.DB.Project
   alias Core.DB.Track
-  alias Core.DB.User
 
   test "user_fixture/1 gives each user a unique email" do
     assert %User{name: "Test User"} = first = user_fixture()

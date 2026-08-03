@@ -1,55 +1,59 @@
-defmodule Core.UsersCtxTest do
+defmodule Core.Accounts.UsersTest do
   use Soundsync.DataCase, async: true
 
+  alias Core.Accounts
+  alias Core.Accounts.User
   alias Core.DB.Project
   alias Core.DB.ProjectMember
-  alias Core.DB.User
   alias Core.Projects
-  alias Core.UsersCtx.Users
 
   defp attrs(email), do: %{name: "Test User", email: email, password: "password123"}
 
-  describe "create/1" do
+  describe "register_user/1" do
     test "B-4: rejects a second user with the same email" do
-      assert {:ok, _user} = Users.create(attrs("ada@example.com"))
-      assert {:error, changeset} = Users.create(attrs("ada@example.com"))
+      assert {:ok, _user} = Accounts.register_user(attrs("ada@example.com"))
+      assert {:error, changeset} = Accounts.register_user(attrs("ada@example.com"))
 
       assert "has already been taken" in errors_on(changeset).email
     end
 
     test "B-4: treats emails as case-insensitive" do
-      assert {:ok, _user} = Users.create(attrs("ada@example.com"))
-      assert {:error, changeset} = Users.create(attrs("Ada@Example.com"))
+      assert {:ok, _user} = Accounts.register_user(attrs("ada@example.com"))
+      assert {:error, changeset} = Accounts.register_user(attrs("Ada@Example.com"))
 
       assert "has already been taken" in errors_on(changeset).email
     end
 
     test "stores the password hashed" do
-      {:ok, user} = Users.create(attrs("hash@example.com"))
+      {:ok, user} = Accounts.register_user(attrs("hash@example.com"))
 
       refute user.password == "password123"
       assert Bcrypt.verify_pass("password123", user.password)
     end
 
     test "requires an email that looks like one" do
-      assert {:error, changeset} = Users.create(attrs("not-an-email"))
+      assert {:error, changeset} = Accounts.register_user(attrs("not-an-email"))
       assert "has invalid format" in errors_on(changeset).email
     end
 
     test "requires a password of at least six characters" do
       assert {:error, changeset} =
-               Users.create(%{name: "Test User", email: "short@example.com", password: "12345"})
+               Accounts.register_user(%{
+                 name: "Test User",
+                 email: "short@example.com",
+                 password: "12345"
+               })
 
       assert "should be at least 6 character(s)" in errors_on(changeset).password
     end
   end
 
-  describe "update/2" do
+  describe "update_user/2" do
     test "B-3: renaming a user keeps their project memberships" do
       user = user_fixture()
       project = project_fixture(%{user: user, title: "Kept"})
 
-      assert {:ok, updated} = Users.update(user, %{name: "Renamed"})
+      assert {:ok, updated} = Accounts.update_user(user, %{name: "Renamed"})
       assert updated.name == "Renamed"
 
       assert [%Project{id: id}] = Repo.preload(user, :projects).projects
@@ -60,18 +64,18 @@ defmodule Core.UsersCtxTest do
       user = user_fixture()
       project_fixture(%{user: user})
 
-      {:ok, _updated} = Users.update(user, %{name: "Renamed"})
+      {:ok, _updated} = Accounts.update_user(user, %{name: "Renamed"})
 
       assert Repo.aggregate(ProjectMember, :count) == 1
     end
   end
 
-  describe "create_project/2" do
+  describe "Projects.create_project/2" do
     test "returns the project and makes the user its owner" do
       user = user_fixture()
 
       assert {:ok, %Project{title: "First"} = project} =
-               Users.create_project(user, %{title: "First", description: "d"})
+               Projects.create_project(user, %{title: "First", description: "d"})
 
       assert [%Project{id: id}] = Repo.preload(user, :projects).projects
       assert id == project.id
@@ -79,25 +83,25 @@ defmodule Core.UsersCtxTest do
     end
   end
 
-  describe "D-4: the CRUD helpers are plain functions now" do
+  describe "D-4: the CRUD helpers are plain functions on the context" do
     test "get/1 returns the user or nil" do
       user = user_fixture()
 
-      assert %User{id: id} = Users.get(user.id)
+      assert %User{id: id} = Accounts.get_user(user.id)
       assert id == user.id
-      assert Users.get(0) == nil
+      assert Accounts.get_user(0) == nil
     end
 
     test "get!/1 raises for a missing user" do
-      assert_raise Ecto.NoResultsError, fn -> Users.get!(0) end
+      assert_raise Ecto.NoResultsError, fn -> Accounts.get_user!(0) end
     end
 
     test "delete/1 removes the user and their memberships" do
       user = user_fixture()
       project_fixture(%{user: user})
 
-      assert {:ok, _deleted} = Users.delete(user)
-      assert Users.get(user.id) == nil
+      assert {:ok, _deleted} = Accounts.delete_user(user)
+      assert Accounts.get_user(user.id) == nil
       assert Repo.aggregate(ProjectMember, :count) == 0
     end
   end

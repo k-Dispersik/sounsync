@@ -1,4 +1,4 @@
-defmodule Core.DB.UserToken do
+defmodule Core.Accounts.UserToken do
   @moduledoc """
   Session tokens.
 
@@ -20,7 +20,7 @@ defmodule Core.DB.UserToken do
     field :token, :binary
     field :context, :string
 
-    belongs_to :user, Core.DB.User
+    belongs_to :user, Core.Accounts.User
 
     timestamps(updated_at: false)
   end

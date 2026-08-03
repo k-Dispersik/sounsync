@@ -8,10 +8,10 @@ defmodule SoundsyncWeb.JSON do
   in between means a client cannot know what it is holding.
   """
 
+  alias Core.Accounts.User
   alias Core.DB.Clip
   alias Core.DB.Project
   alias Core.DB.Track
-  alias Core.DB.User
   alias SoundsyncWeb.Formatter
 
   def encode!(data), do: Jason.encode!(data)

@@ -8,7 +8,6 @@ defmodule SoundsyncWeb.API.V1.ProjectController do
   use Params
 
   alias Core.Projects
-  alias Core.UsersCtx.Users
   alias SoundsyncWeb.ErrorResponse
   alias SoundsyncWeb.Helpers
   alias SoundsyncWeb.JSON
@@ -54,7 +53,7 @@ defmodule SoundsyncWeb.API.V1.ProjectController do
   def create(conn, params) do
     OK.try do
       attrs <- RequestParams.cast(&create_project_params/1, params)
-      created <- Users.create_project(conn.assigns.current_user, attrs)
+      created <- Projects.create_project(conn.assigns.current_user, attrs)
       project <- Projects.get_project(created.id, assoc: [tracks: [:clips]]) |> OK.required()
     after
       JSON.project(project, :full) |> Helpers.response(conn, :created)

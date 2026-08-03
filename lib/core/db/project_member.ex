@@ -18,7 +18,7 @@ defmodule Core.DB.ProjectMember do
     field :role, Ecto.Enum, values: @roles, default: :editor
 
     belongs_to :project, Core.DB.Project
-    belongs_to :user, Core.DB.User
+    belongs_to :user, Core.Accounts.User
 
     timestamps()
   end

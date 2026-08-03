@@ -5,9 +5,9 @@
 #
 # Idempotent: if the demo user already exists, the script does nothing.
 
-alias Core.DB.User
+alias Core.Accounts.User
 alias Core.Projects
-alias Core.UsersCtx.Users
+alias Core.Accounts
 alias Soundsync.Repo
 
 email = "demo@soundsync.local"
@@ -74,10 +74,10 @@ case Repo.get_by(User, email: email) do
     IO.puts("Seeds skipped: #{email} already exists.")
 
   nil ->
-    {:ok, user} = Users.create(%{name: "Demo User", email: email, password: password})
+    {:ok, user} = Accounts.register_user(%{name: "Demo User", email: email, password: password})
 
     {:ok, project} =
-      Users.create_project(user, %{
+      Projects.create_project(user, %{
         title: "Demo session",
         description: "Sample project for local development",
         settings: %{bpm: 128, time_signature: :four_four, timeline_length_ms: 60_000}

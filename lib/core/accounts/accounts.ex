@@ -1,28 +1,67 @@
 defmodule Core.Accounts do
   @moduledoc """
-  Accounts context: registering users and checking their credentials.
+  Accounts context: users, their credentials and their sessions.
 
   The public entry point for everything to do with who a request belongs to.
-  Web code talks to this module and never to `Core.UsersCtx.Users` or `Repo`
-  directly.
+  Web code talks to this module and never to a schema or `Repo` directly.
   """
 
-  alias Core.DB.User
-  alias Core.DB.UserToken
-  alias Core.UsersCtx.Users
+  import Ecto.Changeset
+
+  alias Core.Accounts.User
+  alias Core.Accounts.UserToken
   alias Soundsync.Repo
+
+  # ── Users ──────────────────────────────────────────────────────────────────
 
   @doc """
   Registers a user. Returns `{:error, changeset}` on invalid data or on an
   email that is already taken.
   """
-  def register_user(attrs), do: Users.create(attrs)
+  def register_user(attrs) do
+    %User{}
+    |> user_changeset(attrs)
+    |> hash_password()
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates the user's own fields.
+
+  Membership in projects is deliberately not touched here: this function used
+  to `put_assoc(:projects, ...)`, so renaming a user wiped every project they
+  belonged to. Membership is managed by `Core.Projects.add_member/3`.
+  """
+  def update_user(%User{} = user, attrs) do
+    user
+    |> user_changeset(attrs)
+    |> hash_password()
+    |> Repo.update()
+  end
+
+  @doc "Fetches a user by id, or `nil`."
+  def get_user(id), do: Repo.get(User, id)
+
+  @doc "Fetches a user by id. Raises if there is none."
+  def get_user!(id), do: Repo.get!(User, id)
 
   @doc "Fetches a user by email. Matching is case-insensitive (citext column)."
   def get_user_by_email(email) when is_binary(email), do: Repo.get_by(User, email: email)
 
-  @doc "Fetches a user by id, or `nil`."
-  def get_user(id), do: Repo.get(User, id)
+  @doc "Deletes the user, and with them their memberships and sessions."
+  def delete_user(%User{} = user), do: Repo.delete(user)
+
+  def user_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:name, :email, :password])
+    |> validate_required([:email, :password])
+    |> validate_length(:name, min: 3)
+    |> validate_format(:email, ~r/@/)
+    |> validate_length(:password, min: 6)
+    |> unique_constraint(:email)
+  end
+
+  # ── Credentials ────────────────────────────────────────────────────────────
 
   @doc """
   Checks an email and password pair.
@@ -46,6 +85,18 @@ defmodule Core.Accounts do
   end
 
   def authenticate(_email, _password), do: {:error, :invalid_credentials}
+
+  defp hash_password(changeset) do
+    case changeset do
+      %Ecto.Changeset{valid?: true, changes: %{password: password}} ->
+        put_change(changeset, :password, Bcrypt.hash_pwd_salt(password))
+
+      _ ->
+        changeset
+    end
+  end
+
+  # ── Sessions ───────────────────────────────────────────────────────────────
 
   @doc """
   Issues a session token for the user and returns it base64url-encoded, ready

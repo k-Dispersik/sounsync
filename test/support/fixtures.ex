@@ -7,10 +7,10 @@ defmodule Soundsync.Fixtures do
   that overrides the defaults and returns a persisted record.
   """
 
+  alias Core.Accounts
   alias Core.DB.Project
   alias Core.DB.Track
   alias Core.Projects
-  alias Core.UsersCtx.Users
 
   @doc "Creates a user. The email is unique unless one is given."
   def user_fixture(attrs \\ %{}) do
@@ -21,7 +21,7 @@ defmodule Soundsync.Fixtures do
         email: "user#{System.unique_integer([:positive])}@example.com",
         password: "password123"
       })
-      |> Users.create()
+      |> Accounts.register_user()
 
     user
   end
@@ -40,7 +40,7 @@ defmodule Soundsync.Fixtures do
         settings: %{bpm: 120, time_signature: :four_four, timeline_length_ms: 60_000}
       })
 
-    {:ok, project} = Users.create_project(user, attrs)
+    {:ok, project} = Projects.create_project(user, attrs)
     project
   end
 
