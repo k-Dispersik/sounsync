@@ -10,11 +10,11 @@ defmodule SoundsyncWeb.Formatter do
   """
 
   alias Core.Accounts.User
-  alias Core.DB.Clip
-  alias Core.DB.ClipSetting
-  alias Core.DB.Project
-  alias Core.DB.ProjectSetting
-  alias Core.DB.Track
+  alias Core.Projects.Clip
+  alias Core.Projects.ClipSetting
+  alias Core.Projects.Project
+  alias Core.Projects.ProjectSetting
+  alias Core.Projects.Track
 
   def format(%User{} = user) do
     %{

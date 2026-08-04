@@ -1,4 +1,4 @@
-defmodule Core.DB.Clip do
+defmodule Core.Projects.Clip do
   use Ecto.Schema
 
   @types [:piano, :guitar, :drums, :bass, :recording, :effect]
@@ -12,8 +12,8 @@ defmodule Core.DB.Clip do
     field :duration, :integer
     field :file_path, :string
 
-    embeds_one :settings, Core.DB.ClipSetting
+    embeds_one :settings, Core.Projects.ClipSetting
 
-    belongs_to :track, Core.DB.Track
+    belongs_to :track, Core.Projects.Track
   end
 end

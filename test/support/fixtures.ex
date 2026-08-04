@@ -8,9 +8,9 @@ defmodule Soundsync.Fixtures do
   """
 
   alias Core.Accounts
-  alias Core.DB.Project
-  alias Core.DB.Track
   alias Core.Projects
+  alias Core.Projects.Project
+  alias Core.Projects.Track
 
   @doc "Creates a user. The email is unique unless one is given."
   def user_fixture(attrs \\ %{}) do

@@ -2,8 +2,8 @@ defmodule SoundsyncWeb.API.V1.TrackControllerTest do
   use SoundsyncWeb.ConnCase, async: true
 
   alias Core.Accounts
-  alias Core.DB.Track
   alias Core.Projects
+  alias Core.Projects.Track
   alias Soundsync.Repo
 
   setup %{conn: conn} do

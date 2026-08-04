@@ -1,4 +1,4 @@
-defmodule Core.DB.Project do
+defmodule Core.Projects.Project do
   use Ecto.Schema
 
   import Ecto.Query
@@ -7,13 +7,13 @@ defmodule Core.DB.Project do
     field :title, :string
     field :description, :string
 
-    embeds_one :settings, Core.DB.ProjectSetting,
+    embeds_one :settings, Core.Projects.ProjectSetting,
       on_replace: :update,
       defaults_to_struct: true
 
-    has_many :tracks, Core.DB.Track, on_delete: :delete_all
-    has_many :memberships, Core.DB.ProjectMember, on_delete: :delete_all
-    many_to_many :users, Core.Accounts.User, join_through: Core.DB.ProjectMember
+    has_many :tracks, Core.Projects.Track, on_delete: :delete_all
+    has_many :memberships, Core.Projects.ProjectMember, on_delete: :delete_all
+    many_to_many :users, Core.Accounts.User, join_through: Core.Projects.ProjectMember
 
     timestamps()
   end

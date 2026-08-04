@@ -2,8 +2,8 @@ defmodule SoundsyncWeb.API.V1.ClipControllerTest do
   use SoundsyncWeb.ConnCase, async: true
 
   alias Core.Accounts
-  alias Core.DB.Clip
   alias Core.Projects
+  alias Core.Projects.Clip
   alias Soundsync.Repo
 
   setup %{conn: conn} do

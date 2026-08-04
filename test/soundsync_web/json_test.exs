@@ -6,8 +6,8 @@ defmodule SoundsyncWeb.JSONTest do
 
   use Soundsync.DataCase, async: true
 
-  alias Core.DB.Project
   alias Core.Projects
+  alias Core.Projects.Project
   alias SoundsyncWeb.JSON
 
   setup do

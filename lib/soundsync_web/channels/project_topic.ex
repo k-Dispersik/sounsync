@@ -9,8 +9,8 @@ defmodule SoundsyncWeb.ProjectTopic do
   """
 
   alias Core.Accounts.User
-  alias Core.DB.Project
   alias Core.Projects
+  alias Core.Projects.Project
 
   @type reason :: :invalid_topic | :not_found | :forbidden
 

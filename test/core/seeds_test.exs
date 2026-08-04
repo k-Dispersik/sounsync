@@ -10,9 +10,9 @@ defmodule Core.SeedsTest do
   import ExUnit.CaptureIO
 
   alias Core.Accounts.User
-  alias Core.DB.Clip
-  alias Core.DB.Project
-  alias Core.DB.Track
+  alias Core.Projects.Clip
+  alias Core.Projects.Project
+  alias Core.Projects.Track
 
   @seeds Path.expand("../../priv/repo/seeds.exs", __DIR__)
 

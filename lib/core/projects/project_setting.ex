@@ -1,4 +1,4 @@
-defmodule Core.DB.ProjectSetting do
+defmodule Core.Projects.ProjectSetting do
   use Ecto.Schema
 
   @primary_key false

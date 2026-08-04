@@ -13,11 +13,11 @@ defmodule Core.Projects do
   import Ecto.Query, only: [from: 2]
 
   alias Core.Accounts.User
-  alias Core.DB.Clip
-  alias Core.DB.Project
-  alias Core.DB.ProjectMember
-  alias Core.DB.Track
+  alias Core.Projects.Clip
   alias Core.Projects.Policy
+  alias Core.Projects.Project
+  alias Core.Projects.ProjectMember
+  alias Core.Projects.Track
   alias Soundsync.Repo
 
   # ── Projects ───────────────────────────────────────────────────────────────

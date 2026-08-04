@@ -8,9 +8,9 @@ defmodule SoundsyncWeb.ProjectScope do
   loading a project it never checked.
   """
 
-  alias Core.DB.Project
   alias Core.Projects
   alias Core.Projects.Policy
+  alias Core.Projects.Project
 
   @spec fetch(Plug.Conn.t(), term(), Policy.action()) ::
           {:ok, Project.t()} | {:error, :not_found | :forbidden}
@@ -23,7 +23,7 @@ defmodule SoundsyncWeb.ProjectScope do
   end
 
   @doc "Finds a track inside an already loaded project."
-  @spec fetch_track(Project.t(), term()) :: {:ok, Core.DB.Track.t()} | {:error, :not_found}
+  @spec fetch_track(Project.t(), term()) :: {:ok, Core.Projects.Track.t()} | {:error, :not_found}
   def fetch_track(%Project{} = project, id) do
     with {:ok, track_id} <- cast_id(id) do
       case Projects.get_track(project, track_id) do

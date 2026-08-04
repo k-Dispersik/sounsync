@@ -7,7 +7,7 @@ defmodule SoundsyncWeb.Helpers do
   import Plug.Conn
   import Phoenix.Controller
 
-  alias Core.DB.ProjectSetting
+  alias Core.Projects.ProjectSetting
 
   @time_signature_atom_to_string Enum.into(ProjectSetting.get_time_signature_values(), %{})
   @time_signature_string_to_atom Enum.into(@time_signature_atom_to_string, %{}, fn {k, v} ->

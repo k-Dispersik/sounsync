@@ -3,9 +3,9 @@ defmodule Core.Accounts.UsersTest do
 
   alias Core.Accounts
   alias Core.Accounts.User
-  alias Core.DB.Project
-  alias Core.DB.ProjectMember
   alias Core.Projects
+  alias Core.Projects.Project
+  alias Core.Projects.ProjectMember
 
   defp attrs(email), do: %{name: "Test User", email: email, password: "password123"}
 

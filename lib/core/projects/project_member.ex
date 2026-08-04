@@ -1,4 +1,4 @@
-defmodule Core.DB.ProjectMember do
+defmodule Core.Projects.ProjectMember do
   @moduledoc """
   Membership of a user in a project, with the role that decides what they may
   do. Roles are ordered from most to least powerful:
@@ -17,7 +17,7 @@ defmodule Core.DB.ProjectMember do
   schema "project_members" do
     field :role, Ecto.Enum, values: @roles, default: :editor
 
-    belongs_to :project, Core.DB.Project
+    belongs_to :project, Core.Projects.Project
     belongs_to :user, Core.Accounts.User
 
     timestamps()

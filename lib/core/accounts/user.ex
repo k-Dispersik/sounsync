@@ -11,8 +11,8 @@ defmodule Core.Accounts.User do
     field :password, :string
     field :email, :string
 
-    has_many :memberships, Core.DB.ProjectMember, on_delete: :delete_all
-    many_to_many :projects, Core.DB.Project, join_through: Core.DB.ProjectMember
+    has_many :memberships, Core.Projects.ProjectMember, on_delete: :delete_all
+    many_to_many :projects, Core.Projects.Project, join_through: Core.Projects.ProjectMember
 
     timestamps()
   end
