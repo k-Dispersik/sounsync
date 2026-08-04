@@ -49,10 +49,15 @@ defmodule Core.Projects do
   @doc "Creates a project with no members. Rarely what you want — see `create_project/2`."
   def create_project(attrs), do: attrs |> new_project() |> Repo.insert()
 
-  @doc "Creates a project and makes the given user its owner."
+  @doc """
+  Creates a project and makes the given user its owner. The project comes back
+  with its (empty) tracks loaded, so a caller can serialise it without a second
+  trip to the database.
+  """
   def create_project(%User{} = owner, attrs) do
-    with {:ok, project} <- create_project(attrs) do
-      add_member(project, owner, :owner)
+    with {:ok, project} <- create_project(attrs),
+         {:ok, project} <- add_member(project, owner, :owner) do
+      {:ok, Repo.preload(project, tracks: [:clips])}
     end
   end
 
