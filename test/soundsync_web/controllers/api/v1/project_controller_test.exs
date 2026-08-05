@@ -150,6 +150,26 @@ defmodule SoundsyncWeb.API.V1.ProjectControllerTest do
       assert details["settings"]
     end
 
+    test "an unknown project is 404", %{conn: conn, owner: owner} do
+      conn = conn |> as(owner) |> patch(~p"/v1/projects/0/settings", @settings_body)
+
+      assert %{"error" => %{"code" => "not_found"}} = json_response(conn, 404)
+    end
+
+    test "a bpm outside the allowed range is 422", ctx do
+      %{conn: conn, owner: owner, project: project} = ctx
+
+      conn =
+        conn
+        |> as(owner)
+        |> patch(~p"/v1/projects/#{project.id}/settings", %{"settings" => %{"bpm" => 5}})
+
+      assert %{"error" => %{"code" => "validation_failed", "details" => details}} =
+               json_response(conn, 422)
+
+      assert details["settings"]["bpm"]
+    end
+
     test "a partial body changes only what it names", ctx do
       %{conn: conn, owner: owner, project: project} = ctx
 

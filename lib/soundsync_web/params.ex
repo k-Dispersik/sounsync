@@ -21,6 +21,25 @@ defmodule SoundsyncWeb.Params do
     end
   end
 
+  @doc """
+  Turns a path segment into an id.
+
+  Path segments are strings, and `"abc"` must come back as a 404: handed to
+  Ecto as-is it raises a cast error, which is a 500 for what is plainly a bad
+  URL.
+  """
+  @spec cast_id(term()) :: {:ok, integer()} | {:error, :not_found}
+  def cast_id(id) when is_integer(id), do: {:ok, id}
+
+  def cast_id(id) when is_binary(id) do
+    case Integer.parse(id) do
+      {parsed, ""} -> {:ok, parsed}
+      _ -> {:error, :not_found}
+    end
+  end
+
+  def cast_id(_id), do: {:error, :not_found}
+
   defp changes(%Changeset{changes: changes}) do
     Map.new(changes, fn
       {key, %Changeset{} = nested} -> {key, changes(nested)}

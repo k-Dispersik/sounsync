@@ -92,6 +92,23 @@ defmodule SoundsyncWeb.API.V1.TrackControllerTest do
       assert Repo.get(Track, track.id)
     end
 
+    test "no token, no delete", ctx do
+      %{conn: conn, project: project, track: track} = ctx
+
+      conn = delete(conn, ~p"/v1/projects/#{project.id}/tracks/#{track.id}")
+
+      assert %{"error" => %{"code" => "unauthorized"}} = json_response(conn, 401)
+      assert Repo.get(Track, track.id)
+    end
+
+    test "a track id that is not a number is 404", ctx do
+      %{conn: conn, owner: owner, project: project} = ctx
+
+      conn = conn |> as(owner) |> delete(~p"/v1/projects/#{project.id}/tracks/abc")
+
+      assert json_response(conn, 404)
+    end
+
     test "a track from another project is 404", ctx do
       %{conn: conn, owner: owner, project: project} = ctx
       other_track = project_fixture() |> track_fixture()

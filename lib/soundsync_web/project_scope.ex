@@ -11,11 +11,12 @@ defmodule SoundsyncWeb.ProjectScope do
   alias Core.Projects
   alias Core.Projects.Policy
   alias Core.Projects.Project
+  alias SoundsyncWeb.Params
 
   @spec fetch(Plug.Conn.t(), term(), Policy.action()) ::
           {:ok, Project.t()} | {:error, :not_found | :forbidden}
   def fetch(conn, id, action) do
-    with {:ok, project_id} <- cast_id(id),
+    with {:ok, project_id} <- Params.cast_id(id),
          {:ok, project} <- load(project_id),
          :ok <- Projects.authorize(action, conn.assigns.current_user, project) do
       {:ok, project}
@@ -25,27 +26,13 @@ defmodule SoundsyncWeb.ProjectScope do
   @doc "Finds a track inside an already loaded project."
   @spec fetch_track(Project.t(), term()) :: {:ok, Core.Projects.Track.t()} | {:error, :not_found}
   def fetch_track(%Project{} = project, id) do
-    with {:ok, track_id} <- cast_id(id) do
+    with {:ok, track_id} <- Params.cast_id(id) do
       case Projects.get_track(project, track_id) do
         nil -> {:error, :not_found}
         track -> {:ok, track}
       end
     end
   end
-
-  # Path segments are strings, and "abc" must be a 404 rather than a cast error
-  # blowing up inside Ecto.
-  @spec cast_id(term()) :: {:ok, integer()} | {:error, :not_found}
-  def cast_id(id) when is_integer(id), do: {:ok, id}
-
-  def cast_id(id) when is_binary(id) do
-    case Integer.parse(id) do
-      {parsed, ""} -> {:ok, parsed}
-      _ -> {:error, :not_found}
-    end
-  end
-
-  def cast_id(_id), do: {:error, :not_found}
 
   defp load(project_id) do
     case Projects.get_project(project_id, assoc: [tracks: [:clips]]) do

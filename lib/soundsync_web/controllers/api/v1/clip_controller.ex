@@ -45,7 +45,7 @@ defmodule SoundsyncWeb.API.V1.ClipController do
 
   def update(conn, %{"project_id" => project_id, "track_id" => track_id, "id" => id} = params) do
     with {:ok, attrs} <- RequestParams.cast(&update_clip_params/1, params),
-         {:ok, clip_id} <- ProjectScope.cast_id(id),
+         {:ok, clip_id} <- RequestParams.cast_id(id),
          {:ok, project} <- ProjectScope.fetch(conn, project_id, :write),
          {:ok, track} <- ProjectScope.fetch_track(project, track_id),
          {:ok, clip} <- Projects.update_clip(track, clip_id, attrs) do

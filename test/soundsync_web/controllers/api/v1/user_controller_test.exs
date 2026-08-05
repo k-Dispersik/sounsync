@@ -16,6 +16,17 @@ defmodule SoundsyncWeb.API.V1.UserControllerTest do
     refute Map.has_key?(body, "password")
   end
 
+  test "no token, no user", %{conn: conn} do
+    user = user_fixture()
+
+    assert %{"error" => %{"code" => "unauthorized"}} =
+             json_response(get(conn, ~p"/v1/users/#{user.id}"), 401)
+  end
+
+  test "a user id that is not a number is 404, not a 500", %{conn: conn} do
+    assert json_response(conn |> as(user_fixture()) |> get(~p"/v1/users/abc"), 404)
+  end
+
   test "an unknown user is 404, not a crash", %{conn: conn} do
     conn = conn |> as(user_fixture()) |> get(~p"/v1/users/0")
 

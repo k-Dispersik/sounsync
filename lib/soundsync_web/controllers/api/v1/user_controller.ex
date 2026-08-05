@@ -2,14 +2,19 @@ defmodule SoundsyncWeb.API.V1.UserController do
   use SoundsyncWeb, :controller
 
   alias Core.Accounts
-  alias SoundsyncWeb.ErrorResponse
   alias SoundsyncWeb.Helpers
   alias SoundsyncWeb.JSON
+  alias SoundsyncWeb.Params, as: RequestParams
+
+  action_fallback SoundsyncWeb.FallbackController
 
   def show(conn, %{"id" => id}) do
-    case Accounts.get_user(id) do
-      nil -> ErrorResponse.send_error(conn, :not_found, "User not found")
-      user -> JSON.user(user) |> Helpers.response(conn, :ok)
+    with {:ok, user_id} <- RequestParams.cast_id(id),
+         user when not is_nil(user) <- Accounts.get_user(user_id) do
+      user |> JSON.user() |> Helpers.response(conn, :ok)
+    else
+      nil -> {:error, :not_found, "User not found"}
+      error -> error
     end
   end
 end

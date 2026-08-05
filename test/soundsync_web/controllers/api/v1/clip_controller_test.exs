@@ -55,6 +55,13 @@ defmodule SoundsyncWeb.API.V1.ClipControllerTest do
       assert details["duration"]
     end
 
+    test "no token, no clip", ctx do
+      %{conn: conn, project: project, track: track} = ctx
+
+      assert %{"error" => %{"code" => "unauthorized"}} =
+               json_response(post(conn, clips_path(project, track), @valid), 401)
+    end
+
     test "a track from another project is 404", ctx do
       %{conn: conn, owner: owner, project: project} = ctx
       foreign = project_fixture() |> track_fixture()
@@ -96,6 +103,20 @@ defmodule SoundsyncWeb.API.V1.ClipControllerTest do
         conn |> as(owner) |> patch("#{clips_path(project, track)}/0", %{start_time: 4_000})
 
       assert json_response(conn, 404)
+    end
+
+    test "a start time that is not a number is 422", ctx do
+      %{conn: conn, owner: owner, project: project, track: track, clip: clip} = ctx
+
+      conn =
+        conn
+        |> as(owner)
+        |> patch("#{clips_path(project, track)}/#{clip.id}", %{start_time: "soon"})
+
+      assert %{"error" => %{"code" => "validation_failed", "details" => details}} =
+               json_response(conn, 422)
+
+      assert details["start_time"]
     end
 
     test "no token, no move", ctx do
