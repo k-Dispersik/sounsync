@@ -1,3 +1,13 @@
-export type { Clip } from "./clip";
-export type { Track } from "./track";
-export type { Project, ProjectSettings } from "./project";
+// The shapes the API actually returns are defined once, as zod schemas; the
+// types here are inferred from them so the two cannot drift apart.
+export type {
+    Clip,
+    Project,
+    ProjectSettings,
+    ProjectSummary,
+    Track,
+    User,
+} from "js/shared/api/schemas";
+
+export { TIME_SIGNATURES } from "./timeSignature";
+export type { TimeSignatureValue } from "./timeSignature";

@@ -3,7 +3,7 @@ import { Share2, Download, ChevronDown, Plus } from "lucide-react";
 import { Logo } from "js/shared/components/Logo";
 import { useProjectBPM } from "js/features/workspace/hooks/useProjectBPM";
 import type { ProjectSettings } from "../../../shared/types";
-import { TIME_SIGNATURES, type TimeSignatureValue } from "js/shared/types/project";
+import { TIME_SIGNATURES, type TimeSignatureValue } from "js/shared/types";
 import Transport from "./Transport";
 import { useTransportContext } from "../contextProviders/TransportProvider";
 import UserSettings from "js/shared/components/UserSettings";

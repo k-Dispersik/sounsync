@@ -1,5 +1,7 @@
-import apiClient from "../../../shared/api/client";
-import type { Clip } from "../../../shared/types/index";
+import apiClient from "js/shared/api/client";
+import { parseResponse } from "js/shared/api/parse";
+import { clipSchema } from "js/shared/api/schemas";
+import type { Clip } from "js/shared/types";
 
 export interface CreateClipDTO {
     title: string;
@@ -14,11 +16,9 @@ export async function createClip(
     trackId: number,
     dto: CreateClipDTO,
 ): Promise<Clip> {
-    const { data } = await apiClient.post<Clip>(
-        `/projects/${projectId}/tracks/${trackId}/clips`,
-        dto,
-    );
-    return data;
+    const path = `/projects/${projectId}/tracks/${trackId}/clips`;
+    const { data } = await apiClient.post<unknown>(path, dto);
+    return parseResponse(clipSchema, `POST ${path}`, data);
 }
 
 export async function updateClip(
@@ -27,9 +27,7 @@ export async function updateClip(
     clipId: number,
     dto: Partial<CreateClipDTO>,
 ): Promise<Clip> {
-    const { data } = await apiClient.patch<Clip>(
-        `/projects/${projectId}/tracks/${trackId}/clips/${clipId}`,
-        dto,
-    );
-    return data;
+    const path = `/projects/${projectId}/tracks/${trackId}/clips/${clipId}`;
+    const { data } = await apiClient.patch<unknown>(path, dto);
+    return parseResponse(clipSchema, `PATCH ${path}`, data);
 }

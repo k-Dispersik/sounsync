@@ -1,12 +1,9 @@
 import axios from "axios";
 
 import apiClient from "js/shared/api/client";
+import { parseResponse } from "js/shared/api/parse";
+import { sessionSchema, userSchema } from "js/shared/api/schemas";
 import type { AuthUser, Credentials, Registration } from "./types";
-
-interface SessionResponse {
-    token: string;
-    user: AuthUser;
-}
 
 /** Field name to the messages the server rejected it with. */
 export type FieldErrors = Record<string, string[]>;
@@ -46,19 +43,19 @@ function bearer(token: string) {
     return { headers: { Authorization: `Bearer ${token}` } };
 }
 
-export async function login(credentials: Credentials): Promise<SessionResponse> {
-    const { data } = await apiClient.post<SessionResponse>("/auth/login", credentials);
-    return data;
+export async function login(credentials: Credentials) {
+    const { data } = await apiClient.post<unknown>("/auth/login", credentials);
+    return parseResponse(sessionSchema, "POST /auth/login", data);
 }
 
-export async function register(registration: Registration): Promise<SessionResponse> {
-    const { data } = await apiClient.post<SessionResponse>("/auth/register", registration);
-    return data;
+export async function register(registration: Registration) {
+    const { data } = await apiClient.post<unknown>("/auth/register", registration);
+    return parseResponse(sessionSchema, "POST /auth/register", data);
 }
 
 export async function fetchCurrentUser(token: string): Promise<AuthUser> {
-    const { data } = await apiClient.get<AuthUser>("/auth/me", bearer(token));
-    return data;
+    const { data } = await apiClient.get<unknown>("/auth/me", bearer(token));
+    return parseResponse(userSchema, "GET /auth/me", data);
 }
 
 export async function logout(token: string): Promise<void> {

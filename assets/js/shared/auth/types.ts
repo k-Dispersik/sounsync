@@ -1,8 +1,6 @@
-export interface AuthUser {
-    id: number;
-    name: string;
-    email: string;
-}
+import type { User } from "js/shared/api/schemas";
+
+export type AuthUser = User;
 
 export interface Credentials {
     email: string;
