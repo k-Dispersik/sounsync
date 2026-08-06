@@ -3,9 +3,9 @@ import { fileURLToPath } from "node:url";
 
 export default defineConfig({
     resolve: {
-        // Same alias esbuild uses, so imports like "js/shared/types" resolve.
+        // Same alias esbuild and tsconfig use, so "@/shared/types" resolves.
         alias: {
-            js: fileURLToPath(new URL("./js", import.meta.url)),
+            "@": fileURLToPath(new URL("./js", import.meta.url)),
         },
     },
     test: {

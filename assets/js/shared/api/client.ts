@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import { clearToken, readToken } from "js/shared/auth/storage";
+import { clearToken, readToken } from "@/shared/auth/storage";
 
 const apiClient = axios.create({
     baseURL: "/v1",

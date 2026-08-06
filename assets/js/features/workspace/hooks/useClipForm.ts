@@ -43,7 +43,7 @@ const LIBRARY: LibrarySample[] = [
     { id: "e2", title: "Vinyl Crackle", type: "effect", duration: 4000 },
 ];
 
-import type { Clip } from "js/shared/types";
+import type { Clip } from "@/shared/types";
 
 export type ClipSuccessCallback = (trackId: number, clip: Clip, isEdit: boolean) => void;
 

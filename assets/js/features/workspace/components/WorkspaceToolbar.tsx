@@ -1,6 +1,6 @@
 import { Plus, Mic } from "lucide-react";
 import { createTrack } from "../api/tracks";
-import type { Track } from "../../../shared/types/index";
+import type { Track } from "@/shared/types";
 import { useClipModal } from "../contextProviders/ClipModalProvider";
 
 interface Props {

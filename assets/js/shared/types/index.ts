@@ -7,7 +7,7 @@ export type {
     ProjectSummary,
     Track,
     User,
-} from "js/shared/api/schemas";
+} from "@/shared/api/schemas";
 
 export { TIME_SIGNATURES } from "./timeSignature";
 export type { TimeSignatureValue } from "./timeSignature";

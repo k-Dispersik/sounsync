@@ -1,8 +1,8 @@
 import axios from "axios";
 
-import apiClient from "js/shared/api/client";
-import { parseResponse } from "js/shared/api/parse";
-import { sessionSchema, userSchema } from "js/shared/api/schemas";
+import apiClient from "@/shared/api/client";
+import { parseResponse } from "@/shared/api/parse";
+import { sessionSchema, userSchema } from "@/shared/api/schemas";
 import type { AuthUser, Credentials, Registration } from "./types";
 
 /** Field name to the messages the server rejected it with. */

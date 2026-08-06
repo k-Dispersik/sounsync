@@ -59,9 +59,14 @@ export default tseslint.config(
                 {
                     patterns: [
                         {
-                            group: ["**/features/*/*", "**/features/*/*/**"],
+                            group: [
+                                "@/features/*/*",
+                                "@/features/*/*/**",
+                                "**/features/*/*",
+                                "**/features/*/*/**",
+                            ],
                             message:
-                                "Import through the features/<name> barrel, not into the feature.",
+                                "Import through the @/features/<name> barrel, not into the feature.",
                         },
                     ],
                 },

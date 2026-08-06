@@ -2,8 +2,8 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-import { AuthProvider } from "./shared/auth/AuthProvider";
-import AppRouter from "./routers";
+import { AuthProvider } from "@/shared/auth/AuthProvider";
+import AppRouter from "@/routers";
 
 // Server state here is kept fresh by realtime events, not by polling, so the
 // defaults are turned down: a refetch on every window focus would race the

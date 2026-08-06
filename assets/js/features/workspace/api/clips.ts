@@ -1,7 +1,7 @@
-import apiClient from "js/shared/api/client";
-import { parseResponse } from "js/shared/api/parse";
-import { clipSchema } from "js/shared/api/schemas";
-import type { Clip } from "js/shared/types";
+import apiClient from "@/shared/api/client";
+import { parseResponse } from "@/shared/api/parse";
+import { clipSchema } from "@/shared/api/schemas";
+import type { Clip } from "@/shared/types";
 
 export interface CreateClipDTO {
     title: string;

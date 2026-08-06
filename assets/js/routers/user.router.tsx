@@ -1,4 +1,4 @@
-import Workspace from "../pages/user/workspace";
+import Workspace from "@/pages/user/workspace";
 import { USER_ROUTES } from "./routes.names";
 
 export default [

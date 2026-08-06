@@ -6,7 +6,10 @@
     "jsx": "react-jsx",
     "strict": true,
     "noEmit": true,
-    "baseUrl": "."
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./js/*"]
+    }
   },
   "include": [
     "js/**/*"

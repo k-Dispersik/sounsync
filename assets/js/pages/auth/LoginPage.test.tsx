@@ -3,11 +3,11 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import * as api from "js/shared/auth/api";
-import { AuthProvider } from "js/shared/auth/AuthProvider";
+import * as api from "@/shared/auth/api";
+import { AuthProvider } from "@/shared/auth/AuthProvider";
 import LoginPage from "./LoginPage";
 
-vi.mock("js/shared/auth/api", async (importOriginal) => ({
+vi.mock("@/shared/auth/api", async (importOriginal) => ({
     ...(await importOriginal<typeof api>()),
     login: vi.fn(),
     fetchCurrentUser: vi.fn(),

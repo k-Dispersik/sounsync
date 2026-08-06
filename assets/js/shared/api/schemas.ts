@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { TIME_SIGNATURES } from "js/shared/types/timeSignature";
+import { TIME_SIGNATURES } from "@/shared/types/timeSignature";
 
 /**
  * Every API response is parsed through one of these before the app sees it.

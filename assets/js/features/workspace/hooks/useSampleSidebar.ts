@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { Track, Clip } from "js/shared/types";
+import type { Track, Clip } from "@/shared/types";
 
 export interface SidebarClip extends Clip {
     project_id: number;

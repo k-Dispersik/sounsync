@@ -1,7 +1,7 @@
 import { createContext, useContext, useState } from "react";
-import type { Clip } from "js/shared/types";
-import type { ClipSuccessCallback } from "js/features/workspace/hooks/useClipForm";
-import ClipModal from "js/features/workspace/components/ClipModal";
+import type { Clip } from "@/shared/types";
+import type { ClipSuccessCallback } from "@/features/workspace/hooks/useClipForm";
+import ClipModal from "@/features/workspace/components/ClipModal";
 
 export type ClipModalState =
     | { kind: "create"; projectId: number; trackId: number; startTime: number }

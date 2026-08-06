@@ -1,7 +1,7 @@
 import { createContext, use, useCallback, useEffect, useMemo, useState } from "react";
 
-import { setUnauthorizedHandler } from "js/shared/api/client";
-import { createLogger } from "js/shared/lib/logger";
+import { setUnauthorizedHandler } from "@/shared/api/client";
+import { createLogger } from "@/shared/lib/logger";
 import * as api from "./api";
 import { clearToken, readToken, writeToken } from "./storage";
 import type { AuthStatus, AuthUser, Credentials, Registration } from "./types";

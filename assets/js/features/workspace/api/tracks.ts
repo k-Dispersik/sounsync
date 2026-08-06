@@ -1,7 +1,7 @@
-import apiClient from "js/shared/api/client";
-import { parseResponse } from "js/shared/api/parse";
-import { trackSchema } from "js/shared/api/schemas";
-import type { Track } from "js/shared/types";
+import apiClient from "@/shared/api/client";
+import { parseResponse } from "@/shared/api/parse";
+import { trackSchema } from "@/shared/api/schemas";
+import type { Track } from "@/shared/types";
 
 export interface CreateTrackDTO {
     row: number;

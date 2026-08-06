@@ -1,4 +1,4 @@
-import { Logo } from "js/shared/components/Logo";
+import { Logo } from "@/shared/components/Logo";
 
 interface Props {
     title: string;

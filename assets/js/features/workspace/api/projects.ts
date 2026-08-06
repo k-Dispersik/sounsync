@@ -1,7 +1,7 @@
-import apiClient from "js/shared/api/client";
-import { parseResponse } from "js/shared/api/parse";
-import { projectSchema, projectSummarySchema } from "js/shared/api/schemas";
-import type { Project, ProjectSettings, ProjectSummary } from "js/shared/types";
+import apiClient from "@/shared/api/client";
+import { parseResponse } from "@/shared/api/parse";
+import { projectSchema, projectSummarySchema } from "@/shared/api/schemas";
+import type { Project, ProjectSettings, ProjectSummary } from "@/shared/types";
 import { z } from "zod";
 
 export interface CreateProjectDTO {

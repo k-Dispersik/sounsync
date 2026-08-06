@@ -1,7 +1,7 @@
 import React from "react";
 import { Search, Upload, Music2, Clock } from "lucide-react";
 import useSampleSidebar from "../hooks/useSampleSidebar";
-import type { Track } from "../../../shared/types/index";
+import type { Track } from "@/shared/types";
 import { useClipModal } from "../contextProviders/ClipModalProvider";
 
 const CAT_ICONS: Record<string, string> = {

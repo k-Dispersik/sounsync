@@ -1,12 +1,12 @@
 import { ReactNode, useState } from "react";
 import { Share2, Download, ChevronDown, Plus } from "lucide-react";
-import { Logo } from "js/shared/components/Logo";
-import { useProjectBPM } from "js/features/workspace/hooks/useProjectBPM";
-import type { ProjectSettings } from "../../../shared/types";
-import { TIME_SIGNATURES, type TimeSignatureValue } from "js/shared/types";
+import { Logo } from "@/shared/components/Logo";
+import { useProjectBPM } from "@/features/workspace/hooks/useProjectBPM";
+import type { ProjectSettings } from "@/shared/types";
+import { TIME_SIGNATURES, type TimeSignatureValue } from "@/shared/types";
 import Transport from "./Transport";
 import { useTransportContext } from "../contextProviders/TransportProvider";
-import UserSettings from "js/shared/components/UserSettings";
+import UserSettings from "@/shared/components/UserSettings";
 import { getOrCreateSessionId } from "../services/signaling/workspaceChannel";
 import { RealtimeEvents } from "../events/events";
 import { useRealtime } from "../contextProviders/RealtimeProvider";

@@ -1,4 +1,4 @@
-import PageTemplate from "./template/pageTemplate";
+import PageTemplate from "@/template/pageTemplate";
 
 const App = () => {
     return <PageTemplate />;

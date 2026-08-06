@@ -1,7 +1,7 @@
 import { SignalingChannel } from "../signaling/signalingChannel";
 import { workspaceBus } from "../workspaceBus";
 import { RealtimeEvents } from "../../events/events";
-import { createLogger } from "js/shared/lib/logger";
+import { createLogger } from "@/shared/lib/logger";
 
 const log = createLogger("WorkspaceRtc");
 

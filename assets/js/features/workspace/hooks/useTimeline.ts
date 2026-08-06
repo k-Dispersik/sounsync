@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import type { Track, Project } from "js/shared/types";
+import type { Track, Project } from "@/shared/types";
 
 interface Props {
     project: Project | null;

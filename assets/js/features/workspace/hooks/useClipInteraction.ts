@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { Clip } from "js/shared/types";
+import { Clip } from "@/shared/types";
 import { updateClip } from "../api/clips";
 import { useRealtime } from "../contextProviders/RealtimeProvider";
 import { RealtimeEvents } from "../events/events";
 import { getOrCreateSessionId } from "../services/signaling/workspaceChannel";
-import { createLogger } from "js/shared/lib/logger";
+import { createLogger } from "@/shared/lib/logger";
 
 const log = createLogger("ClipInteraction");
 

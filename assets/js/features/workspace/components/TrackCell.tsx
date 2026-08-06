@@ -1,5 +1,5 @@
 import { CSSProperties } from "react";
-import type { Track } from "../../../shared/types/index";
+import type { Track } from "@/shared/types";
 
 interface TrackCellProps {
     track: Track;

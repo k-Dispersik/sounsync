@@ -1,4 +1,4 @@
-import type { User } from "js/shared/api/schemas";
+import type { User } from "@/shared/api/schemas";
 
 export type AuthUser = User;
 

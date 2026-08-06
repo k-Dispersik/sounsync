@@ -1,16 +1,16 @@
 import { type CSSProperties } from "react";
 import Ruler from "./Ruler";
 import TrackRow from "./TrackRow";
-import type { Project, Track } from "../../../shared/types/index";
+import type { Project, Track } from "@/shared/types";
 import { Trash2 } from "lucide-react";
 import { deleteTrack } from "../api/tracks";
 import WorkspaceToolbar from "./WorkspaceToolbar";
-import { useTimeline } from "js/features/workspace/hooks/useTimeline";
-import { useTimelineSelection } from "js/features/workspace/hooks/useTimelineSelection";
+import { useTimeline } from "@/features/workspace/hooks/useTimeline";
+import { useTimelineSelection } from "@/features/workspace/hooks/useTimelineSelection";
 import { RealtimeEvents } from "../events/events";
 import { useWorkspaceEvent } from "../hooks/useWorkspaceEvent";
 import { useRealtime } from "../contextProviders/RealtimeProvider";
-import { createLogger } from "js/shared/lib/logger";
+import { createLogger } from "@/shared/lib/logger";
 
 const log = createLogger("TimelineGrid");
 

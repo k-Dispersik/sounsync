@@ -1,7 +1,7 @@
 import MockAdapter from "axios-mock-adapter";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { writeToken, readToken } from "js/shared/auth/storage";
+import { writeToken, readToken } from "@/shared/auth/storage";
 import apiClient, { setUnauthorizedHandler } from "./client";
 
 let mock: MockAdapter;

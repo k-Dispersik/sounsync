@@ -1,7 +1,7 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-import App from "../AppRoot";
-import RequireAuth from "../shared/auth/RequireAuth";
+import App from "@/AppRoot";
+import RequireAuth from "@/shared/auth/RequireAuth";
 import authRouter from "./auth.router";
 import commonRouter from "./common.router";
 import userRouter from "./user.router";

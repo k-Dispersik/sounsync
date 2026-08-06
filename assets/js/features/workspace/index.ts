@@ -3,7 +3,7 @@ export { default as WorkspaceCursor } from "./components/WorkspaceCursor";
 export { default as TrackClip } from "./components/TrackClip";
 export type { TrackClipProps } from "./components/TrackClip";
 export { default as TimelineGrid } from "./components/TimelineGrid";
-export type { Project, Track, Clip } from "../../shared/types/index";
+export type { Project, Track, Clip } from "@/shared/types";
 export { default as WorkspaceTopBar } from "./components/WorkspaceTopBar";
 export { default as WorkspaceToolbar } from "./components/WorkspaceToolbar";
 export { default as SampleSidebar } from "./components/SampleSidebar";

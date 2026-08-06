@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 
-import { describeAuthError, type FieldErrors } from "js/shared/auth/api";
-import { useAuth } from "js/shared/auth/AuthProvider";
+import { describeAuthError, type FieldErrors } from "@/shared/auth/api";
+import { useAuth } from "@/shared/auth/AuthProvider";
 import AuthField from "./AuthField";
 import AuthLayout from "./AuthLayout";
 

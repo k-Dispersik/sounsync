@@ -1,6 +1,6 @@
 import { Channel } from "phoenix";
 import { connectSocket, socket } from "./socket";
-import { createLogger } from "js/shared/lib/logger";
+import { createLogger } from "@/shared/lib/logger";
 
 const log = createLogger("Signaling");
 

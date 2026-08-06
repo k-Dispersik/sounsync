@@ -1,21 +1,21 @@
 import { useCallback } from "react";
 import { useParams } from "react-router-dom";
-import WorkspaceCursor from "../../features/workspace/components/WorkspaceCursor";
-import TimelineGrid from "../../features/workspace/components/TimelineGrid";
-import WorkspaceTopBar from "../../features/workspace/components/WorkspaceTopBar";
-import SampleSidebar from "../../features/workspace/components/SampleSidebar";
-import { updateProjectSettings } from "../../features/workspace/api/projects";
-import { useWorkspaceRealtime } from "../../features/workspace/hooks/useWorkspaceRealtime";
-import { useWorkspaceEvent } from "../../features/workspace/hooks/useWorkspaceEvent";
-import { RealtimeEvents } from "../../features/workspace/events/events";
-import { useProject } from "../../features/workspace/hooks/useProject";
-import type { Clip, ProjectSettings, Track } from "../../shared/types";
-import TransportProvider from "js/features/workspace/contextProviders/TransportProvider";
-import ClipModalProvider from "js/features/workspace/contextProviders/ClipModalProvider";
+import WorkspaceCursor from "@/features/workspace/components/WorkspaceCursor";
+import TimelineGrid from "@/features/workspace/components/TimelineGrid";
+import WorkspaceTopBar from "@/features/workspace/components/WorkspaceTopBar";
+import SampleSidebar from "@/features/workspace/components/SampleSidebar";
+import { updateProjectSettings } from "@/features/workspace/api/projects";
+import { useWorkspaceRealtime } from "@/features/workspace/hooks/useWorkspaceRealtime";
+import { useWorkspaceEvent } from "@/features/workspace/hooks/useWorkspaceEvent";
+import { RealtimeEvents } from "@/features/workspace/events/events";
+import { useProject } from "@/features/workspace/hooks/useProject";
+import type { Clip, ProjectSettings, Track } from "@/shared/types";
+import TransportProvider from "@/features/workspace/contextProviders/TransportProvider";
+import ClipModalProvider from "@/features/workspace/contextProviders/ClipModalProvider";
 import RealtimeProvider, {
     useRealtime,
-} from "js/features/workspace/contextProviders/RealtimeProvider";
-import { getOrCreateSessionId } from "js/features/workspace/services/signaling/workspaceChannel";
+} from "@/features/workspace/contextProviders/RealtimeProvider";
+import { getOrCreateSessionId } from "@/features/workspace/services/signaling/workspaceChannel";
 
 // The realtime room is named after the project, which is what the server
 // authorises against; a shared constant put every project in one room.

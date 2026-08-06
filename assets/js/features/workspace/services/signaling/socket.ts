@@ -1,6 +1,6 @@
 import { Socket } from "phoenix";
 
-import { readToken } from "js/shared/auth/storage";
+import { readToken } from "@/shared/auth/storage";
 
 // `params` is a function on purpose: the socket outlives a single session, and
 // reconnects have to present whatever token is current, not the one that

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { GripVertical, Pencil } from "lucide-react";
-import { Clip } from "js/shared/types";
+import { Clip } from "@/shared/types";
 import { useClipInteraction } from "../hooks/useClipInteraction";
 import { useClipModal } from "../contextProviders/ClipModalProvider";
 import { useWorkspaceEvent } from "../hooks/useWorkspaceEvent";

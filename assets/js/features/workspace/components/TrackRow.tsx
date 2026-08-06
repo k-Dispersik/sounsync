@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { Track } from "../../../shared/types/index";
+import type { Track } from "@/shared/types";
 import TrackClip from "./TrackClip";
 import { TrackCell } from "./TrackCell";
 import { BarEndMarkers, PlayheadMarker } from "./TimelineMarkers";

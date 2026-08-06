@@ -1,4 +1,4 @@
-import type { Clip, Track, ProjectSettings } from "js/shared/types";
+import type { Clip, Track, ProjectSettings } from "@/shared/types";
 
 export const RealtimeEvents = {
     CURSOR_MOVE: "workspace:cursor:move",

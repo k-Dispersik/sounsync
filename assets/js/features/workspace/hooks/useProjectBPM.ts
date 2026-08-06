@@ -1,4 +1,4 @@
-import type { ProjectSettings } from "js/shared/types";
+import type { ProjectSettings } from "@/shared/types";
 import { useEffect, useState } from "react";
 
 interface Props {

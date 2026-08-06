@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 
-import type { Clip, Project, ProjectSettings, Track } from "js/shared/types";
+import type { Clip, Project, ProjectSettings, Track } from "@/shared/types";
 import { getProject } from "../api/projects";
 
 export const projectQueryKey = (id: number) => ["project", id] as const;
