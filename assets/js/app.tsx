@@ -5,7 +5,18 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "./shared/auth/AuthProvider";
 import AppRouter from "./routers";
 
-const queryClient = new QueryClient();
+// Server state here is kept fresh by realtime events, not by polling, so the
+// defaults are turned down: a refetch on every window focus would race the
+// optimistic edits a peer just sent us and make clips jump.
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            staleTime: 30_000,
+            refetchOnWindowFocus: false,
+            retry: 1,
+        },
+    },
+});
 
 const container = document.getElementById("root");
 

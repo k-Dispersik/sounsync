@@ -27,6 +27,8 @@ function WorkspaceContent() {
     const {
         project,
         isLoading,
+        isError,
+        refetch,
         addClip,
         updateClipInState,
         updateSettings,
@@ -73,6 +75,24 @@ function WorkspaceContent() {
         },
         [removeTrack],
     );
+
+    if (isError) {
+        return (
+            <div
+                role="alert"
+                className="flex-1 flex flex-col items-center justify-center gap-3 text-sm"
+            >
+                <p className="text-base-content/60">This project could not be loaded.</p>
+                <button
+                    type="button"
+                    onClick={() => void refetch()}
+                    className="h-8 px-4 rounded-md bg-primary text-primary-content text-sm"
+                >
+                    Try again
+                </button>
+            </div>
+        );
+    }
 
     return (
         <TransportProvider>

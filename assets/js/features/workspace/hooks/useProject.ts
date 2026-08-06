@@ -1,77 +1,91 @@
-import { useState, useEffect, useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback } from "react";
+
+import type { Clip, Project, ProjectSettings, Track } from "js/shared/types";
 import { getProject } from "../api/projects";
-import type { Project, ProjectSettings } from "../../../shared/types/index";
-import type { Track } from "../../../shared/types/index";
-import type { Clip } from "../../../shared/types/index";
 
+export const projectQueryKey = (id: number) => ["project", id] as const;
+
+/**
+ * The project as the server sees it, kept in the query cache.
+ *
+ * Realtime events and optimistic edits write into that same cache rather than
+ * into a second copy in component state: two copies of the same project is how
+ * a peer's change ends up visible in the timeline but missing after a refetch.
+ * The mutating helpers below are deliberately local — the API call that makes
+ * a change durable is made by whoever owns the interaction.
+ */
 export function useProject(id: number) {
-    const [project, setProject] = useState<Project | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const queryClient = useQueryClient();
 
-    const fetch = useCallback(() => {
-        setIsLoading(true);
-        getProject(id).then((project) => {
-            setProject(project);
-            setIsLoading(false);
-        });
-    }, [id]);
+    const query = useQuery({
+        queryKey: projectQueryKey(id),
+        queryFn: () => getProject(id),
+        enabled: Number.isInteger(id) && id > 0,
+    });
 
-    useEffect(() => {
-        fetch();
-    }, [fetch]);
-
-    const addClip = useCallback((trackId: number, clip: Clip) => {
-        setProject((prev) => {
-            if (!prev) return prev;
-            return {
-                ...prev,
-                tracks: prev.tracks.map((t) =>
-                    t.id === trackId ? { ...t, clips: [...t.clips, clip] } : t,
-                ),
-            };
-        });
-    }, []);
-
-    const updateClipInState = useCallback(
-        (trackId: number, clipId: number, changes: Partial<Clip>) => {
-            setProject((prev) => {
-                if (!prev) return prev;
-                return {
-                    ...prev,
-                    tracks: prev.tracks.map((t) =>
-                        t.id === trackId
-                            ? {
-                                  ...t,
-                                  clips: t.clips.map((c) =>
-                                      c.id === clipId ? { ...c, ...changes } : c,
-                                  ),
-                              }
-                            : t,
-                    ),
-                };
-            });
+    const patch = useCallback(
+        (update: (project: Project) => Project) => {
+            queryClient.setQueryData<Project>(projectQueryKey(id), (previous) =>
+                previous ? update(previous) : previous,
+            );
         },
-        [],
+        [queryClient, id],
     );
 
-    const updateSettings = useCallback((settings: ProjectSettings) => {
-        setProject((prev) => (prev ? { ...prev, settings } : prev));
-    }, []);
+    const patchTrack = useCallback(
+        (trackId: number, update: (track: Track) => Track) =>
+            patch((project) => ({
+                ...project,
+                tracks: project.tracks.map((track) =>
+                    track.id === trackId ? update(track) : track,
+                ),
+            })),
+        [patch],
+    );
 
-    const addTrack = useCallback((track: Track) => {
-        setProject((prev) => (prev ? { ...prev, tracks: [...prev.tracks, track] } : prev));
-    }, []);
+    const addClip = useCallback(
+        (trackId: number, clip: Clip) =>
+            patchTrack(trackId, (track) => ({ ...track, clips: [...track.clips, clip] })),
+        [patchTrack],
+    );
 
-    const removeTrack = useCallback((trackId: number) => {
-        setProject((prev) =>
-            prev ? { ...prev, tracks: prev.tracks.filter((t) => t.id !== trackId) } : prev,
-        );
-    }, []);
+    const updateClipInState = useCallback(
+        (trackId: number, clipId: number, changes: Partial<Clip>) =>
+            patchTrack(trackId, (track) => ({
+                ...track,
+                clips: track.clips.map((clip) =>
+                    clip.id === clipId ? { ...clip, ...changes } : clip,
+                ),
+            })),
+        [patchTrack],
+    );
+
+    const updateSettings = useCallback(
+        (settings: ProjectSettings) => patch((project) => ({ ...project, settings })),
+        [patch],
+    );
+
+    const addTrack = useCallback(
+        (track: Track) => patch((project) => ({ ...project, tracks: [...project.tracks, track] })),
+        [patch],
+    );
+
+    const removeTrack = useCallback(
+        (trackId: number) =>
+            patch((project) => ({
+                ...project,
+                tracks: project.tracks.filter((track) => track.id !== trackId),
+            })),
+        [patch],
+    );
 
     return {
-        project,
-        isLoading,
-        refetch: fetch,
+        project: query.data ?? null,
+        isLoading: query.isPending,
+        isError: query.isError,
+        error: query.error,
+        refetch: query.refetch,
         addClip,
         updateClipInState,
         updateSettings,

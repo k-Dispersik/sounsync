@@ -49,11 +49,6 @@
       "count": 1
     }
   },
-  "js/features/workspace/hooks/useProject.ts": {
-    "@typescript-eslint/no-floating-promises": {
-      "count": 1
-    }
-  },
   "js/features/workspace/hooks/useTimeline.ts": {
     "complexity": {
       "count": 1

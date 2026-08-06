@@ -12,6 +12,9 @@ export default defineConfig({
         environment: "jsdom",
         setupFiles: ["./js/test/setup.ts"],
         include: ["js/**/*.test.{ts,tsx}"],
+        // Each test starts with a clean slate: call counts leaking between
+        // tests make "was this called once?" quietly meaningless.
+        clearMocks: true,
         restoreMocks: true,
     },
 });
