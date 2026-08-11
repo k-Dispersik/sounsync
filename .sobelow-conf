@@ -12,5 +12,7 @@
   out: nil,
   private: false,
   router: nil,
-  skip: false
+  # Honour "# sobelow_skip" annotations: a few filesystem calls are guarded by
+  # a check sobelow cannot see, and each one says so in a comment above it.
+  skip: true
 ]
