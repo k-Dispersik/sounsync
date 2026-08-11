@@ -9,6 +9,11 @@ config :soundsync, Soundsync.Repo,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
 
+config :soundsync, :storage,
+  adapter: Core.Storage.Local,
+  root: Path.expand("../priv/uploads", __DIR__),
+  public_prefix: "/uploads"
+
 config :soundsync, SoundsyncWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}],
   check_origin: false,

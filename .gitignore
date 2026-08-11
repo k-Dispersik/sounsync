@@ -44,3 +44,7 @@ npm-debug.log
 
 # Dialyzer PLT, cached by CI and never committed.
 /priv/plts/
+
+# Uploaded files in dev — real audio, never committed.
+/priv/uploads/
+/tmp/

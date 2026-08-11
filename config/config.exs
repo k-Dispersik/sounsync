@@ -16,6 +16,13 @@ config :soundsync, SoundsyncWeb.Endpoint,
 
 config :soundsync, Soundsync.Mailer, adapter: Swoosh.Adapters.Local
 
+# Storage limits are the same everywhere; where the bytes land is not.
+config :soundsync, :storage,
+  adapter: Core.Storage.Local,
+  max_upload_bytes: 50 * 1024 * 1024,
+  allowed_content_types: ~w(audio/wav audio/mpeg audio/flac audio/ogg audio/mp4),
+  upload_url_ttl_seconds: 900
+
 config :esbuild,
   version: "0.25.4",
   soundsync: [

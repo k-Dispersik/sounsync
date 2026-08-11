@@ -8,6 +8,13 @@ config :soundsync, SoundsyncWeb.Endpoint,
   http: [port: String.to_integer(System.get_env("PORT", "4000"))]
 
 if config_env() == :prod do
+  # Production writes to S3. Nothing about the bucket lives in the repository.
+  config :soundsync, :storage,
+    adapter: Core.Storage.S3,
+    bucket: System.fetch_env!("S3_BUCKET"),
+    region: System.fetch_env!("AWS_REGION"),
+    public_base_url: System.get_env("S3_PUBLIC_BASE_URL")
+
   database_url =
     System.get_env("DATABASE_URL") ||
       raise """
