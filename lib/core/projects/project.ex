@@ -12,6 +12,7 @@ defmodule Core.Projects.Project do
       defaults_to_struct: true
 
     has_many :tracks, Core.Projects.Track, on_delete: :delete_all
+    has_many :audio_files, Core.Storage.AudioFile, on_delete: :delete_all
     has_many :memberships, Core.Projects.ProjectMember, on_delete: :delete_all
     many_to_many :users, Core.Accounts.User, join_through: Core.Projects.ProjectMember
 

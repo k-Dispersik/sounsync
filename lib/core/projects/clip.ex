@@ -15,5 +15,6 @@ defmodule Core.Projects.Clip do
     embeds_one :settings, Core.Projects.ClipSetting
 
     belongs_to :track, Core.Projects.Track
+    belongs_to :audio_file, Core.Storage.AudioFile
   end
 end

@@ -6,7 +6,9 @@ defmodule Core.Storage.S3Test do
   against a stub.
   """
 
-  use ExUnit.Case, async: true
+  # Not async: these swap the storage adapter in the application environment,
+  # which is global. Two of them running at once would read each other's config.
+  use ExUnit.Case, async: false
 
   alias Core.Storage.S3
 

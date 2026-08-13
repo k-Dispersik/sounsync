@@ -5,7 +5,9 @@ defmodule Core.Storage.LocalTest do
   outside the root, a file that is not there.
   """
 
-  use ExUnit.Case, async: true
+  # Not async: these swap the storage adapter in the application environment,
+  # which is global. Two of them running at once would read each other's config.
+  use ExUnit.Case, async: false
 
   alias Core.Storage.Local
 
