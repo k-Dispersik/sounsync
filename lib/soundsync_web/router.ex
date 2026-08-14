@@ -50,6 +50,7 @@ defmodule SoundsyncWeb.Router do
     end
 
     put "/uploads/:id/data", UploadController, :data
+    post "/uploads/:id/complete", UploadController, :complete
   end
 
   if Application.compile_env(:soundsync, :dev_routes) do

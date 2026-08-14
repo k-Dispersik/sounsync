@@ -14,6 +14,7 @@ defmodule Core.Storage do
   alias Core.Projects.Project
   alias Core.Storage.Adapter
   alias Core.Storage.AudioFile
+  alias Core.Storage.Signature
   alias Soundsync.Repo
 
   @spec put(Adapter.key(), iodata() | {:file, Path.t()}, Adapter.opts()) ::
@@ -26,6 +27,9 @@ defmodule Core.Storage do
   @spec upload_url(Adapter.key(), Adapter.opts()) ::
           {:ok, Adapter.upload_instruction()} | {:error, term()}
   def upload_url(key, opts \\ []), do: adapter().upload_url(key, opts)
+
+  @spec read(Adapter.key(), Adapter.opts()) :: {:ok, binary()} | {:error, term()}
+  def read(key, opts \\ []), do: adapter().read(key, opts)
 
   @spec delete(Adapter.key()) :: :ok | {:error, term()}
   def delete(key), do: adapter().delete(key)
@@ -85,6 +89,70 @@ defmodule Core.Storage do
         nil -> register(project, user, attrs)
       end
     end
+  end
+
+  @doc """
+  Confirms that the bytes actually arrived and are what was announced.
+
+  Two checks, both against the stored object rather than the request that
+  described it: the size must match what was claimed, and the first bytes must
+  belong to a format we can play and agree with the declared content type. A
+  file that fails either is deleted — keeping it would mean keeping something
+  we have already decided not to trust.
+  """
+  @spec complete_upload(AudioFile.t()) :: {:ok, AudioFile.t()} | {:error, term()}
+  def complete_upload(%AudioFile{status: :ready} = audio_file), do: {:ok, audio_file}
+
+  def complete_upload(%AudioFile{} = audio_file) do
+    case verify(audio_file) do
+      :ok -> mark(audio_file, :ready)
+      {:error, reason} -> reject(audio_file, reason)
+    end
+  end
+
+  defp verify(audio_file) do
+    case stat(audio_file.storage_key) do
+      {:ok, %{size: size}} ->
+        with :ok <- verify_size(audio_file, size),
+             {:ok, head} <- read(audio_file.storage_key, length: Signature.probe_size()) do
+          verify_signature(audio_file, head)
+        end
+
+      # Completing an upload whose bytes never arrived is the client's mistake,
+      # not ours, so it must not read as a server error.
+      {:error, :enoent} ->
+        {:error, :upload_missing}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp verify_size(%AudioFile{byte_size: announced}, announced), do: :ok
+  defp verify_size(_audio_file, _actual), do: {:error, :size_mismatch}
+
+  defp verify_signature(audio_file, head) do
+    case Signature.detect(head) do
+      {:ok, format} ->
+        if Signature.matches?(format, audio_file.content_type),
+          do: :ok,
+          else: {:error, :content_type_mismatch}
+
+      :error ->
+        {:error, :unsupported_content_type}
+    end
+  end
+
+  defp reject(audio_file, reason) do
+    delete(audio_file.storage_key)
+    {:ok, _failed} = mark(audio_file, :failed)
+    {:error, reason}
+  end
+
+  defp mark(audio_file, status) do
+    audio_file
+    |> AudioFile.analysed_changeset(%{status: status})
+    |> Repo.update()
   end
 
   @doc "Fetches an audio file by id, or `nil`."

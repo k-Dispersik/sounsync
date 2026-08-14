@@ -33,6 +33,9 @@ defmodule Core.StorageTest do
     end
 
     @impl true
+    def read(_key, _opts \\ []), do: {:ok, "stub"}
+
+    @impl true
     def delete(_key), do: :ok
 
     @impl true
@@ -51,6 +54,7 @@ defmodule Core.StorageTest do
     assert {:ok, {:put, "k", []}} = Storage.put("k", "data")
     assert {:ok, "stub://k"} = Storage.get_url("k")
     assert {:ok, %{url: "stub://upload/k"}} = Storage.upload_url("k")
+    assert {:ok, "stub"} = Storage.read("k")
     assert :ok = Storage.delete("k")
     assert {:ok, %{size: 1}} = Storage.stat("k")
   end

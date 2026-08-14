@@ -50,6 +50,16 @@ defmodule SoundsyncWeb.API.V1.UploadController do
     end
   end
 
+  @doc """
+  Confirms an upload finished. Only after this does the file count as usable.
+  """
+  def complete(conn, %{"id" => id}) do
+    with {:ok, audio_file} <- fetch_writable(conn, id),
+         {:ok, completed} <- Storage.complete_upload(audio_file) do
+      completed |> JSON.audio_file() |> Helpers.response(conn, :ok)
+    end
+  end
+
   defp fetch_writable(conn, id) do
     with {:ok, file_id} <- RequestParams.cast_id(id),
          %AudioFile{} = audio_file <- Storage.get_audio_file(file_id),

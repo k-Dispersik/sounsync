@@ -18,7 +18,7 @@ defmodule Core.Storage.S3 do
 
   @impl true
   def put(key, data, opts \\ []) do
-    body = read(data)
+    body = to_body(data)
 
     case request(:put, key, body: body, headers: content_type_headers(opts)) do
       {:ok, %{status: status}} when status in 200..299 -> {:ok, key}
@@ -45,6 +45,22 @@ defmodule Core.Storage.S3 do
          headers: content_type_headers(opts) |> Map.new(),
          expires_at: DateTime.add(DateTime.utc_now(), ttl(), :second)
        }}
+    end
+  end
+
+  @impl true
+  def read(key, opts \\ []) do
+    headers =
+      case Keyword.get(opts, :length) do
+        nil -> []
+        length -> [{"range", "bytes=0-#{length - 1}"}]
+      end
+
+    case request(:get, key, headers: headers) do
+      {:ok, %{status: status, body: body}} when status in [200, 206] -> {:ok, body}
+      {:ok, %{status: 404}} -> {:error, :enoent}
+      {:ok, %{status: status}} -> {:error, {:unexpected_status, status}}
+      {:error, reason} -> {:error, reason}
     end
   end
 
@@ -113,8 +129,8 @@ defmodule Core.Storage.S3 do
   # sobelow_skip ["Traversal.FileModule"]
   # The path is ours: it names a file the application just wrote itself while
   # handling an upload, never a value that came from a request.
-  defp read({:file, path}), do: File.read!(path)
-  defp read(data), do: data
+  defp to_body({:file, path}), do: File.read!(path)
+  defp to_body(data), do: data
 
   defp content_type_headers(opts) do
     case Keyword.get(opts, :content_type) do

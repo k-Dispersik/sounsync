@@ -175,4 +175,92 @@ defmodule SoundsyncWeb.API.V1.UploadControllerTest do
       assert json_response(conn, 401)
     end
   end
+
+  describe "POST /v1/uploads/:id/complete" do
+    setup %{conn: conn, owner: owner, project: project} do
+      body = conn |> as(owner) |> announce(project) |> json_response(201)
+      %{upload_url: body["upload"]["url"], file_id: body["audio_file"]["id"]}
+    end
+
+    defp send_bytes(conn, owner, url, bytes) do
+      conn
+      |> as(owner)
+      |> put_req_header("content-type", "audio/wav")
+      |> put(url, bytes)
+    end
+
+    test "marks the file ready once the bytes check out", ctx do
+      %{conn: conn, owner: owner, upload_url: url, file_id: file_id} = ctx
+      assert response(send_bytes(conn, owner, url, @wav), 204)
+
+      body = conn |> as(owner) |> post(~p"/v1/uploads/#{file_id}/complete") |> json_response(200)
+
+      assert body["status"] == "ready"
+      assert Storage.get_audio_file(file_id).status == :ready
+    end
+
+    test "completing twice is not an error", ctx do
+      %{conn: conn, owner: owner, upload_url: url, file_id: file_id} = ctx
+      assert response(send_bytes(conn, owner, url, @wav), 204)
+      conn |> as(owner) |> post(~p"/v1/uploads/#{file_id}/complete") |> json_response(200)
+
+      assert conn
+             |> as(owner)
+             |> post(~p"/v1/uploads/#{file_id}/complete")
+             |> json_response(200)
+    end
+
+    test "a file that is not audio is rejected and deleted", ctx do
+      %{conn: conn, owner: owner, upload_url: url, file_id: file_id, root: root} = ctx
+      executable = "MZ" <> String.duplicate(<<0>>, byte_size(@wav) - 2)
+      assert response(send_bytes(conn, owner, url, executable), 204)
+
+      conn = conn |> as(owner) |> post(~p"/v1/uploads/#{file_id}/complete")
+
+      assert %{"error" => %{"code" => "unsupported_content_type"}} = json_response(conn, 422)
+
+      file = Storage.get_audio_file(file_id)
+      assert file.status == :failed
+      refute File.exists?(Path.join(root, file.storage_key))
+    end
+
+    test "audio of the wrong kind is rejected too", ctx do
+      %{conn: conn, owner: owner, upload_url: url, file_id: file_id} = ctx
+      mp3 = "ID3" <> String.duplicate(<<0>>, byte_size(@wav) - 3)
+      assert response(send_bytes(conn, owner, url, mp3), 204)
+
+      conn = conn |> as(owner) |> post(~p"/v1/uploads/#{file_id}/complete")
+
+      assert %{"error" => %{"code" => "content_type_mismatch"}} = json_response(conn, 422)
+      assert Storage.get_audio_file(file_id).status == :failed
+    end
+
+    test "a size that does not match what was announced is rejected", ctx do
+      %{conn: conn, owner: owner, upload_url: url, file_id: file_id} = ctx
+      assert response(send_bytes(conn, owner, url, @wav <> "extra"), 204)
+
+      conn = conn |> as(owner) |> post(~p"/v1/uploads/#{file_id}/complete")
+
+      assert %{"error" => %{"code" => "size_mismatch"}} = json_response(conn, 422)
+      assert Storage.get_audio_file(file_id).status == :failed
+    end
+
+    test "completing an upload that never arrived is rejected", ctx do
+      %{conn: conn, owner: owner, file_id: file_id} = ctx
+
+      conn = conn |> as(owner) |> post(~p"/v1/uploads/#{file_id}/complete")
+
+      assert %{"error" => %{"code" => "upload_missing"}} = json_response(conn, 422)
+      assert Storage.get_audio_file(file_id).status == :failed
+    end
+
+    test "a stranger cannot complete someone else's upload", ctx do
+      %{conn: conn, file_id: file_id} = ctx
+
+      assert json_response(
+               conn |> as(user_fixture()) |> post(~p"/v1/uploads/#{file_id}/complete"),
+               403
+             )
+    end
+  end
 end

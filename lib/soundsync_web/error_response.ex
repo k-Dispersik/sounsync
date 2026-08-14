@@ -60,6 +60,18 @@ defmodule SoundsyncWeb.ErrorResponse do
   def send_error(conn, :invalid_byte_size, message),
     do: respond(conn, 422, "invalid_params", message || "byte_size must be a positive integer")
 
+  def send_error(conn, :content_type_mismatch, message),
+    do:
+      respond(
+        conn,
+        422,
+        "content_type_mismatch",
+        message || "The file is not the type it was announced as"
+      )
+
+  def send_error(conn, :upload_missing, message),
+    do: respond(conn, 422, "upload_missing", message || "The file was never uploaded")
+
   def send_error(conn, :size_mismatch, message),
     do:
       respond(

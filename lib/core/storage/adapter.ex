@@ -33,6 +33,12 @@ defmodule Core.Storage.Adapter do
   @doc "Where and how the client should upload the file."
   @callback upload_url(key(), opts()) :: {:ok, upload_instruction()} | {:error, term()}
 
+  @doc """
+  Reads the object back. `opts[:length]` asks for only the first N bytes, which
+  is how the upload check avoids pulling fifty megabytes to look at twelve.
+  """
+  @callback read(key(), opts()) :: {:ok, binary()} | {:error, :enoent | term()}
+
   @callback delete(key()) :: :ok | {:error, term()}
 
   @callback stat(key()) :: {:ok, stat()} | {:error, :enoent | term()}
