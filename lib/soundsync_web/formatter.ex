@@ -15,6 +15,7 @@ defmodule SoundsyncWeb.Formatter do
   alias Core.Projects.Project
   alias Core.Projects.ProjectSetting
   alias Core.Projects.Track
+  alias Core.Storage.AudioFile
 
   def format(%User{} = user) do
     %{
@@ -52,6 +53,18 @@ defmodule SoundsyncWeb.Formatter do
       duration: clip.duration,
       settings: format(clip.settings),
       file_path: clip.file_path
+    }
+  end
+
+  def format(%AudioFile{} = file) do
+    %{
+      id: file.id,
+      project_id: file.project_id,
+      original_filename: file.original_filename,
+      content_type: file.content_type,
+      byte_size: file.byte_size,
+      duration_ms: file.duration_ms,
+      status: file.status
     }
   end
 

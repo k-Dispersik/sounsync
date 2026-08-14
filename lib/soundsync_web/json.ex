@@ -12,6 +12,7 @@ defmodule SoundsyncWeb.JSON do
   alias Core.Projects.Clip
   alias Core.Projects.Project
   alias Core.Projects.Track
+  alias Core.Storage.AudioFile
   alias SoundsyncWeb.Formatter
 
   def encode!(data), do: Jason.encode!(data)
@@ -31,4 +32,24 @@ defmodule SoundsyncWeb.JSON do
   def track(%Track{} = track), do: Formatter.format(track)
 
   def clip(%Clip{} = clip), do: Formatter.format(clip)
+
+  def audio_file(%AudioFile{} = file), do: Formatter.format(file)
+
+  @doc """
+  The answer to announcing an upload: the file record, plus where to send the
+  bytes. `upload` is absent when the project already holds those exact bytes.
+  """
+  def upload(%{audio_file: file, upload: nil}), do: %{audio_file: audio_file(file), upload: nil}
+
+  def upload(%{audio_file: file, upload: instruction}) do
+    %{
+      audio_file: audio_file(file),
+      upload: %{
+        method: instruction.method,
+        url: instruction.url,
+        headers: instruction.headers,
+        expires_at: instruction.expires_at
+      }
+    }
+  end
 end

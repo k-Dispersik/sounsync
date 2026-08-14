@@ -25,6 +25,8 @@ defmodule SoundsyncWeb.ErrorResponse do
           | :forbidden
           | :not_found
           | :invalid_params
+          | :unsupported_content_type
+          | :file_too_large
           | Ecto.Changeset.t()
           | term()
 
@@ -42,6 +44,30 @@ defmodule SoundsyncWeb.ErrorResponse do
 
   def send_error(conn, :not_found, message),
     do: respond(conn, 404, "not_found", message || "Not found")
+
+  def send_error(conn, :unsupported_content_type, message),
+    do:
+      respond(
+        conn,
+        422,
+        "unsupported_content_type",
+        message || "That file type is not supported"
+      )
+
+  def send_error(conn, :file_too_large, message),
+    do: respond(conn, 413, "file_too_large", message || "That file is too large")
+
+  def send_error(conn, :invalid_byte_size, message),
+    do: respond(conn, 422, "invalid_params", message || "byte_size must be a positive integer")
+
+  def send_error(conn, :size_mismatch, message),
+    do:
+      respond(
+        conn,
+        422,
+        "size_mismatch",
+        message || "The uploaded file is not the size that was announced"
+      )
 
   def send_error(conn, :invalid_params, message),
     do: respond(conn, 422, "invalid_params", message || "Invalid parameters")

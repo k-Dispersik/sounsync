@@ -45,7 +45,11 @@ defmodule SoundsyncWeb.Router do
 
       post "/:project_id/tracks/:track_id/clips", ClipController, :create
       patch "/:project_id/tracks/:track_id/clips/:id", ClipController, :update
+
+      post "/:project_id/uploads", UploadController, :create
     end
+
+    put "/uploads/:id/data", UploadController, :data
   end
 
   if Application.compile_env(:soundsync, :dev_routes) do
