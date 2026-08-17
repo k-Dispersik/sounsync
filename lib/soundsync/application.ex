@@ -9,6 +9,9 @@ defmodule Soundsync.Application do
       SoundsyncWeb.Telemetry,
       Soundsync.Repo,
       {DNSCluster, query: Application.get_env(:soundsync, :dns_cluster_query) || :ignore},
+      # Audio analysis runs off the request that triggered it: decoding a
+      # fifty megabyte file must not hold an HTTP connection open.
+      {Task.Supervisor, name: Soundsync.TaskSupervisor},
       {Phoenix.PubSub, name: Soundsync.PubSub},
       SoundsyncWeb.Endpoint
     ]

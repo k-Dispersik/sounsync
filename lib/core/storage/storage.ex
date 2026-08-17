@@ -13,7 +13,9 @@ defmodule Core.Storage do
   alias Core.Accounts.User
   alias Core.Projects.Project
   alias Core.Storage.Adapter
+  alias Core.Storage.Analysis
   alias Core.Storage.AudioFile
+  alias Core.Storage.Local
   alias Core.Storage.Signature
   alias Soundsync.Repo
 
@@ -105,9 +107,74 @@ defmodule Core.Storage do
 
   def complete_upload(%AudioFile{} = audio_file) do
     case verify(audio_file) do
-      :ok -> mark(audio_file, :ready)
+      :ok ->
+        analyse_later(audio_file)
+        {:ok, audio_file}
+
+      {:error, reason} ->
+        reject(audio_file, reason)
+    end
+  end
+
+  @doc """
+  Measures the file and marks it usable.
+
+  Called from a background task after an upload is confirmed; exposed because
+  the analysis is worth being able to run — and test — on its own.
+  """
+  @spec analyse(AudioFile.t()) :: {:ok, AudioFile.t()} | {:error, term()}
+  def analyse(%AudioFile{} = audio_file) do
+    with {:ok, path} <- local_copy(audio_file),
+         {:ok, measured} <- Analysis.analyse(path) do
+      cleanup(audio_file, path)
+
+      audio_file
+      |> AudioFile.analysed_changeset(Map.put(measured, :status, :ready))
+      |> Repo.update()
+    else
       {:error, reason} -> reject(audio_file, reason)
     end
+  end
+
+  # ffmpeg reads files, not URLs we would have to sign. For the local adapter
+  # the file is already on disk; for S3 it is fetched into a temporary file.
+  defp local_copy(%AudioFile{} = audio_file) do
+    if adapter() == Local do
+      {:ok, Path.join(Path.expand(Local.root()), audio_file.storage_key)}
+    else
+      copy_to_tmp(audio_file)
+    end
+  end
+
+  # sobelow_skip ["Traversal.FileModule"]
+  # The path is built here from the system temp dir and the file's own id;
+  # nothing from a request reaches it.
+  defp copy_to_tmp(audio_file) do
+    with {:ok, bytes} <- read(audio_file.storage_key) do
+      path = Path.join(System.tmp_dir!(), "soundsync-analysis-#{audio_file.id}")
+      File.write!(path, bytes)
+      {:ok, path}
+    end
+  end
+
+  # sobelow_skip ["Traversal.FileModule"]
+  # The path is one this module built a moment ago under the system temp dir,
+  # and the guard re-checks that before removing anything.
+  defp cleanup(%AudioFile{}, path) do
+    if String.starts_with?(path, System.tmp_dir!()), do: File.rm(path)
+    :ok
+  end
+
+  defp analyse_later(audio_file) do
+    case Keyword.get(config(), :analysis, :async) do
+      :inline ->
+        analyse(audio_file)
+
+      :async ->
+        Task.Supervisor.start_child(Soundsync.TaskSupervisor, fn -> analyse(audio_file) end)
+    end
+
+    :ok
   end
 
   defp verify(audio_file) do

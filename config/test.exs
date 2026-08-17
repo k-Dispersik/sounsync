@@ -12,7 +12,10 @@ config :soundsync, Soundsync.Repo,
 config :soundsync, :storage,
   adapter: Core.Storage.Local,
   root: Path.expand("../tmp/test_uploads", __DIR__),
-  public_prefix: "/uploads"
+  public_prefix: "/uploads",
+  # Analysis runs in the calling process so tests can assert on the result
+  # without waiting for a task they cannot see.
+  analysis: :inline
 
 config :soundsync, SoundsyncWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],

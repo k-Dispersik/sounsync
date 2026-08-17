@@ -37,6 +37,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Audio analysis shells out to ffmpeg; without it those tests are skipped
+      # and the thing most likely to break would go unnoticed.
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
       - uses: erlef/setup-beam@v1
         with:
           elixir-version: ${{ env.ELIXIR_VERSION }}

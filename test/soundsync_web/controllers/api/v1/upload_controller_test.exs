@@ -8,7 +8,7 @@ defmodule SoundsyncWeb.API.V1.UploadControllerTest do
   alias Core.Storage.AudioFile
   alias Soundsync.Repo
 
-  @wav "RIFF\0\0\0\0WAVEfmt "
+  @wav Soundsync.TestAudio.wav(200)
 
   setup %{conn: conn} do
     root = Path.join(System.tmp_dir!(), "soundsync-upload-#{System.unique_integer([:positive])}")
@@ -189,14 +189,16 @@ defmodule SoundsyncWeb.API.V1.UploadControllerTest do
       |> put(url, bytes)
     end
 
-    test "marks the file ready once the bytes check out", ctx do
+    test "measures the file and marks it ready once the bytes check out", ctx do
       %{conn: conn, owner: owner, upload_url: url, file_id: file_id} = ctx
       assert response(send_bytes(conn, owner, url, @wav), 204)
 
-      body = conn |> as(owner) |> post(~p"/v1/uploads/#{file_id}/complete") |> json_response(200)
+      assert conn |> as(owner) |> post(~p"/v1/uploads/#{file_id}/complete") |> json_response(200)
 
-      assert body["status"] == "ready"
-      assert Storage.get_audio_file(file_id).status == :ready
+      stored = Storage.get_audio_file(file_id)
+      assert stored.status == :ready
+      assert_in_delta stored.duration_ms, 200, 60
+      assert byte_size(stored.peaks) > 0
     end
 
     test "completing twice is not an error", ctx do
@@ -208,6 +210,8 @@ defmodule SoundsyncWeb.API.V1.UploadControllerTest do
              |> as(owner)
              |> post(~p"/v1/uploads/#{file_id}/complete")
              |> json_response(200)
+
+      assert Storage.get_audio_file(file_id).status == :ready
     end
 
     test "a file that is not audio is rejected and deleted", ctx do
