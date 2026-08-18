@@ -1,8 +1,9 @@
 import React from "react";
-import { Search, Upload, Music2, Clock } from "lucide-react";
+import { Search, Music2, Clock } from "lucide-react";
 import useSampleSidebar from "../hooks/useSampleSidebar";
 import type { Track } from "@/shared/types";
 import { useClipModal } from "../contextProviders/ClipModalProvider";
+import UploadTab from "./UploadTab";
 
 const CAT_ICONS: Record<string, string> = {
     drums: "🥁",
@@ -56,10 +57,9 @@ export default function SampleSidebar({
                         placeholder="Search samples…"
                     />
                 </div>
-                <button className="mt-2 w-full flex items-center justify-center gap-2 h-8 rounded-md bg-primary/20 hover:bg-primary/30 border border-primary/30 text-primary text-xs font-medium transition-colors">
-                    <Upload size={12} />
-                    Upload Sample
-                </button>
+                <div className="mt-2">
+                    <UploadTab projectId={projectId} />
+                </div>
             </div>
 
             {/* Sample list */}

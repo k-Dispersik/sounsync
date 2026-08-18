@@ -60,6 +60,30 @@ export const projectSchema = z.object({
     tracks: z.array(trackSchema),
 });
 
+export const audioFileSchema = z.object({
+    id: z.number(),
+    project_id: z.number(),
+    original_filename: z.string(),
+    content_type: z.string(),
+    byte_size: z.number(),
+    duration_ms: z.number().nullable(),
+    status: z.enum(["pending", "ready", "failed"]),
+});
+
+/** Where to send the bytes; identical in shape for local storage and S3. */
+export const uploadInstructionSchema = z.object({
+    method: z.string(),
+    url: z.string(),
+    headers: z.record(z.string(), z.string()),
+    expires_at: z.string(),
+});
+
+/** `upload` is null when the project already holds these exact bytes. */
+export const uploadAnnouncementSchema = z.object({
+    audio_file: audioFileSchema,
+    upload: uploadInstructionSchema.nullable(),
+});
+
 export const sessionSchema = z.object({
     token: z.string(),
     user: userSchema,
@@ -80,5 +104,8 @@ export type Clip = z.infer<typeof clipSchema>;
 export type Track = z.infer<typeof trackSchema>;
 export type ProjectSummary = z.infer<typeof projectSummarySchema>;
 export type Project = z.infer<typeof projectSchema>;
+export type AudioFile = z.infer<typeof audioFileSchema>;
+export type UploadInstruction = z.infer<typeof uploadInstructionSchema>;
+export type UploadAnnouncement = z.infer<typeof uploadAnnouncementSchema>;
 export type Session = z.infer<typeof sessionSchema>;
 export type ApiError = z.infer<typeof apiErrorSchema>;
