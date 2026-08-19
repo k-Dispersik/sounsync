@@ -52,7 +52,8 @@ defmodule SoundsyncWeb.Formatter do
       start_time: clip.start_time,
       duration: clip.duration,
       settings: format(clip.settings),
-      file_path: clip.file_path
+      file_path: clip.file_path,
+      audio_file_id: clip.audio_file_id
     }
   end
 

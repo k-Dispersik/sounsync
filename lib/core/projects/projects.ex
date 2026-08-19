@@ -180,6 +180,8 @@ defmodule Core.Projects do
   def delete_clip(%Clip{} = clip), do: Repo.delete(clip)
 
   def clip_changeset(clip, attrs) do
-    cast(clip, attrs, [:title, :type, :start_time, :duration, :file_path])
+    clip
+    |> cast(attrs, [:title, :type, :start_time, :duration, :file_path, :audio_file_id])
+    |> foreign_key_constraint(:audio_file_id)
   end
 end

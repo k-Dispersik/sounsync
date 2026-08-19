@@ -230,6 +230,17 @@ defmodule Core.Storage do
     Repo.all(from f in AudioFile, where: f.project_id == ^project.id, order_by: [desc: f.id])
   end
 
+  @doc """
+  Fetches a file that belongs to this project, or `nil`.
+
+  Scoped to the project on purpose: a clip may only point at audio from its own
+  project, and checking that by id alone would let anyone who can guess a
+  number attach someone else's recording.
+  """
+  def get_project_audio_file(%Project{} = project, id) do
+    Repo.get_by(AudioFile, id: id, project_id: project.id)
+  end
+
   defp register(project, user, attrs) do
     key = build_key(project.id, attrs[:original_filename] || "audio")
 

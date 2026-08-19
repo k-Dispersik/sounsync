@@ -46,6 +46,7 @@ defmodule SoundsyncWeb.Router do
       post "/:project_id/tracks/:track_id/clips", ClipController, :create
       patch "/:project_id/tracks/:track_id/clips/:id", ClipController, :update
 
+      get "/:project_id/audio_files", AudioFileController, :index
       post "/:project_id/uploads", UploadController, :create
     end
 
