@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { X, Music2, Upload, Check, Search } from "lucide-react";
+import { formatDuration } from "@/shared/lib/duration";
 import type { ClipModalState } from "../contextProviders/ClipModalProvider";
 import {
     useClipForm,
@@ -41,8 +42,8 @@ export default function ClipModal({ state, onClose, onSuccess }: Props) {
                         <LibraryTab
                             search={form.search}
                             onSearchChange={form.setSearch}
-                            typeFilter={form.typeFilter}
-                            onTypeFilterChange={form.setTypeFilter}
+                            clipType={form.clipType}
+                            onClipTypeChange={form.setClipType}
                             samples={form.visibleSamples}
                             selected={form.selected}
                             onSelect={form.setSelected}
@@ -115,16 +116,16 @@ function TabBar({ tab, onChange }: { tab: Tab; onChange: (t: Tab) => void }) {
 function LibraryTab({
     search,
     onSearchChange,
-    typeFilter,
-    onTypeFilterChange,
+    clipType,
+    onClipTypeChange,
     samples,
     selected,
     onSelect,
 }: {
     search: string;
     onSearchChange: (v: string) => void;
-    typeFilter: ClipType | "all";
-    onTypeFilterChange: (v: ClipType | "all") => void;
+    clipType: ClipType;
+    onClipTypeChange: (v: ClipType) => void;
     samples: LibrarySample[];
     selected: LibrarySample | null;
     onSelect: (s: LibrarySample) => void;
@@ -133,18 +134,16 @@ function LibraryTab({
         <div className="flex flex-col gap-3">
             <SearchBar value={search} onChange={onSearchChange} />
 
+            {/* The kind is a property of the clip, not of the file: the same
+                recording can be a drum loop in one project and an effect in
+                another. */}
             <div className="flex flex-wrap gap-1.5">
-                <FilterPill
-                    label="All"
-                    active={typeFilter === "all"}
-                    onClick={() => onTypeFilterChange("all")}
-                />
                 {CLIP_TYPES.map((t) => (
                     <FilterPill
                         key={t}
                         label={`${TYPE_META[t].icon} ${TYPE_META[t].label}`}
-                        active={typeFilter === t}
-                        onClick={() => onTypeFilterChange(t)}
+                        active={clipType === t}
+                        onClick={() => onClipTypeChange(t)}
                     />
                 ))}
             </div>
@@ -205,8 +204,7 @@ function SampleRow({
     isActive: boolean;
     onSelect: (s: LibrarySample) => void;
 }) {
-    const meta = TYPE_META[sample.type];
-    const duration = `${(sample.duration / 1000).toFixed(1)}s`;
+    const duration = formatDuration(sample.duration);
 
     return (
         <button
@@ -216,16 +214,14 @@ function SampleRow({
                 isActive ? "bg-primary/10" : "hover:bg-base-content/[0.03]"
             }`}
         >
-            <span className="text-base leading-none w-5 text-center">{meta.icon}</span>
+            <span className="text-base leading-none w-5 text-center">🎵</span>
             <div className="flex-1 min-w-0">
                 <p
                     className={`text-sm truncate ${isActive ? "text-primary font-medium" : "text-base-content/75"}`}
                 >
                     {sample.title}
                 </p>
-                <p className="text-[11px] text-base-content/30">
-                    {meta.label} · {duration}
-                </p>
+                <p className="text-[11px] text-base-content/30">{duration}</p>
             </div>
             {isActive && <Check size={14} className="text-primary flex-shrink-0" />}
         </button>

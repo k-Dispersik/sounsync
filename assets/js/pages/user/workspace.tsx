@@ -107,11 +107,7 @@ function WorkspaceContent() {
 
                 {/* ── Main body ── */}
                 <div className="flex flex-1 overflow-hidden">
-                    <SampleSidebar
-                        projectId={Number(id)}
-                        tracks={project?.tracks || []}
-                        isLoading={isLoading}
-                    />
+                    <SampleSidebar projectId={Number(id)} />
                     <div className="flex flex-col flex-1 overflow-hidden">
                         <div className="flex-1 overflow-hidden">
                             <TimelineGrid

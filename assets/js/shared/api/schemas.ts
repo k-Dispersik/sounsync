@@ -32,6 +32,7 @@ export const clipSchema = z.object({
     file_path: z.string().nullable(),
     settings: z.unknown().optional(),
     track_id: z.number().optional(),
+    audio_file_id: z.number().nullable().optional(),
 });
 
 // Required, not optional: every endpoint that returns a track returns it with

@@ -39,11 +39,6 @@
       "count": 1
     }
   },
-  "js/features/workspace/hooks/useClipForm.ts": {
-    "react-hooks/exhaustive-deps": {
-      "count": 1
-    }
-  },
   "js/features/workspace/hooks/useTimeline.ts": {
     "complexity": {
       "count": 1
