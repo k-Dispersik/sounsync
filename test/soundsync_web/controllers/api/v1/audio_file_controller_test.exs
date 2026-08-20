@@ -96,6 +96,64 @@ defmodule SoundsyncWeb.API.V1.AudioFileControllerTest do
     assert json_response(get(conn, ~p"/v1/projects/#{project.id}/audio_files"), 401)
   end
 
+  describe "GET .../audio_files/:id/peaks" do
+    test "returns the waveform and what it is scaled to", ctx do
+      %{conn: conn, owner: owner, project: project} = ctx
+      file = audio_file_fixture(project)
+
+      {:ok, file} =
+        file
+        |> AudioFile.analysed_changeset(%{status: :ready, peaks: <<1, 2, 3>>})
+        |> Repo.update()
+
+      body =
+        conn
+        |> as(owner)
+        |> get(~p"/v1/projects/#{project.id}/audio_files/#{file.id}/peaks")
+        |> json_response(200)
+
+      assert Base.decode64!(body["peaks"]) == <<1, 2, 3>>
+      assert body["peaks_per_second"] == 512
+    end
+
+    test "a file that has not been analysed says so rather than pretending", ctx do
+      %{conn: conn, owner: owner, project: project} = ctx
+      file = audio_file_fixture(project)
+
+      body =
+        conn
+        |> as(owner)
+        |> get(~p"/v1/projects/#{project.id}/audio_files/#{file.id}/peaks")
+        |> json_response(200)
+
+      assert body["peaks"] == nil
+    end
+
+    test "a file from another project is 404", ctx do
+      %{conn: conn, owner: owner, project: project} = ctx
+      foreign = audio_file_fixture(project_fixture())
+
+      assert json_response(
+               conn
+               |> as(owner)
+               |> get(~p"/v1/projects/#{project.id}/audio_files/#{foreign.id}/peaks"),
+               404
+             )
+    end
+
+    test "a stranger gets nothing", ctx do
+      %{conn: conn, project: project} = ctx
+      file = audio_file_fixture(project)
+
+      assert json_response(
+               conn
+               |> as(user_fixture())
+               |> get(~p"/v1/projects/#{project.id}/audio_files/#{file.id}/peaks"),
+               403
+             )
+    end
+  end
+
   describe "clips referencing audio" do
     test "a clip may point at audio from its own project", ctx do
       %{conn: conn, owner: owner, project: project} = ctx

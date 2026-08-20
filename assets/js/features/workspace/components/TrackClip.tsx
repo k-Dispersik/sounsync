@@ -6,6 +6,7 @@ import { useClipModal } from "../contextProviders/ClipModalProvider";
 import { useWorkspaceEvent } from "../hooks/useWorkspaceEvent";
 import { RealtimeEvents } from "../events/events";
 import { getOrCreateSessionId } from "../services/signaling/workspaceChannel";
+import { useWaveform } from "../hooks/useWaveform";
 
 export interface TrackClipProps {
     /** Base accent colour (hex, rgb, etc.) used for header, bars and border */
@@ -25,16 +26,19 @@ export interface TrackClipProps {
     onClick?: () => void;
 }
 
-/** helpers*/
-function seededRng(seed: string) {
-    let h = 0;
-    for (let i = 0; i < seed.length; i++) {
-        h = Math.imul(31, h) + seed.charCodeAt(i);
+// Drawn while the real waveform is loading, or when the clip has no audio
+// behind it yet. Deterministic on purpose: a shape that changes on every
+// render reads as the clip itself changing.
+function placeholderBars(seed: string, count: number): number[] {
+    let hash = 0;
+    for (let index = 0; index < seed.length; index++) {
+        hash = Math.imul(31, hash) + seed.charCodeAt(index);
     }
-    return () => {
-        h = Math.imul(1664525, h) + 1013904223;
-        return (h >>> 0) / 0xffffffff;
-    };
+
+    return Array.from({ length: count }, () => {
+        hash = Math.imul(1664525, hash) + 1013904223;
+        return 0.2 + ((hash >>> 0) / 0xffffffff) * 0.25;
+    });
 }
 
 export default function TrackClip({
@@ -47,10 +51,12 @@ export default function TrackClip({
     onClick,
     clip,
 }: TrackClipProps) {
-    const barHeights = useMemo(() => {
-        const rand = seededRng(color);
-        return Array.from({ length: barCount }, () => 20 + rand() * 80);
-    }, [color, barCount]);
+    const { bars } = useWaveform(projectId, clip.audio_file_id ?? null, barCount);
+
+    const barHeights = useMemo(
+        () => (bars ?? placeholderBars(color, barCount)).map((value) => 10 + value * 90),
+        [bars, color, barCount],
+    );
 
     const { isDragging, tempStartTime, committedStartTime, startDrag } = useClipInteraction({
         clip,
