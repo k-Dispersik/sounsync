@@ -1,8 +1,13 @@
 defmodule SoundsyncWeb.WorkspaceChannelTest do
   use SoundsyncWeb.ChannelCase, async: true
 
+  import Ecto.Query, only: [from: 2]
+
   alias Core.Accounts
   alias Core.Projects
+  alias Core.Projects.Clip
+  alias Core.Projects.Track
+  alias Soundsync.Repo
   alias SoundsyncWeb.UserSocket
   alias SoundsyncWeb.WorkspaceChannel
 
@@ -21,13 +26,18 @@ defmodule SoundsyncWeb.WorkspaceChannelTest do
   end
 
   describe "join" do
-    test "a member gets in and learns the project", %{owner: owner, project: project} do
+    test "a member gets in and is handed the whole project", ctx do
+      %{owner: owner, project: project} = ctx
+      track = track_fixture(project)
+      clip_fixture(track, %{title: "Kick"})
+
       assert {:ok, reply, socket} =
                owner
                |> socket_for()
                |> subscribe_and_join(WorkspaceChannel, "workspace:project:#{project.id}")
 
-      assert reply.project_id == project.id
+      assert reply.project.id == project.id
+      assert [%{clips: [%{title: "Kick"}]}] = reply.project.tracks
       assert is_binary(reply.session_id)
       assert socket.assigns.project_id == project.id
     end
@@ -74,6 +84,109 @@ defmodule SoundsyncWeb.WorkspaceChannelTest do
                owner
                |> socket_for()
                |> subscribe_and_join(WorkspaceChannel, "workspace:project:999999")
+    end
+  end
+
+  describe "operations" do
+    setup %{owner: owner, project: project} do
+      {:ok, _reply, socket} =
+        owner
+        |> socket_for()
+        |> subscribe_and_join(WorkspaceChannel, "workspace:project:#{project.id}")
+
+      track = track_fixture(project, %{row_index: 0})
+      clip = clip_fixture(track, %{title: "Kick", start_time: 0})
+
+      %{socket: socket, track: track, clip: clip}
+    end
+
+    test "an edit is written down and passed on to the others", ctx do
+      %{socket: socket, track: track, clip: clip} = ctx
+
+      ref =
+        push(socket, "op", %{
+          "type" => "clip.move",
+          "client_id" => "abc",
+          "payload" => %{"clip_id" => clip.id, "track_id" => track.id, "start_time" => 4_000}
+        })
+
+      assert_reply ref, :ok, %{type: "clip.move", payload: %{start_time: 4_000}}
+      assert_broadcast "op", %{type: "clip.move", client_id: "abc"}
+      assert Repo.get(Clip, clip.id).start_time == 4_000
+    end
+
+    test "B-6: the author does not receive their own edit back", ctx do
+      %{socket: socket, project: project} = ctx
+
+      ref = push(socket, "op", %{"type" => "track.create", "payload" => %{"row_index" => 3}})
+      assert_reply ref, :ok, _payload
+
+      # The broadcast went to the topic, but not down this socket.
+      assert_broadcast "op", %{type: "track.create"}
+      refute_receive %Phoenix.Socket.Message{event: "op"}
+      assert Repo.aggregate(from(t in Track, where: t.project_id == ^project.id), :count) == 2
+    end
+
+    test "a viewer's edit is refused and nothing is written", %{project: project} do
+      viewer = user_fixture()
+      {:ok, _} = Projects.add_member(project, viewer, :viewer)
+
+      {:ok, _reply, socket} =
+        viewer
+        |> socket_for()
+        |> subscribe_and_join(WorkspaceChannel, "workspace:project:#{project.id}")
+
+      ref = push(socket, "op", %{"type" => "track.create", "payload" => %{"row_index" => 9}})
+
+      assert_reply ref, :error, %{reason: "forbidden"}
+      refute_broadcast "op", %{type: "track.create"}
+    end
+
+    test "an invalid payload comes back with the field that is wrong", %{socket: socket} do
+      ref = push(socket, "op", %{"type" => "clip.create", "payload" => %{}})
+
+      assert_reply ref, :error, %{reason: "invalid", details: details}
+      assert details.start_time
+      refute_broadcast "op", _payload
+    end
+
+    test "an unknown operation is refused", %{socket: socket} do
+      ref = push(socket, "op", %{"type" => "project.nuke", "payload" => %{}})
+
+      assert_reply ref, :error, %{reason: "unknown_operation"}
+    end
+
+    test "a message without a type is refused", %{socket: socket} do
+      ref = push(socket, "op", %{"payload" => %{}})
+
+      assert_reply ref, :error, %{reason: "invalid"}
+    end
+
+    test "editing something from another project is not found", %{socket: socket} do
+      foreign = project_fixture() |> track_fixture()
+
+      ref =
+        push(socket, "op", %{
+          "type" => "track.delete",
+          "payload" => %{"track_id" => foreign.id}
+        })
+
+      assert_reply ref, :error, %{reason: "not_found"}
+      assert Repo.get(Track, foreign.id)
+    end
+
+    test "settings travel as an operation too", ctx do
+      %{socket: socket, project: project} = ctx
+
+      ref =
+        push(socket, "op", %{
+          "type" => "project.settings.update",
+          "payload" => %{"bpm" => 90}
+        })
+
+      assert_reply ref, :ok, %{type: "project.settings.update", payload: %{settings: settings}}
+      assert settings.bpm == 90
+      assert Projects.get_project(project.id).settings.bpm == 90
     end
   end
 
