@@ -8,6 +8,7 @@ defmodule SoundsyncWeb.WorkspaceChannelTest do
   alias Core.Projects.Clip
   alias Core.Projects.Track
   alias Soundsync.Repo
+  alias SoundsyncWeb.Presence
   alias SoundsyncWeb.UserSocket
   alias SoundsyncWeb.WorkspaceChannel
 
@@ -187,6 +188,81 @@ defmodule SoundsyncWeb.WorkspaceChannelTest do
       assert_reply ref, :ok, %{type: "project.settings.update", payload: %{settings: settings}}
       assert settings.bpm == 90
       assert Projects.get_project(project.id).settings.bpm == 90
+    end
+  end
+
+  describe "presence" do
+    test "the joining client is in the list it is handed", ctx do
+      %{owner: owner, project: project} = ctx
+
+      {:ok, _reply, _socket} =
+        owner
+        |> socket_for()
+        |> subscribe_and_join(WorkspaceChannel, "workspace:project:#{project.id}", %{
+          "session_id" => "tab-one"
+        })
+
+      assert_push "presence_state", state
+      assert %{metas: [meta]} = state["tab-one"]
+      assert meta.user_id == owner.id
+      assert meta.name == owner.name
+    end
+
+    test "two tabs of the same person are two participants", ctx do
+      %{owner: owner, project: project} = ctx
+      topic = "workspace:project:#{project.id}"
+
+      {:ok, _reply, _first} =
+        owner
+        |> socket_for()
+        |> subscribe_and_join(WorkspaceChannel, topic, %{
+          "session_id" => "tab-one"
+        })
+
+      assert_push "presence_state", _state
+
+      {:ok, _reply, _second} =
+        owner
+        |> socket_for()
+        |> subscribe_and_join(WorkspaceChannel, topic, %{
+          "session_id" => "tab-two"
+        })
+
+      assert_push "presence_state", state
+      assert Map.keys(state) |> Enum.sort() == ["tab-one", "tab-two"]
+    end
+
+    test "everyone sees the same colour for the same person", ctx do
+      %{owner: owner, project: project} = ctx
+
+      {:ok, _reply, _socket} =
+        owner
+        |> socket_for()
+        |> subscribe_and_join(WorkspaceChannel, "workspace:project:#{project.id}")
+
+      assert_push "presence_state", state
+      [%{metas: [meta]}] = Map.values(state)
+
+      assert meta.color_hue == Presence.meta(owner, "any").color_hue
+      assert meta.color_hue in 0..359
+    end
+
+    test "leaving takes the participant out of the list", ctx do
+      %{owner: owner, project: project} = ctx
+      topic = "workspace:project:#{project.id}"
+
+      {:ok, _reply, socket} =
+        owner
+        |> socket_for()
+        |> subscribe_and_join(WorkspaceChannel, topic, %{
+          "session_id" => "tab-one"
+        })
+
+      assert_push "presence_state", _state
+      Process.unlink(socket.channel_pid)
+      :ok = close(socket)
+
+      assert Presence.list(topic) == %{}
     end
   end
 

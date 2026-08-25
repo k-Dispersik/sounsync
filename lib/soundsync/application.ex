@@ -13,6 +13,8 @@ defmodule Soundsync.Application do
       # fifty megabyte file must not hold an HTTP connection open.
       {Task.Supervisor, name: Soundsync.TaskSupervisor},
       {Phoenix.PubSub, name: Soundsync.PubSub},
+      # After PubSub: presence is built on it and will not start without it.
+      SoundsyncWeb.Presence,
       SoundsyncWeb.Endpoint
     ]
 

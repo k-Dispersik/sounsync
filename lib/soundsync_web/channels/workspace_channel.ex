@@ -22,6 +22,7 @@ defmodule SoundsyncWeb.WorkspaceChannel do
   alias Core.Projects.Track
   alias SoundsyncWeb.ErrorResponse
   alias SoundsyncWeb.JSON
+  alias SoundsyncWeb.Presence
   alias SoundsyncWeb.ProjectTopic
 
   require Logger
@@ -38,12 +39,30 @@ defmodule SoundsyncWeb.WorkspaceChannel do
           |> assign(:project_id, project.id)
           |> assign(:session_id, session_id)
 
+        send(self(), :after_join)
+
         {:ok, %{workspace_id: workspace_id, session_id: session_id, project: snapshot(project)},
          socket}
 
       {:error, reason} ->
         {:error, %{reason: to_string(reason)}}
     end
+  end
+
+  # Tracking happens after the join reply, so the joining client is in the
+  # presence list its own "presence_state" message carries.
+  @impl true
+  def handle_info(:after_join, socket) do
+    {:ok, _ref} =
+      Presence.track(
+        socket,
+        socket.assigns.session_id,
+        Presence.meta(socket.assigns.current_user, socket.assigns.session_id)
+      )
+
+    push(socket, "presence_state", Presence.list(socket))
+
+    {:noreply, socket}
   end
 
   @impl true
