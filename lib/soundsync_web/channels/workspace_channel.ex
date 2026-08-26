@@ -69,11 +69,17 @@ defmodule SoundsyncWeb.WorkspaceChannel do
   def handle_in("op", %{"type" => type} = message, socket) do
     project = load_project(socket)
     payload = Map.get(message, "payload", %{})
+    base_version = Map.get(message, "base_version")
 
-    case Operation.apply(project, socket.assigns.current_user, type, payload) do
+    case Operation.apply(project, socket.assigns.current_user, type, payload, base_version) do
       {:ok, event} ->
         broadcast_event(socket, event, message)
         {:reply, {:ok, event_payload(event)}, socket}
+
+      {:error, :stale} ->
+        # Answering with the current state saves the client a round trip and
+        # makes recovery a single step: replace what you have with this.
+        {:reply, {:error, %{reason: "stale", project: snapshot(project)}}, socket}
 
       {:error, reason} ->
         {:reply, {:error, describe(reason)}, socket}
@@ -108,7 +114,8 @@ defmodule SoundsyncWeb.WorkspaceChannel do
     )
   end
 
-  defp event_payload(%{type: type, data: data}), do: %{type: type, payload: serialise(data)}
+  defp event_payload(%{type: type, data: data, version: version}),
+    do: %{type: type, version: version, payload: serialise(data)}
 
   defp serialise(%Clip{} = clip), do: JSON.clip(clip)
   defp serialise(%Track{} = track), do: JSON.track(track)

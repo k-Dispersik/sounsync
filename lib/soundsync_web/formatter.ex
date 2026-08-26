@@ -30,6 +30,7 @@ defmodule SoundsyncWeb.Formatter do
       id: project.id,
       title: project.title,
       description: project.description,
+      version: project.version,
       settings: format(project.settings)
     }
     |> put_loaded(:tracks, project.tracks)

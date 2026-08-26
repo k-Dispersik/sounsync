@@ -6,6 +6,7 @@ defmodule Core.Projects.Project do
   schema "projects" do
     field :title, :string
     field :description, :string
+    field :version, :integer, default: 0
 
     embeds_one :settings, Core.Projects.ProjectSetting,
       on_replace: :update,

@@ -29,34 +29,54 @@ defmodule Core.Projects.OperationTest do
       {:ok, _} = Projects.add_member(project, viewer, :viewer)
 
       assert {:error, :forbidden} =
-               Operation.apply(project, viewer, "track.create", %{"row_index" => 1})
+               Operation.apply(
+                 project,
+                 viewer,
+                 "track.create",
+                 %{"row_index" => 1},
+                 project.version
+               )
 
       assert Repo.aggregate(Track, :count) == 1
     end
 
     test "a stranger may not edit", %{project: project} do
       assert {:error, :forbidden} =
-               Operation.apply(project, user_fixture(), "track.create", %{"row_index" => 1})
+               Operation.apply(
+                 project,
+                 user_fixture(),
+                 "track.create",
+                 %{"row_index" => 1},
+                 project.version
+               )
     end
   end
 
   describe "validation" do
     test "an unknown operation is refused, not ignored", %{project: project, owner: owner} do
       assert {:error, :unknown_operation} =
-               Operation.apply(project, owner, "project.delete", %{})
+               Operation.apply(project, owner, "project.delete", %{}, project.version)
     end
 
     test "a missing required field is refused before anything is written", ctx do
       %{project: project, owner: owner} = ctx
 
-      assert {:error, changeset} = Operation.apply(project, owner, "clip.create", %{})
+      assert {:error, changeset} =
+               Operation.apply(project, owner, "clip.create", %{}, project.version)
+
       assert errors_on(changeset).start_time
       assert Repo.aggregate(Clip, :count) == 1
     end
 
     test "a field of the wrong type is refused", %{project: project, owner: owner} do
       assert {:error, changeset} =
-               Operation.apply(project, owner, "track.create", %{"row_index" => "second"})
+               Operation.apply(
+                 project,
+                 owner,
+                 "track.create",
+                 %{"row_index" => "second"},
+                 project.version
+               )
 
       assert errors_on(changeset).row_index
     end
@@ -65,11 +85,17 @@ defmodule Core.Projects.OperationTest do
       %{project: project, owner: owner} = ctx
 
       assert {:ok, %{data: %Track{} = track}} =
-               Operation.apply(project, owner, "track.create", %{
-                 "row_index" => 4,
-                 "project_id" => 999,
-                 "id" => 12_345
-               })
+               Operation.apply(
+                 project,
+                 owner,
+                 "track.create",
+                 %{
+                   "row_index" => 4,
+                   "project_id" => 999,
+                   "id" => 12_345
+                 },
+                 project.version
+               )
 
       assert track.project_id == project.id
       refute track.id == 12_345
@@ -79,7 +105,13 @@ defmodule Core.Projects.OperationTest do
   describe "tracks" do
     test "track.create adds one and reports it", %{project: project, owner: owner} do
       assert {:ok, %{type: "track.create", data: %Track{row_index: 2}}} =
-               Operation.apply(project, owner, "track.create", %{"row_index" => 2})
+               Operation.apply(
+                 project,
+                 owner,
+                 "track.create",
+                 %{"row_index" => 2},
+                 project.version
+               )
 
       assert Repo.aggregate(Track, :count) == 2
     end
@@ -88,7 +120,13 @@ defmodule Core.Projects.OperationTest do
       %{project: project, owner: owner, track: track} = ctx
 
       assert {:ok, %{type: "track.delete", data: %{track_id: id}}} =
-               Operation.apply(project, owner, "track.delete", %{"track_id" => track.id})
+               Operation.apply(
+                 project,
+                 owner,
+                 "track.delete",
+                 %{"track_id" => track.id},
+                 project.version
+               )
 
       assert id == track.id
       refute Repo.get(Track, track.id)
@@ -99,7 +137,13 @@ defmodule Core.Projects.OperationTest do
       foreign = project_fixture() |> track_fixture()
 
       assert {:error, :not_found} =
-               Operation.apply(project, owner, "track.delete", %{"track_id" => foreign.id})
+               Operation.apply(
+                 project,
+                 owner,
+                 "track.delete",
+                 %{"track_id" => foreign.id},
+                 project.version
+               )
 
       assert Repo.get(Track, foreign.id)
     end
@@ -110,12 +154,18 @@ defmodule Core.Projects.OperationTest do
       %{project: project, owner: owner, track: track} = ctx
 
       assert {:ok, %{type: "clip.create", data: %Clip{} = clip}} =
-               Operation.apply(project, owner, "clip.create", %{
-                 "track_id" => track.id,
-                 "start_time" => 2_000,
-                 "duration" => 1_000,
-                 "type" => "drums"
-               })
+               Operation.apply(
+                 project,
+                 owner,
+                 "clip.create",
+                 %{
+                   "track_id" => track.id,
+                   "start_time" => 2_000,
+                   "duration" => 1_000,
+                   "type" => "drums"
+                 },
+                 project.version
+               )
 
       assert clip.start_time == 2_000
       assert clip.track_id == track.id
@@ -125,11 +175,17 @@ defmodule Core.Projects.OperationTest do
       %{project: project, owner: owner, track: track, clip: clip} = ctx
 
       assert {:ok, %{type: "clip.move", data: %Clip{start_time: 4_000}}} =
-               Operation.apply(project, owner, "clip.move", %{
-                 "clip_id" => clip.id,
-                 "track_id" => track.id,
-                 "start_time" => 4_000
-               })
+               Operation.apply(
+                 project,
+                 owner,
+                 "clip.move",
+                 %{
+                   "clip_id" => clip.id,
+                   "track_id" => track.id,
+                   "start_time" => 4_000
+                 },
+                 project.version
+               )
 
       assert Repo.get(Clip, clip.id).start_time == 4_000
     end
@@ -138,11 +194,17 @@ defmodule Core.Projects.OperationTest do
       %{project: project, owner: owner, track: track, clip: clip} = ctx
 
       {:ok, _event} =
-        Operation.apply(project, owner, "clip.update", %{
-          "clip_id" => clip.id,
-          "track_id" => track.id,
-          "title" => "Snare"
-        })
+        Operation.apply(
+          project,
+          owner,
+          "clip.update",
+          %{
+            "clip_id" => clip.id,
+            "track_id" => track.id,
+            "title" => "Snare"
+          },
+          project.version
+        )
 
       updated = Repo.get(Clip, clip.id)
       assert updated.title == "Snare"
@@ -153,10 +215,16 @@ defmodule Core.Projects.OperationTest do
       %{project: project, owner: owner, track: track, clip: clip} = ctx
 
       assert {:ok, %{type: "clip.delete", data: %{clip_id: id}}} =
-               Operation.apply(project, owner, "clip.delete", %{
-                 "clip_id" => clip.id,
-                 "track_id" => track.id
-               })
+               Operation.apply(
+                 project,
+                 owner,
+                 "clip.delete",
+                 %{
+                   "clip_id" => clip.id,
+                   "track_id" => track.id
+                 },
+                 project.version
+               )
 
       assert id == clip.id
       refute Repo.get(Clip, clip.id)
@@ -167,11 +235,17 @@ defmodule Core.Projects.OperationTest do
       foreign_track = project_fixture() |> track_fixture()
 
       assert {:error, :not_found} =
-               Operation.apply(project, owner, "clip.move", %{
-                 "clip_id" => clip.id,
-                 "track_id" => foreign_track.id,
-                 "start_time" => 9_000
-               })
+               Operation.apply(
+                 project,
+                 owner,
+                 "clip.move",
+                 %{
+                   "clip_id" => clip.id,
+                   "track_id" => foreign_track.id,
+                   "start_time" => 9_000
+                 },
+                 project.version
+               )
 
       assert Repo.get(Clip, clip.id).start_time == 0
     end
@@ -182,7 +256,13 @@ defmodule Core.Projects.OperationTest do
       %{project: project, owner: owner} = ctx
 
       assert {:ok, %{type: "project.settings.update", data: updated}} =
-               Operation.apply(project, owner, "project.settings.update", %{"bpm" => 90})
+               Operation.apply(
+                 project,
+                 owner,
+                 "project.settings.update",
+                 %{"bpm" => 90},
+                 project.version
+               )
 
       assert updated.settings.bpm == 90
       assert updated.settings.time_signature == :four_four
@@ -192,9 +272,79 @@ defmodule Core.Projects.OperationTest do
       %{project: project, owner: owner} = ctx
 
       assert {:error, %Ecto.Changeset{}} =
-               Operation.apply(project, owner, "project.settings.update", %{"bpm" => 5})
+               Operation.apply(
+                 project,
+                 owner,
+                 "project.settings.update",
+                 %{"bpm" => 5},
+                 project.version
+               )
 
       assert reload(project).settings.bpm == 120
+    end
+  end
+
+  describe "versions" do
+    test "an accepted operation moves the project forward by one", ctx do
+      %{project: project, owner: owner} = ctx
+
+      assert {:ok, %{version: 1}} =
+               Operation.apply(project, owner, "track.create", %{"row_index" => 1}, 0)
+
+      assert reload(project).version == 1
+    end
+
+    test "an operation built on an older version is refused", ctx do
+      %{project: project, owner: owner} = ctx
+      {:ok, _event} = Operation.apply(project, owner, "track.create", %{"row_index" => 1}, 0)
+
+      assert {:error, :stale} =
+               Operation.apply(project, owner, "track.create", %{"row_index" => 2}, 0)
+
+      assert reload(project).version == 1
+      assert Repo.aggregate(Track, :count) == 2
+    end
+
+    test "two edits racing on the same version: one wins, one is told to resync", ctx do
+      %{project: project, owner: owner} = ctx
+
+      first = Operation.apply(project, owner, "track.create", %{"row_index" => 1}, 0)
+      second = Operation.apply(project, owner, "track.create", %{"row_index" => 2}, 0)
+
+      assert {:ok, %{version: 1}} = first
+      assert {:error, :stale} = second
+    end
+
+    test "an operation without a version is refused outright", ctx do
+      %{project: project, owner: owner} = ctx
+
+      assert {:error, :missing_base_version} =
+               Operation.apply(project, owner, "track.create", %{"row_index" => 1}, nil)
+
+      assert reload(project).version == 0
+    end
+
+    test "a rejected operation leaves no gap in the version sequence", ctx do
+      %{project: project, owner: owner} = ctx
+
+      assert {:error, :not_found} =
+               Operation.apply(project, owner, "track.delete", %{"track_id" => 0}, 0)
+
+      assert reload(project).version == 0
+
+      assert {:ok, %{version: 1}} =
+               Operation.apply(project, owner, "track.create", %{"row_index" => 1}, 0)
+    end
+
+    test "a forbidden edit does not touch the version", ctx do
+      %{project: project} = ctx
+      viewer = user_fixture()
+      {:ok, _} = Projects.add_member(project, viewer, :viewer)
+
+      assert {:error, :forbidden} =
+               Operation.apply(project, viewer, "track.create", %{"row_index" => 1}, 0)
+
+      assert reload(project).version == 0
     end
   end
 

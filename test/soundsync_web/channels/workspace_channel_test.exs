@@ -19,6 +19,8 @@ defmodule SoundsyncWeb.WorkspaceChannelTest do
     %{owner: owner, project: project}
   end
 
+  defp version(project), do: Projects.get_project(project.id).version
+
   defp socket_for(user) do
     {:ok, socket} =
       connect(UserSocket, %{"token" => Accounts.create_session_token(user)})
@@ -102,16 +104,17 @@ defmodule SoundsyncWeb.WorkspaceChannelTest do
     end
 
     test "an edit is written down and passed on to the others", ctx do
-      %{socket: socket, track: track, clip: clip} = ctx
+      %{socket: socket, project: project, track: track, clip: clip} = ctx
 
       ref =
         push(socket, "op", %{
           "type" => "clip.move",
           "client_id" => "abc",
+          "base_version" => version(project),
           "payload" => %{"clip_id" => clip.id, "track_id" => track.id, "start_time" => 4_000}
         })
 
-      assert_reply ref, :ok, %{type: "clip.move", payload: %{start_time: 4_000}}
+      assert_reply ref, :ok, %{type: "clip.move", version: 1, payload: %{start_time: 4_000}}
       assert_broadcast "op", %{type: "clip.move", client_id: "abc"}
       assert Repo.get(Clip, clip.id).start_time == 4_000
     end
@@ -119,7 +122,13 @@ defmodule SoundsyncWeb.WorkspaceChannelTest do
     test "B-6: the author does not receive their own edit back", ctx do
       %{socket: socket, project: project} = ctx
 
-      ref = push(socket, "op", %{"type" => "track.create", "payload" => %{"row_index" => 3}})
+      ref =
+        push(socket, "op", %{
+          "type" => "track.create",
+          "base_version" => version(project),
+          "payload" => %{"row_index" => 3}
+        })
+
       assert_reply ref, :ok, _payload
 
       # The broadcast went to the topic, but not down this socket.
@@ -137,22 +146,41 @@ defmodule SoundsyncWeb.WorkspaceChannelTest do
         |> socket_for()
         |> subscribe_and_join(WorkspaceChannel, "workspace:project:#{project.id}")
 
-      ref = push(socket, "op", %{"type" => "track.create", "payload" => %{"row_index" => 9}})
+      ref =
+        push(socket, "op", %{
+          "type" => "track.create",
+          "base_version" => version(project),
+          "payload" => %{"row_index" => 9}
+        })
 
       assert_reply ref, :error, %{reason: "forbidden"}
       refute_broadcast "op", %{type: "track.create"}
     end
 
-    test "an invalid payload comes back with the field that is wrong", %{socket: socket} do
-      ref = push(socket, "op", %{"type" => "clip.create", "payload" => %{}})
+    test "an invalid payload comes back with the field that is wrong", ctx do
+      %{socket: socket, project: project} = ctx
+
+      ref =
+        push(socket, "op", %{
+          "type" => "clip.create",
+          "base_version" => version(project),
+          "payload" => %{}
+        })
 
       assert_reply ref, :error, %{reason: "invalid", details: details}
       assert details.start_time
       refute_broadcast "op", _payload
     end
 
-    test "an unknown operation is refused", %{socket: socket} do
-      ref = push(socket, "op", %{"type" => "project.nuke", "payload" => %{}})
+    test "an unknown operation is refused", ctx do
+      %{socket: socket, project: project} = ctx
+
+      ref =
+        push(socket, "op", %{
+          "type" => "project.nuke",
+          "base_version" => version(project),
+          "payload" => %{}
+        })
 
       assert_reply ref, :error, %{reason: "unknown_operation"}
     end
@@ -163,12 +191,14 @@ defmodule SoundsyncWeb.WorkspaceChannelTest do
       assert_reply ref, :error, %{reason: "invalid"}
     end
 
-    test "editing something from another project is not found", %{socket: socket} do
+    test "editing something from another project is not found", ctx do
+      %{socket: socket, project: project} = ctx
       foreign = project_fixture() |> track_fixture()
 
       ref =
         push(socket, "op", %{
           "type" => "track.delete",
+          "base_version" => version(project),
           "payload" => %{"track_id" => foreign.id}
         })
 
@@ -182,12 +212,66 @@ defmodule SoundsyncWeb.WorkspaceChannelTest do
       ref =
         push(socket, "op", %{
           "type" => "project.settings.update",
+          "base_version" => version(project),
           "payload" => %{"bpm" => 90}
         })
 
       assert_reply ref, :ok, %{type: "project.settings.update", payload: %{settings: settings}}
       assert settings.bpm == 90
       assert Projects.get_project(project.id).settings.bpm == 90
+    end
+  end
+
+  describe "versions" do
+    setup %{owner: owner, project: project} do
+      {:ok, _reply, socket} =
+        owner
+        |> socket_for()
+        |> subscribe_and_join(WorkspaceChannel, "workspace:project:#{project.id}")
+
+      %{socket: socket}
+    end
+
+    test "the snapshot says which version it is", ctx do
+      %{owner: owner, project: project} = ctx
+
+      {:ok, reply, _socket} =
+        owner
+        |> socket_for()
+        |> subscribe_and_join(WorkspaceChannel, "workspace:project:#{project.id}")
+
+      assert reply.project.version == 0
+    end
+
+    test "an edit built on an old version comes back with a fresh snapshot", ctx do
+      %{socket: socket, project: project} = ctx
+
+      ref =
+        push(socket, "op", %{
+          "type" => "track.create",
+          "base_version" => 0,
+          "payload" => %{"row_index" => 1}
+        })
+
+      assert_reply ref, :ok, %{version: 1}
+
+      stale =
+        push(socket, "op", %{
+          "type" => "track.create",
+          "base_version" => 0,
+          "payload" => %{"row_index" => 2}
+        })
+
+      assert_reply stale, :error, %{reason: "stale", project: snapshot}
+      assert snapshot.version == 1
+      assert length(snapshot.tracks) == 1
+      assert Projects.get_project(project.id).version == 1
+    end
+
+    test "an edit without a version is refused", %{socket: socket} do
+      ref = push(socket, "op", %{"type" => "track.create", "payload" => %{"row_index" => 1}})
+
+      assert_reply ref, :error, %{reason: "missing_base_version"}
     end
   end
 

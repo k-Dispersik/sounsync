@@ -14,14 +14,16 @@ defmodule Core.Projects.Operation do
   """
 
   import Ecto.Changeset
+  import Ecto.Query, only: [from: 2]
 
   alias Core.Accounts.User
   alias Core.Projects
   alias Core.Projects.Clip
   alias Core.Projects.Project
   alias Core.Projects.Track
+  alias Soundsync.Repo
 
-  @type event :: %{type: String.t(), data: term()}
+  @type event :: %{type: String.t(), data: term(), version: non_neg_integer()}
 
   # Field types per operation, with the required ones listed separately. A
   # payload is cast against these before anything is touched.
@@ -61,17 +63,57 @@ defmodule Core.Projects.Operation do
   @doc """
   Runs an operation against a project.
 
-  Returns the event to pass on to the other participants, or the reason it was
-  refused. An unknown type is refused rather than ignored: silently dropping an
-  edit is how two clients end up disagreeing about what the project contains.
+  `base_version` is the version the client believed the project was on. If the
+  project has moved on since, the operation is refused as `:stale` rather than
+  applied: an edit computed against a state nobody has any more is how a clip
+  ends up somewhere neither participant put it. The client's answer to `:stale`
+  is to take a fresh snapshot, not to retry.
+
+  The version bump and the change itself share one transaction, so a version
+  can never advance without the edit that earned it.
   """
-  @spec apply(Project.t(), User.t(), String.t(), map()) ::
+  @spec apply(Project.t(), User.t(), String.t(), map(), non_neg_integer()) ::
           {:ok, event()} | {:error, term()}
-  def apply(%Project{} = project, %User{} = user, type, payload) do
+  def apply(%Project{} = project, %User{} = user, type, payload, base_version) do
     with :ok <- Projects.authorize(:write, user, project),
-         {:ok, attrs} <- cast(type, payload) do
-      run(project, type, attrs)
+         {:ok, attrs} <- cast(type, payload),
+         {:ok, version} <- claim_version(project, base_version) do
+      commit(project, type, attrs, version)
     end
+  end
+
+  # Compare-and-swap on the version column: the update matches only while the
+  # project is still on the version the client worked from, so two edits racing
+  # cannot both succeed.
+  defp claim_version(project, base_version) when is_integer(base_version) do
+    query =
+      from p in Project,
+        where: p.id == ^project.id and p.version == ^base_version
+
+    case Repo.update_all(query, inc: [version: 1]) do
+      {1, _} -> {:ok, base_version + 1}
+      {0, _} -> {:error, :stale}
+    end
+  end
+
+  defp claim_version(_project, _base_version), do: {:error, :missing_base_version}
+
+  defp commit(project, type, attrs, version) do
+    case run(project, type, attrs) do
+      {:ok, event} ->
+        {:ok, Map.put(event, :version, version)}
+
+      {:error, reason} ->
+        # The version was claimed before the change was attempted; give it back
+        # so a rejected edit does not leave a gap every client has to resync to.
+        release_version(project, version)
+        {:error, reason}
+    end
+  end
+
+  defp release_version(project, version) do
+    query = from p in Project, where: p.id == ^project.id and p.version == ^version
+    Repo.update_all(query, inc: [version: -1])
   end
 
   @doc "Validates a payload without applying it."
