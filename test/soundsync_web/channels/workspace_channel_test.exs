@@ -275,6 +275,147 @@ defmodule SoundsyncWeb.WorkspaceChannelTest do
     end
   end
 
+  describe "two participants" do
+    setup %{owner: owner, project: project} do
+      editor = user_fixture()
+      {:ok, _} = Projects.add_member(project, editor, :editor)
+      topic = "workspace:project:#{project.id}"
+
+      {:ok, _reply, author} =
+        owner
+        |> socket_for()
+        |> subscribe_and_join(WorkspaceChannel, topic, %{
+          "session_id" => "author"
+        })
+
+      {:ok, _reply, peer} =
+        editor
+        |> socket_for()
+        |> subscribe_and_join(WorkspaceChannel, topic, %{
+          "session_id" => "peer"
+        })
+
+      %{author: author, peer: peer, editor: editor}
+    end
+
+    test "an edit by one reaches the other", ctx do
+      %{author: author, project: project} = ctx
+
+      ref =
+        push(author, "op", %{
+          "type" => "track.create",
+          "client_id" => "author",
+          "base_version" => version(project),
+          "payload" => %{"row_index" => 5}
+        })
+
+      assert_reply ref, :ok, %{version: 1}
+
+      assert_push "op", %{
+        type: "track.create",
+        client_id: "author",
+        version: 1,
+        payload: %{row_index: 5}
+      }
+    end
+
+    test "the change is in the database by the time the other hears about it", ctx do
+      %{author: author, project: project} = ctx
+
+      push(author, "op", %{
+        "type" => "track.create",
+        "base_version" => version(project),
+        "payload" => %{"row_index" => 6}
+      })
+
+      assert_push "op", %{payload: %{id: track_id}}
+
+      # Broadcasting before persisting would show the peer a track that does
+      # not exist; asserting on the row here is what rules that order out.
+      assert Repo.get(Track, track_id)
+    end
+
+    test "a peer joining later is handed everything that happened before", ctx do
+      %{author: author, project: project, owner: owner} = ctx
+
+      ref =
+        push(author, "op", %{
+          "type" => "track.create",
+          "base_version" => version(project),
+          "payload" => %{"row_index" => 7}
+        })
+
+      assert_reply ref, :ok, _payload
+
+      {:ok, reply, _late} =
+        owner
+        |> socket_for()
+        |> subscribe_and_join(WorkspaceChannel, "workspace:project:#{project.id}", %{
+          "session_id" => "late"
+        })
+
+      assert reply.project.version == 1
+      assert [%{row_index: 7}] = reply.project.tracks
+    end
+
+    test "an edit refused for one participant reaches nobody", ctx do
+      %{project: project, peer: peer} = ctx
+      viewer = user_fixture()
+      {:ok, _} = Projects.add_member(project, viewer, :viewer)
+
+      {:ok, _reply, watcher} =
+        viewer
+        |> socket_for()
+        |> subscribe_and_join(WorkspaceChannel, "workspace:project:#{project.id}", %{
+          "session_id" => "watcher"
+        })
+
+      ref =
+        push(watcher, "op", %{
+          "type" => "track.create",
+          "base_version" => version(project),
+          "payload" => %{"row_index" => 8}
+        })
+
+      assert_reply ref, :error, %{reason: "forbidden"}
+      refute_receive %Phoenix.Socket.Message{event: "op"}
+      assert peer
+    end
+
+    test "two edits on the same version: the second is told to resync", ctx do
+      %{author: author, peer: peer, project: project} = ctx
+      base = version(project)
+
+      first =
+        push(author, "op", %{
+          "type" => "track.create",
+          "base_version" => base,
+          "payload" => %{"row_index" => 1}
+        })
+
+      assert_reply first, :ok, %{version: 1}
+
+      second =
+        push(peer, "op", %{
+          "type" => "track.create",
+          "base_version" => base,
+          "payload" => %{"row_index" => 2}
+        })
+
+      assert_reply second, :error, %{reason: "stale", project: snapshot}
+      assert snapshot.version == 1
+      assert Repo.aggregate(from(t in Track, where: t.project_id == ^project.id), :count) == 1
+    end
+
+    test "both participants show up in presence", ctx do
+      %{project: project} = ctx
+
+      participants = Presence.list("workspace:project:#{project.id}")
+
+      assert Map.keys(participants) |> Enum.sort() == ["author", "peer"]
+    end
+  end
+
   describe "presence" do
     test "the joining client is in the list it is handed", ctx do
       %{owner: owner, project: project} = ctx
