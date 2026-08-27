@@ -7,6 +7,7 @@ import type { RealtimeEventName } from "../events/events";
 import { useWorkspaceBroadcast } from "../hooks/useWorkspaceBroadcast";
 import { projectQueryKey } from "../hooks/useProject";
 import { applyOperation } from "../model/applyOperation";
+import { nextStatus, type ConnectionStatus } from "../model/connection";
 import type { OperationType } from "../model/operations";
 import WorkspaceChannel, {
     getOrCreateSessionId,
@@ -24,6 +25,7 @@ interface RealtimeContextValue {
     /** Durable: an edit the server validates, records and passes on. */
     sendOperation: (type: OperationType, payload: unknown) => Promise<void>;
     presence: unknown;
+    status: ConnectionStatus;
 }
 
 const RealtimeContext = createContext<RealtimeContextValue | null>(null);
@@ -47,6 +49,7 @@ export default function RealtimeProvider({ projectId, workspaceId, children }: P
     const queryClient = useQueryClient();
     const [rtc, setRtc] = useState<WorkspaceRtc | null>(null);
     const [presence, setPresence] = useState<unknown>({});
+    const [status, setStatus] = useState<ConnectionStatus>("connecting");
     const channelRef = useRef<WorkspaceChannel | null>(null);
     const versionRef = useRef(0);
 
@@ -73,7 +76,13 @@ export default function RealtimeProvider({ projectId, workspaceId, children }: P
 
         // A rejoin after a dropped connection lands here too, which is what
         // makes recovery a replacement rather than a replay of missed edits.
-        channel.join((reply) => replaceProject(reply.project));
+        channel.join({
+            onSnapshot: (reply) => {
+                replaceProject(reply.project);
+                setStatus((current) => nextStatus(current, "joined"));
+            },
+            onDropped: () => setStatus((current) => nextStatus(current, "dropped")),
+        });
 
         const peerConnection = new WorkspaceRtc(workspaceId, channel.sessionId);
         setRtc(peerConnection);
@@ -127,8 +136,8 @@ export default function RealtimeProvider({ projectId, workspaceId, children }: P
     const { broadcast } = useWorkspaceBroadcast(rtc);
 
     const value = useMemo(
-        () => ({ sessionId, rtc, broadcast, sendOperation, presence }),
-        [sessionId, rtc, broadcast, sendOperation, presence],
+        () => ({ sessionId, rtc, broadcast, sendOperation, presence, status }),
+        [sessionId, rtc, broadcast, sendOperation, presence, status],
     );
 
     return <RealtimeContext value={value}>{children}</RealtimeContext>;

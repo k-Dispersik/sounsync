@@ -48,10 +48,5 @@
     "complexity": {
       "count": 1
     }
-  },
-  "js/pages/user/workspace.tsx": {
-    "no-restricted-imports": {
-      "count": 10
-    }
   }
 }

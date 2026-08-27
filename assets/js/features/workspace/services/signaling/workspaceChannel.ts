@@ -69,18 +69,29 @@ export default class WorkspaceChannel {
      * resolve too, which is what makes reconnection a state replacement rather
      * than a replay.
      */
-    join(onSnapshot?: (reply: JoinReply) => void): this {
+    join(
+        handlers: {
+            onSnapshot?: (reply: JoinReply) => void;
+            onDropped?: () => void;
+        } = {},
+    ): this {
         connectSocket();
         log.debug(`${this.workspaceId}: joining, socket state ${socket.connectionState()}`);
 
+        // Phoenix resends the join push after a dropped connection, and these
+        // hooks run again with it — which is what makes a reconnect deliver a
+        // fresh snapshot rather than a gap nobody notices.
         this.channel
             .join()
             .receive("ok", (reply: JoinReply) => {
                 log.debug(`${this.workspaceId}: joined at version ${reply.project.version}`);
-                onSnapshot?.(reply);
+                handlers.onSnapshot?.(reply);
             })
             .receive("error", (error) => log.error(`${this.workspaceId}: join failed`, error))
             .receive("timeout", () => log.warn(`${this.workspaceId}: join timed out`));
+
+        this.channel.onError(() => handlers.onDropped?.());
+        this.channel.onClose(() => handlers.onDropped?.());
 
         return this;
     }

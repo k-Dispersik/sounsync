@@ -1,18 +1,21 @@
 import { useCallback } from "react";
 import { useParams } from "react-router-dom";
 
-import SampleSidebar from "@/features/workspace/components/SampleSidebar";
-import TimelineGrid from "@/features/workspace/components/TimelineGrid";
-import WorkspaceCursor from "@/features/workspace/components/WorkspaceCursor";
-import WorkspaceTopBar from "@/features/workspace/components/WorkspaceTopBar";
-import ClipModalProvider from "@/features/workspace/contextProviders/ClipModalProvider";
-import RealtimeProvider, {
+import {
+    ClipModalProvider,
+    ConnectionBanner,
+    OPERATIONS,
+    RealtimeProvider,
+    SampleSidebar,
+    TimelineGrid,
+    TransportProvider,
+    useProject,
     useRealtime,
-} from "@/features/workspace/contextProviders/RealtimeProvider";
-import TransportProvider from "@/features/workspace/contextProviders/TransportProvider";
-import { useProject } from "@/features/workspace/hooks/useProject";
-import { useWorkspaceRealtime } from "@/features/workspace/hooks/useWorkspaceRealtime";
-import { OPERATIONS } from "@/features/workspace/model/operations";
+    useWorkspaceRealtime,
+    WorkspaceCursor,
+    WorkspaceTopBar,
+} from "@/features/workspace";
+
 import { createLogger } from "@/shared/lib/logger";
 import type { ProjectSettings } from "@/shared/types";
 
@@ -26,7 +29,7 @@ function WorkspaceContent() {
     const { id } = useParams<{ id: string }>();
     const { cursors } = useWorkspaceRealtime(workspaceTopic(id));
     const { project, isLoading, isError, refetch } = useProject(Number(id));
-    const { sendOperation } = useRealtime();
+    const { sendOperation, status } = useRealtime();
 
     // Edits no longer update local state directly: they go to the server, and
     // come back as operations that update the project for everyone, including
@@ -64,6 +67,7 @@ function WorkspaceContent() {
         <TransportProvider>
             <ClipModalProvider>
                 <WorkspaceCursor cursors={cursors} />
+                <ConnectionBanner status={status} />
                 <WorkspaceTopBar
                     isLoading={isLoading}
                     projectTitle={project?.title}
