@@ -1,7 +1,7 @@
-import { createContext, useContext, useState } from "react";
-import type { Clip } from "@/shared/types";
-import type { ClipSuccessCallback } from "@/features/workspace/hooks/useClipForm";
+import { createContext, use, useCallback, useMemo, useState } from "react";
+
 import ClipModal from "@/features/workspace/components/ClipModal";
+import type { Clip } from "@/shared/types";
 
 export type ClipModalState =
     | { kind: "create"; projectId: number; trackId: number; startTime: number }
@@ -15,37 +15,41 @@ interface ClipModalContextValue {
 
 const ClipModalContext = createContext<ClipModalContextValue | null>(null);
 
-export function useClipModal() {
-    const ctx = useContext(ClipModalContext);
-    if (!ctx) throw new Error("useClipModal must be used inside ClipModalProvider");
-    return ctx;
+export function useClipModal(): ClipModalContextValue {
+    const context = use(ClipModalContext);
+
+    if (!context) throw new Error("useClipModal must be used inside ClipModalProvider");
+
+    return context;
 }
 
-interface Props {
-    children: React.ReactNode;
-    onSuccess: ClipSuccessCallback;
-}
-
-export default function ClipModalProvider({ children, onSuccess }: Props) {
+/**
+ * Owns the clip dialog. Saving a clip is an operation now, so the dialog only
+ * has to close: the new clip reaches the timeline the same way a peer's would.
+ */
+export default function ClipModalProvider({ children }: { children: React.ReactNode }) {
     const [state, setState] = useState<ClipModalState>(null);
 
-    const openCreateClip = (projectId: number, trackId: number, startTime: number) =>
-        setState({ kind: "create", projectId, trackId, startTime });
+    const openCreateClip = useCallback(
+        (projectId: number, trackId: number, startTime: number) =>
+            setState({ kind: "create", projectId, trackId, startTime }),
+        [],
+    );
 
-    const openEditClip = (projectId: number, trackId: number, clip: Clip) =>
-        setState({ kind: "edit", projectId, trackId, clip });
+    const openEditClip = useCallback(
+        (projectId: number, trackId: number, clip: Clip) =>
+            setState({ kind: "edit", projectId, trackId, clip }),
+        [],
+    );
 
-    const handleClose = () => setState(null);
+    const close = useCallback(() => setState(null), []);
 
-    const handleSuccess: ClipSuccessCallback = (trackId, clip, isEdit) => {
-        setState(null);
-        onSuccess(trackId, clip, isEdit);
-    };
+    const value = useMemo(() => ({ openCreateClip, openEditClip }), [openCreateClip, openEditClip]);
 
     return (
-        <ClipModalContext.Provider value={{ openCreateClip, openEditClip }}>
+        <ClipModalContext value={value}>
             {children}
-            {state && <ClipModal state={state} onClose={handleClose} onSuccess={handleSuccess} />}
-        </ClipModalContext.Provider>
+            {state && <ClipModal state={state} onClose={close} />}
+        </ClipModalContext>
     );
 }

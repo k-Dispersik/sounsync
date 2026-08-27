@@ -12,6 +12,7 @@ const project: Project = {
     id: 1,
     title: "Session",
     description: null,
+    version: 0,
     settings: { bpm: 120, time_signature: "4/4", timeline_length_ms: 60_000 },
     tracks: [
         {

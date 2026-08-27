@@ -1,21 +1,22 @@
 import { useCallback } from "react";
 import { useParams } from "react-router-dom";
-import WorkspaceCursor from "@/features/workspace/components/WorkspaceCursor";
-import TimelineGrid from "@/features/workspace/components/TimelineGrid";
-import WorkspaceTopBar from "@/features/workspace/components/WorkspaceTopBar";
+
 import SampleSidebar from "@/features/workspace/components/SampleSidebar";
-import { updateProjectSettings } from "@/features/workspace/api/projects";
-import { useWorkspaceRealtime } from "@/features/workspace/hooks/useWorkspaceRealtime";
-import { useWorkspaceEvent } from "@/features/workspace/hooks/useWorkspaceEvent";
-import { RealtimeEvents } from "@/features/workspace/events/events";
-import { useProject } from "@/features/workspace/hooks/useProject";
-import type { Clip, ProjectSettings, Track } from "@/shared/types";
-import TransportProvider from "@/features/workspace/contextProviders/TransportProvider";
+import TimelineGrid from "@/features/workspace/components/TimelineGrid";
+import WorkspaceCursor from "@/features/workspace/components/WorkspaceCursor";
+import WorkspaceTopBar from "@/features/workspace/components/WorkspaceTopBar";
 import ClipModalProvider from "@/features/workspace/contextProviders/ClipModalProvider";
 import RealtimeProvider, {
     useRealtime,
 } from "@/features/workspace/contextProviders/RealtimeProvider";
-import { getOrCreateSessionId } from "@/features/workspace/services/signaling/workspaceChannel";
+import TransportProvider from "@/features/workspace/contextProviders/TransportProvider";
+import { useProject } from "@/features/workspace/hooks/useProject";
+import { useWorkspaceRealtime } from "@/features/workspace/hooks/useWorkspaceRealtime";
+import { OPERATIONS } from "@/features/workspace/model/operations";
+import { createLogger } from "@/shared/lib/logger";
+import type { ProjectSettings } from "@/shared/types";
+
+const log = createLogger("Workspace");
 
 // The realtime room is named after the project, which is what the server
 // authorises against; a shared constant put every project in one room.
@@ -24,56 +25,21 @@ const workspaceTopic = (projectId: string | undefined) => `project:${projectId ?
 function WorkspaceContent() {
     const { id } = useParams<{ id: string }>();
     const { cursors } = useWorkspaceRealtime(workspaceTopic(id));
-    const {
-        project,
-        isLoading,
-        isError,
-        refetch,
-        addClip,
-        updateClipInState,
-        updateSettings,
-        addTrack,
-        removeTrack,
-    } = useProject(Number(id));
+    const { project, isLoading, isError, refetch } = useProject(Number(id));
+    const { sendOperation } = useRealtime();
 
-    // Remote peer created a clip — add it directly without API call
-    useWorkspaceEvent<{ session_id: string; track_id: number; clip: Clip }>(
-        RealtimeEvents.CLIP_CREATED,
-        ({ track_id, clip }) => addClip(track_id, clip),
-    );
-
-    const handleClipSuccess = useCallback(
-        (trackId: number, clip: Clip, isEdit: boolean) => {
-            if (isEdit) {
-                updateClipInState(trackId, clip.id, clip);
-            } else {
-                addClip(trackId, clip);
-            }
-        },
-        [addClip, updateClipInState],
-    );
-
+    // Edits no longer update local state directly: they go to the server, and
+    // come back as operations that update the project for everyone, including
+    // the person who made them.
     const handleProjectSettingsChange = useCallback(
         async (settings: ProjectSettings) => {
-            if (!id) return;
-            await updateProjectSettings(Number(id), settings);
-            updateSettings(settings);
+            try {
+                await sendOperation(OPERATIONS.SETTINGS_UPDATE, settings);
+            } catch (error) {
+                log.error("could not change the project settings", error);
+            }
         },
-        [id, updateSettings],
-    );
-
-    const handleTrackAdded = useCallback(
-        (track: Track) => {
-            addTrack(track);
-        },
-        [addTrack],
-    );
-
-    const handleTrackRemoved = useCallback(
-        (trackId: number) => {
-            removeTrack(trackId);
-        },
-        [removeTrack],
+        [sendOperation],
     );
 
     if (isError) {
@@ -96,7 +62,7 @@ function WorkspaceContent() {
 
     return (
         <TransportProvider>
-            <ClipModalProvider onSuccess={handleClipSuccess}>
+            <ClipModalProvider>
                 <WorkspaceCursor cursors={cursors} />
                 <WorkspaceTopBar
                     isLoading={isLoading}
@@ -105,17 +71,11 @@ function WorkspaceContent() {
                     onChangeProjectSettings={handleProjectSettingsChange}
                 />
 
-                {/* ── Main body ── */}
                 <div className="flex flex-1 overflow-hidden">
                     <SampleSidebar projectId={Number(id)} />
                     <div className="flex flex-col flex-1 overflow-hidden">
                         <div className="flex-1 overflow-hidden">
-                            <TimelineGrid
-                                project={project}
-                                isLoading={isLoading}
-                                onTrackAdded={handleTrackAdded}
-                                onTrackRemoved={handleTrackRemoved}
-                            />
+                            <TimelineGrid project={project} isLoading={isLoading} />
                         </div>
                     </div>
                 </div>
@@ -129,7 +89,7 @@ export default function Workspace() {
 
     return (
         <div className="w-full h-screen bg-base-200 flex flex-col overflow-hidden">
-            <RealtimeProvider workspaceId={workspaceTopic(id)}>
+            <RealtimeProvider projectId={Number(id)} workspaceId={workspaceTopic(id)}>
                 <WorkspaceContent />
             </RealtimeProvider>
         </div>

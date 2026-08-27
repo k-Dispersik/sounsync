@@ -10,6 +10,7 @@ const project = {
     id: 1,
     title: "Session",
     description: null,
+    version: 0,
     settings,
     tracks: [
         {
@@ -60,7 +61,7 @@ describe("parseResponse", () => {
     });
 
     it("accepts a summary without associations", () => {
-        const summary = { id: 1, title: "Session", description: null, settings };
+        const summary = { id: 1, title: "Session", description: null, version: 0, settings };
 
         expect(parseResponse(projectSummarySchema, "GET /projects", summary)).toEqual(summary);
     });
@@ -71,6 +72,7 @@ describe("parseResponse", () => {
             id: 1,
             title: "Session",
             description: null,
+            version: 0,
             settings: { ...settings, time_signature: "11/16" },
         };
 

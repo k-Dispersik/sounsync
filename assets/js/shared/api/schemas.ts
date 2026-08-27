@@ -49,6 +49,9 @@ const projectFields = {
     id: z.number(),
     title: z.string(),
     description: z.string().nullable(),
+    // Bumped by every accepted edit; an operation says which version it was
+    // built on, and the server refuses one built on a state it has left behind.
+    version: z.number(),
     settings: projectSettingsSchema,
 };
 

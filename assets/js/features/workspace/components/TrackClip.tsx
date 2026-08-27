@@ -60,7 +60,6 @@ export default function TrackClip({
 
     const { isDragging, tempStartTime, committedStartTime, startDrag } = useClipInteraction({
         clip,
-        projectId,
         trackId,
         pixelsPerMillisecond,
     });

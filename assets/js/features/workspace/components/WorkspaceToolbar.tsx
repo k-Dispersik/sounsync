@@ -1,21 +1,29 @@
 import { Plus, Mic } from "lucide-react";
-import { createTrack } from "../api/tracks";
+
+import { createLogger } from "@/shared/lib/logger";
 import type { Track } from "@/shared/types";
 import { useClipModal } from "../contextProviders/ClipModalProvider";
+import { useRealtime } from "../contextProviders/RealtimeProvider";
+import { OPERATIONS } from "../model/operations";
+
+const log = createLogger("Toolbar");
 
 interface Props {
     projectId: number;
     tracks: Track[];
     selectedCell: { trackId: number; beatIndex: number; startTimeMs: number } | null;
-    onTrackAdded: (track: Track) => void;
 }
 
-export default function WorkspaceToolbar({ projectId, tracks, selectedCell, onTrackAdded }: Props) {
+export default function WorkspaceToolbar({ projectId, tracks, selectedCell }: Props) {
     const { openCreateClip } = useClipModal();
+    const { sendOperation } = useRealtime();
 
-    const handleAddTrack = async () => {
-        const track = await createTrack(projectId, { row: tracks.length + 1 });
-        onTrackAdded(track);
+    // The new track arrives back through the channel, along with everyone
+    // else's edits, so there is nothing to do here on success.
+    const handleAddTrack = () => {
+        sendOperation(OPERATIONS.TRACK_CREATE, { row_index: tracks.length + 1 }).catch(
+            (error: unknown) => log.error("could not add a track", error),
+        );
     };
 
     return (

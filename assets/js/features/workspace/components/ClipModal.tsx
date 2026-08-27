@@ -9,18 +9,16 @@ import {
     type Tab,
     type ClipType,
     type LibrarySample,
-    type ClipSuccessCallback,
 } from "../hooks/useClipForm";
 
 interface Props {
     state: NonNullable<ClipModalState>;
     onClose: () => void;
-    onSuccess: ClipSuccessCallback;
 }
 
-export default function ClipModal({ state, onClose, onSuccess }: Props) {
+export default function ClipModal({ state, onClose }: Props) {
     const dialogRef = useRef<HTMLDialogElement>(null);
-    const form = useClipForm(state, onSuccess);
+    const form = useClipForm(state, onClose);
 
     useEffect(() => {
         dialogRef.current?.showModal();

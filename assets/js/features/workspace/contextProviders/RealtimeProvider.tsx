@@ -1,50 +1,143 @@
-import { createContext, useContext, useEffect, useRef, useState } from "react";
-import WorkspaceChannel from "../services/signaling/workspaceChannel";
-import { getOrCreateSessionId } from "../services/signaling/workspaceChannel";
-import { WorkspaceRtc } from "../services/transport/workspaceRtc";
-import { useWorkspaceBroadcast } from "../hooks/useWorkspaceBroadcast";
+import { useQueryClient } from "@tanstack/react-query";
+import { createContext, use, useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+import { createLogger } from "@/shared/lib/logger";
+import type { Project } from "@/shared/types";
 import type { RealtimeEventName } from "../events/events";
+import { useWorkspaceBroadcast } from "../hooks/useWorkspaceBroadcast";
+import { projectQueryKey } from "../hooks/useProject";
+import { applyOperation } from "../model/applyOperation";
+import type { OperationType } from "../model/operations";
+import WorkspaceChannel, {
+    getOrCreateSessionId,
+    OperationRejection,
+} from "../services/signaling/workspaceChannel";
+import { WorkspaceRtc } from "../services/transport/workspaceRtc";
+
+const log = createLogger("Realtime");
 
 interface RealtimeContextValue {
     sessionId: string;
     rtc: WorkspaceRtc | null;
+    /** Ephemeral, best-effort: cursors, playheads, drag previews. */
     broadcast: (event: RealtimeEventName, payload: unknown) => void;
+    /** Durable: an edit the server validates, records and passes on. */
+    sendOperation: (type: OperationType, payload: unknown) => Promise<void>;
+    presence: unknown;
 }
 
 const RealtimeContext = createContext<RealtimeContextValue | null>(null);
 
 interface Props {
+    projectId: number;
     workspaceId: string;
     children: React.ReactNode;
 }
 
-export default function RealtimeProvider({ workspaceId, children }: Props) {
+/**
+ * Wires the two transports to the project state.
+ *
+ * The version the server hands back travels with every edit, so this provider
+ * keeps the last one it saw. It is a ref rather than state on purpose: it
+ * changes on every operation and nothing renders from it, and a stale closure
+ * over it would send edits against a version that has already moved.
+ */
+export default function RealtimeProvider({ projectId, workspaceId, children }: Props) {
     const sessionId = useRef(getOrCreateSessionId()).current;
+    const queryClient = useQueryClient();
     const [rtc, setRtc] = useState<WorkspaceRtc | null>(null);
+    const [presence, setPresence] = useState<unknown>({});
+    const channelRef = useRef<WorkspaceChannel | null>(null);
+    const versionRef = useRef(0);
+
+    const replaceProject = useCallback(
+        (project: Project) => {
+            versionRef.current = project.version;
+            queryClient.setQueryData(projectQueryKey(projectId), project);
+        },
+        [queryClient, projectId],
+    );
 
     useEffect(() => {
-        const channel = new WorkspaceChannel(workspaceId).join();
-        const r = new WorkspaceRtc(workspaceId, channel.sessionId);
-        setRtc(r);
+        const channel = new WorkspaceChannel(workspaceId);
+        channelRef.current = channel;
+
+        channel.onOperation((event) => {
+            versionRef.current = event.version;
+            queryClient.setQueryData(projectQueryKey(projectId), (current: Project | undefined) =>
+                current ? applyOperation(current, event) : current,
+            );
+        });
+
+        channel.onPresence(setPresence);
+
+        // A rejoin after a dropped connection lands here too, which is what
+        // makes recovery a replacement rather than a replay of missed edits.
+        channel.join((reply) => replaceProject(reply.project));
+
+        const peerConnection = new WorkspaceRtc(workspaceId, channel.sessionId);
+        setRtc(peerConnection);
 
         return () => {
-            r.destroy();
+            peerConnection.destroy();
             setRtc(null);
             channel.leave();
+            channelRef.current = null;
         };
-    }, [workspaceId]);
+    }, [workspaceId, projectId, queryClient, replaceProject]);
+
+    const sendOperation = useCallback(
+        async (type: OperationType, payload: unknown) => {
+            const channel = channelRef.current;
+
+            if (!channel) {
+                log.warn(`dropping ${type}: not connected`);
+                return;
+            }
+
+            try {
+                const event = await channel.sendOperation(type, payload, versionRef.current);
+
+                versionRef.current = event.version;
+                queryClient.setQueryData(
+                    projectQueryKey(projectId),
+                    (current: Project | undefined) =>
+                        current ? applyOperation(current, event) : current,
+                );
+            } catch (rejection) {
+                // Being out of date is recoverable, and the server said so with
+                // the current state attached: take it and carry on.
+                if (
+                    rejection instanceof OperationRejection &&
+                    rejection.reason === "stale" &&
+                    rejection.project
+                ) {
+                    log.warn(`${type} was built on an old version, replacing local state`);
+                    replaceProject(rejection.project);
+                    return;
+                }
+
+                log.error(`${type} was refused`, rejection);
+                throw rejection;
+            }
+        },
+        [queryClient, projectId, replaceProject],
+    );
 
     const { broadcast } = useWorkspaceBroadcast(rtc);
 
-    return (
-        <RealtimeContext.Provider value={{ sessionId, rtc, broadcast }}>
-            {children}
-        </RealtimeContext.Provider>
+    const value = useMemo(
+        () => ({ sessionId, rtc, broadcast, sendOperation, presence }),
+        [sessionId, rtc, broadcast, sendOperation, presence],
     );
+
+    return <RealtimeContext value={value}>{children}</RealtimeContext>;
 }
 
-export function useRealtime() {
-    const ctx = useContext(RealtimeContext);
-    if (!ctx) throw new Error("useRealtime must be used within a RealtimeProvider");
-    return ctx;
+export function useRealtime(): RealtimeContextValue {
+    const context = use(RealtimeContext);
+
+    if (!context) throw new Error("useRealtime must be used within a RealtimeProvider");
+
+    return context;
 }

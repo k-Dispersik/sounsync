@@ -1,15 +1,13 @@
 import { type CSSProperties } from "react";
 import Ruler from "./Ruler";
 import TrackRow from "./TrackRow";
-import type { Project, Track } from "@/shared/types";
+import type { Project } from "@/shared/types";
 import { Trash2 } from "lucide-react";
-import { deleteTrack } from "../api/tracks";
 import WorkspaceToolbar from "./WorkspaceToolbar";
 import { useTimeline } from "@/features/workspace/hooks/useTimeline";
 import { useTimelineSelection } from "@/features/workspace/hooks/useTimelineSelection";
-import { RealtimeEvents } from "../events/events";
-import { useWorkspaceEvent } from "../hooks/useWorkspaceEvent";
 import { useRealtime } from "../contextProviders/RealtimeProvider";
+import { OPERATIONS } from "../model/operations";
 import { createLogger } from "@/shared/lib/logger";
 
 const log = createLogger("TimelineGrid");
@@ -19,17 +17,9 @@ interface Props {
     isLoading: boolean;
     /** Pixel width of one beat — default 48 */
     beatWidth?: number;
-    onTrackAdded: (track: Track) => void;
-    onTrackRemoved: (trackId: number) => void;
 }
 
-export default function TimelineGrid({
-    project,
-    isLoading,
-    beatWidth = 48,
-    onTrackAdded,
-    onTrackRemoved,
-}: Props) {
+export default function TimelineGrid({ project, isLoading, beatWidth = 48 }: Props) {
     const tracks = project?.tracks ?? [];
     const {
         scrollRef,
@@ -60,31 +50,16 @@ export default function TimelineGrid({
         ? { ...rawSelectedCell, startTimeMs: rawSelectedCell.beatIndex * millisecondsPerBeat }
         : null;
 
-    const { broadcast } = useRealtime();
+    const { sendOperation } = useRealtime();
 
-    const handleRemoveTrack = async (trackId: number) => {
-        if (!project) {
-            return;
-        }
-
-        await deleteTrack(project.id, trackId);
-        onTrackRemoved(trackId);
-        broadcast(RealtimeEvents.TRACK_REMOVED, { track_id: trackId });
+    // Tracks appearing and disappearing now arrive as operations on the
+    // channel, so the grid only has to ask; the answer updates the project for
+    // everyone at once.
+    const handleRemoveTrack = (trackId: number) => {
+        sendOperation(OPERATIONS.TRACK_DELETE, { track_id: trackId }).catch((error: unknown) =>
+            log.error(`could not remove track ${trackId}`, error),
+        );
     };
-
-    useWorkspaceEvent<{ track_id: number }>(RealtimeEvents.TRACK_REMOVED, ({ track_id }) => {
-        onTrackRemoved(track_id);
-        log.debug(`track ${track_id} removed by another user`);
-    });
-
-    const handleTrackAdded = (track: Track) => {
-        onTrackAdded(track);
-        broadcast(RealtimeEvents.TRACK_ADDED, { track });
-    };
-
-    useWorkspaceEvent<{ track: Track }>(RealtimeEvents.TRACK_ADDED, ({ track }) => {
-        onTrackAdded(track);
-    });
 
     return (
         <>
@@ -92,7 +67,6 @@ export default function TimelineGrid({
                 projectId={Number(project?.id)}
                 tracks={tracks}
                 selectedCell={selectedCell}
-                onTrackAdded={handleTrackAdded}
             />
             <div className="flex flex-col h-full overflow-hidden bg-base-100 select-none">
                 {/* ── Header row ── */}

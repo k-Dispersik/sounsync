@@ -3,10 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import type { AudioFile } from "@/shared/types";
 import { useAudioFiles } from "./useAudioFiles";
 import type { ClipModalState } from "../contextProviders/ClipModalProvider";
-import { createClip, updateClip } from "../api/clips";
 import { useRealtime } from "../contextProviders/RealtimeProvider";
-import { RealtimeEvents } from "../events/events";
-import { getOrCreateSessionId } from "../services/signaling/workspaceChannel";
+import { OPERATIONS } from "../model/operations";
 
 export type ClipType = "piano" | "guitar" | "drums" | "bass" | "recording" | "effect";
 export type Tab = "library" | "upload";
@@ -42,13 +40,8 @@ function toSample(file: AudioFile): LibrarySample {
     };
 }
 
-import type { Clip } from "@/shared/types";
-
-export type ClipSuccessCallback = (trackId: number, clip: Clip, isEdit: boolean) => void;
-
-export function useClipForm(state: NonNullable<ClipModalState>, onSuccess: ClipSuccessCallback) {
-    const { broadcast } = useRealtime();
-    const sessionId = getOrCreateSessionId();
+export function useClipForm(state: NonNullable<ClipModalState>, onSaved: () => void) {
+    const { sendOperation } = useRealtime();
     const isEdit = state.kind === "edit";
 
     const { readyFiles } = useAudioFiles(state.projectId);
@@ -113,25 +106,24 @@ export function useClipForm(state: NonNullable<ClipModalState>, onSuccess: ClipS
         if (!canSubmit) return;
         setIsSaving(true);
 
-        try {
-            const attrs = buildAttrs();
+        const attrs = buildAttrs();
 
+        try {
             if (isEdit) {
-                const clip = await updateClip(state.projectId, state.trackId, state.clip.id, attrs);
-                onSuccess(state.trackId, clip, true);
-            } else {
-                const clip = await createClip(state.projectId, state.trackId, {
-                    ...attrs,
-                    start_time: state.startTime,
-                    row_index: 0,
-                });
-                broadcast(RealtimeEvents.CLIP_CREATED, {
-                    session_id: sessionId,
+                await sendOperation(OPERATIONS.CLIP_UPDATE, {
+                    clip_id: state.clip.id,
                     track_id: state.trackId,
-                    clip,
+                    ...attrs,
                 });
-                onSuccess(state.trackId, clip, false);
+            } else {
+                await sendOperation(OPERATIONS.CLIP_CREATE, {
+                    track_id: state.trackId,
+                    start_time: state.startTime,
+                    ...attrs,
+                });
             }
+
+            onSaved();
         } finally {
             setIsSaving(false);
         }

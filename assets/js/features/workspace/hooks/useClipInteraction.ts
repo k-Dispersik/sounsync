@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Clip } from "@/shared/types";
-import { updateClip } from "../api/clips";
 import { useRealtime } from "../contextProviders/RealtimeProvider";
 import { RealtimeEvents } from "../events/events";
+import { OPERATIONS } from "../model/operations";
 import { getOrCreateSessionId } from "../services/signaling/workspaceChannel";
 import { createLogger } from "@/shared/lib/logger";
 
@@ -10,13 +10,12 @@ const log = createLogger("ClipInteraction");
 
 interface Props {
     clip: Clip;
-    projectId: number;
     trackId: number;
     pixelsPerMillisecond: number;
 }
 
-export function useClipInteraction({ clip, projectId, trackId, pixelsPerMillisecond }: Props) {
-    const { broadcast } = useRealtime();
+export function useClipInteraction({ clip, trackId, pixelsPerMillisecond }: Props) {
+    const { broadcast, sendOperation } = useRealtime();
     const sessionId = getOrCreateSessionId();
 
     const [isDragging, setIsDragging] = useState(false);
@@ -61,11 +60,15 @@ export function useClipInteraction({ clip, projectId, trackId, pixelsPerMillisec
             setCommittedStartTime(nextStartTime);
             committedStartTimeRef.current = nextStartTime;
 
-            void updateClip(projectId, trackId, clip.id, {
+            // The drag itself was previewed over WebRTC, where dropping a
+            // frame costs nothing. Where the clip actually ended up is an edit,
+            // so it goes over the channel and is written down.
+            void sendOperation(OPERATIONS.CLIP_MOVE, {
+                clip_id: clip.id,
+                track_id: trackId,
                 start_time: nextStartTime,
-                duration: clip.duration,
-            }).catch((error) => {
-                log.error("failed to persist clip position", error);
+            }).catch((error: unknown) => {
+                log.error("could not move the clip", error);
                 setCommittedStartTime(previousCommittedStartTime);
                 committedStartTimeRef.current = previousCommittedStartTime;
             });
@@ -78,17 +81,7 @@ export function useClipInteraction({ clip, projectId, trackId, pixelsPerMillisec
             window.removeEventListener("mousemove", handleMouseMove);
             window.removeEventListener("mouseup", handleMouseUp);
         };
-    }, [
-        broadcast,
-        clip.duration,
-        clip.id,
-        clip.start_time,
-        isDragging,
-        pixelsPerMillisecond,
-        projectId,
-        sessionId,
-        trackId,
-    ]);
+    }, [broadcast, clip.id, isDragging, pixelsPerMillisecond, sendOperation, sessionId, trackId]);
 
     const startDrag = () => {
         const currentStartTime = committedStartTimeRef.current;

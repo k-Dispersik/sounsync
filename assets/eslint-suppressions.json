@@ -8,20 +8,12 @@
     }
   },
   "js/features/workspace/components/TimelineGrid.tsx": {
-    "@typescript-eslint/no-misused-promises": {
-      "count": 1
-    },
     "complexity": {
       "count": 1
     }
   },
   "js/features/workspace/components/TrackRow.tsx": {
     "@typescript-eslint/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
-  "js/features/workspace/components/WorkspaceToolbar.tsx": {
-    "@typescript-eslint/no-misused-promises": {
       "count": 1
     }
   },
@@ -58,11 +50,8 @@
     }
   },
   "js/pages/user/workspace.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    },
     "no-restricted-imports": {
-      "count": 13
+      "count": 10
     }
   }
 }
