@@ -1,56 +1,70 @@
-import { useState } from "react";
-import { useCursorSync } from "./useCursorSync";
-import { useCursorEvents } from "./useCursorEvents";
-import { useWorkspaceEvent } from "./useWorkspaceEvent";
-import { RealtimeEvents } from "../events/events";
+import { useCallback, useMemo, useState } from "react";
+
 import { useRealtime } from "../contextProviders/RealtimeProvider";
+import { RealtimeEvents } from "../events/events";
+import type { DomainCursor, TimelineSurface } from "../model/cursor";
+import { useCursorEvents } from "./useCursorEvents";
+import { useCursorSync } from "./useCursorSync";
+import { useWorkspaceEvent } from "./useWorkspaceEvent";
 
-interface CursorState {
-    x: number;
-    y: number;
-    clicking?: boolean;
-}
+const CLICK_FLASH_MS = 200;
 
-export function useWorkspaceRealtime(_workspaceId: string) {
+/**
+ * The ephemeral half of realtime: who is pointing where.
+ *
+ * Cursors are held per session and in domain coordinates; turning them into
+ * pixels is the timeline's job, because only it knows what it is drawing with.
+ */
+export function useWorkspaceRealtime(surface: TimelineSurface) {
     const { rtc, sessionId } = useRealtime();
+    const [cursors, setCursors] = useState<Record<string, DomainCursor>>({});
 
-    // ─── Cursor state ─────────────────────────────────────────────────────────
-    const [cursors, setCursors] = useState<Record<string, CursorState>>({});
+    const onRemoteMove = useCallback((id: string, cursor: DomainCursor) => {
+        setCursors((current) => ({ ...current, [id]: { ...current[id], ...cursor } }));
+    }, []);
 
-    const { sendMove, sendClick } = useCursorSync(rtc, sessionId, {
-        onRemoteMove: (id, x, y) => {
-            setCursors((prev) => ({ ...prev, [id]: { ...prev[id], x, y } }));
-        },
-        onRemoteClick: (id, x, y) => {
-            setCursors((prev) => ({ ...prev, [id]: { ...prev[id], clicking: true } }));
-            setTimeout(() => {
-                setCursors((prev) => ({ ...prev, [id]: { ...prev[id], clicking: false } }));
-            }, 200);
-        },
-    });
+    const onRemoteClick = useCallback((id: string) => {
+        setCursors((current) =>
+            current[id] ? { ...current, [id]: { ...current[id], clicking: true } } : current,
+        );
 
-    useCursorEvents(sendMove, sendClick);
+        setTimeout(
+            () =>
+                setCursors((current) =>
+                    current[id]
+                        ? { ...current, [id]: { ...current[id], clicking: false } }
+                        : current,
+                ),
+            CLICK_FLASH_MS,
+        );
+    }, []);
 
-    // ─── Connected peers ──────────────────────────────────────────────────────
+    const { sendMove, sendClick } = useCursorSync(rtc, sessionId, { onRemoteMove, onRemoteClick });
+
+    const send = useMemo(() => ({ move: sendMove, click: sendClick }), [sendMove, sendClick]);
+    const pointerHandlers = useCursorEvents(surface, send);
+
     const [connectedPeers, setConnectedPeers] = useState<Set<string>>(new Set());
 
     useWorkspaceEvent<{ session_id: string }>(RealtimeEvents.PEER_CONNECTED, ({ session_id }) =>
-        setConnectedPeers((prev) => new Set([...prev, session_id])),
+        setConnectedPeers((current) => new Set([...current, session_id])),
     );
 
     useWorkspaceEvent<{ session_id: string }>(RealtimeEvents.PEER_DISCONNECTED, ({ session_id }) =>
-        setConnectedPeers((prev) => {
-            const next = new Set(prev);
+        setConnectedPeers((current) => {
+            const next = new Set(current);
             next.delete(session_id);
             return next;
         }),
     );
 
-    return {
-        sessionId,
-        cursors,
-        connectedPeers,
-        tracks: [] as never[],
-        updateTrack: (_id: string, _data: unknown) => {},
-    };
+    // A peer that walked away leaves a cursor behind otherwise.
+    useWorkspaceEvent<{ session_id: string }>(RealtimeEvents.PEER_DISCONNECTED, ({ session_id }) =>
+        setCursors((current) => {
+            const { [session_id]: _gone, ...rest } = current;
+            return rest;
+        }),
+    );
+
+    return { sessionId, cursors, connectedPeers, pointerHandlers };
 }

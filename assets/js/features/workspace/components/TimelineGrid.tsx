@@ -1,16 +1,23 @@
-import { type CSSProperties } from "react";
+import { type CSSProperties, useMemo } from "react";
 import Ruler from "./Ruler";
 import TrackRow from "./TrackRow";
 import type { Project } from "@/shared/types";
 import { Trash2 } from "lucide-react";
+import WorkspaceCursor from "./WorkspaceCursor";
 import WorkspaceToolbar from "./WorkspaceToolbar";
 import { useTimeline } from "@/features/workspace/hooks/useTimeline";
 import { useTimelineSelection } from "@/features/workspace/hooks/useTimelineSelection";
 import { useRealtime } from "../contextProviders/RealtimeProvider";
+import type { TimelineSurface } from "../model/cursor";
 import { OPERATIONS } from "../model/operations";
+import { useWorkspaceRealtime } from "../hooks/useWorkspaceRealtime";
 import { createLogger } from "@/shared/lib/logger";
 
 const log = createLogger("TimelineGrid");
+
+// Kept in step with the row height in TrackRow; the cursor layer needs to know
+// it to place a pointer in the right lane.
+const LANE_HEIGHT = 80;
 
 interface Props {
     project: Project | null;
@@ -20,7 +27,10 @@ interface Props {
 }
 
 export default function TimelineGrid({ project, isLoading, beatWidth = 48 }: Props) {
-    const tracks = project?.tracks ?? [];
+    // Memoised because the cursor surface is derived from it: a fresh empty
+    // array on every render would rebuild the surface, and with it every peer
+    // cursor, sixty times a second.
+    const tracks = useMemo(() => project?.tracks ?? [], [project?.tracks]);
     const {
         scrollRef,
         hoveredBeat,
@@ -51,6 +61,19 @@ export default function TimelineGrid({ project, isLoading, beatWidth = 48 }: Pro
         : null;
 
     const { sendOperation } = useRealtime();
+
+    const surface: TimelineSurface = useMemo(
+        () => ({
+            pixelsPerMillisecond,
+            laneHeight: LANE_HEIGHT,
+            trackTops: Object.fromEntries(
+                tracks.map((track, index) => [track.id, index * LANE_HEIGHT]),
+            ),
+        }),
+        [pixelsPerMillisecond, tracks],
+    );
+
+    const { cursors, pointerHandlers } = useWorkspaceRealtime(surface);
 
     // Tracks appearing and disappearing now arrive as operations on the
     // channel, so the grid only has to ask; the answer updates the project for
@@ -135,9 +158,12 @@ export default function TimelineGrid({ project, isLoading, beatWidth = 48 }: Pro
                         }}
                     >
                         <div
-                            className="w-[var(--timeline-width)]"
+                            className="relative w-[var(--timeline-width)]"
                             style={{ "--timeline-width": `${contentWidth}px` } as CSSProperties}
+                            onMouseMove={pointerHandlers.onMouseMove}
+                            onClick={pointerHandlers.onClick}
                         >
+                            <WorkspaceCursor cursors={cursors} surface={surface} />
                             {isLoading ? (
                                 <div className="flex flex-col gap-2 p-4">
                                     {Array.from({ length: 4 }).map((_, i) => (

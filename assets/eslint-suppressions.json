@@ -7,11 +7,6 @@
       "count": 1
     }
   },
-  "js/features/workspace/components/TimelineGrid.tsx": {
-    "complexity": {
-      "count": 1
-    }
-  },
   "js/features/workspace/components/TrackRow.tsx": {
     "@typescript-eslint/no-unnecessary-type-assertion": {
       "count": 1
@@ -34,11 +29,6 @@
   "js/features/workspace/hooks/useTimeline.ts": {
     "complexity": {
       "count": 1
-    }
-  },
-  "js/features/workspace/hooks/useWorkspaceRealtime.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
     }
   },
   "js/features/workspace/services/transport/workspaceRtc.ts": {

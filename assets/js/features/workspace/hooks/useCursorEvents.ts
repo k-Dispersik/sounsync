@@ -1,34 +1,50 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useRef } from "react";
 
-const THROTTLE_MS = 50;
+import { pointToCursor, type DomainCursor, type TimelineSurface } from "../model/cursor";
+
+// Thirty a second is smooth to the eye and an order of magnitude less traffic
+// than every mouse event the browser produces.
+const THROTTLE_MS = 33;
 
 /**
- * Attaches document-level mousemove / click listeners and calls the provided
- * callbacks. Throttles move events to avoid flooding the transport layer.
+ * Turns pointer events over the timeline into domain cursors.
+ *
+ * Listening on the timeline element rather than the document is what makes the
+ * conversion possible at all: a position is only meaningful once it is
+ * measured against the surface it was over.
  */
 export function useCursorEvents(
-    sendMove: (x: number, y: number) => void,
-    sendClick: (x: number, y: number) => void,
-): void {
+    surface: TimelineSurface,
+    send: { move: (cursor: DomainCursor) => void; click: (cursor: DomainCursor) => void },
+) {
     const lastSentRef = useRef(0);
+    const surfaceRef = useRef(surface);
+    surfaceRef.current = surface;
 
-    useEffect(() => {
-        const handleMove = (e: MouseEvent) => {
+    const toCursor = useCallback((event: React.MouseEvent<HTMLElement>): DomainCursor => {
+        const bounds = event.currentTarget.getBoundingClientRect();
+
+        return pointToCursor(
+            { x: event.clientX - bounds.left, y: event.clientY - bounds.top },
+            surfaceRef.current,
+        );
+    }, []);
+
+    const onMouseMove = useCallback(
+        (event: React.MouseEvent<HTMLElement>) => {
             const now = Date.now();
             if (now - lastSentRef.current < THROTTLE_MS) return;
+
             lastSentRef.current = now;
-            sendMove(e.clientX, e.clientY);
-        };
+            send.move(toCursor(event));
+        },
+        [send, toCursor],
+    );
 
-        const handleClick = (e: MouseEvent) => {
-            sendClick(e.clientX, e.clientY);
-        };
+    const onClick = useCallback(
+        (event: React.MouseEvent<HTMLElement>) => send.click(toCursor(event)),
+        [send, toCursor],
+    );
 
-        document.addEventListener("mousemove", handleMove);
-        document.addEventListener("click", handleClick);
-        return () => {
-            document.removeEventListener("mousemove", handleMove);
-            document.removeEventListener("click", handleClick);
-        };
-    }, [sendMove, sendClick]);
+    return { onMouseMove, onClick };
 }

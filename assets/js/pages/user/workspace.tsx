@@ -11,8 +11,6 @@ import {
     TransportProvider,
     useProject,
     useRealtime,
-    useWorkspaceRealtime,
-    WorkspaceCursor,
     WorkspaceTopBar,
 } from "@/features/workspace";
 
@@ -27,7 +25,6 @@ const workspaceTopic = (projectId: string | undefined) => `project:${projectId ?
 
 function WorkspaceContent() {
     const { id } = useParams<{ id: string }>();
-    const { cursors } = useWorkspaceRealtime(workspaceTopic(id));
     const { project, isLoading, isError, refetch } = useProject(Number(id));
     const { sendOperation, status } = useRealtime();
 
@@ -66,7 +63,6 @@ function WorkspaceContent() {
     return (
         <TransportProvider>
             <ClipModalProvider>
-                <WorkspaceCursor cursors={cursors} />
                 <ConnectionBanner status={status} />
                 <WorkspaceTopBar
                     isLoading={isLoading}
