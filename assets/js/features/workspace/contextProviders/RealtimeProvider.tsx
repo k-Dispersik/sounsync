@@ -8,10 +8,14 @@ import { useWorkspaceBroadcast } from "../hooks/useWorkspaceBroadcast";
 import { projectQueryKey } from "../hooks/useProject";
 import { applyOperation } from "../model/applyOperation";
 import { nextStatus, type ConnectionStatus } from "../model/connection";
+import { toParticipants, type Participant } from "../model/presence";
 import type { OperationType } from "../model/operations";
-import WorkspaceChannel, {
+import {
+    acquireWorkspaceChannel,
     getOrCreateSessionId,
     OperationRejection,
+    releaseWorkspaceChannel,
+    type default as WorkspaceChannelType,
 } from "../services/signaling/workspaceChannel";
 import { WorkspaceRtc } from "../services/transport/workspaceRtc";
 
@@ -24,7 +28,7 @@ interface RealtimeContextValue {
     broadcast: (event: RealtimeEventName, payload: unknown) => void;
     /** Durable: an edit the server validates, records and passes on. */
     sendOperation: (type: OperationType, payload: unknown) => Promise<void>;
-    presence: unknown;
+    participants: Participant[];
     status: ConnectionStatus;
 }
 
@@ -48,9 +52,9 @@ export default function RealtimeProvider({ projectId, workspaceId, children }: P
     const sessionId = useRef(getOrCreateSessionId()).current;
     const queryClient = useQueryClient();
     const [rtc, setRtc] = useState<WorkspaceRtc | null>(null);
-    const [presence, setPresence] = useState<unknown>({});
+    const [participants, setParticipants] = useState<Participant[]>([]);
     const [status, setStatus] = useState<ConnectionStatus>("connecting");
-    const channelRef = useRef<WorkspaceChannel | null>(null);
+    const channelRef = useRef<WorkspaceChannelType | null>(null);
     const versionRef = useRef(0);
 
     const replaceProject = useCallback(
@@ -62,7 +66,7 @@ export default function RealtimeProvider({ projectId, workspaceId, children }: P
     );
 
     useEffect(() => {
-        const channel = new WorkspaceChannel(workspaceId);
+        const channel = acquireWorkspaceChannel(workspaceId);
         channelRef.current = channel;
 
         channel.onOperation((event) => {
@@ -72,7 +76,7 @@ export default function RealtimeProvider({ projectId, workspaceId, children }: P
             );
         });
 
-        channel.onPresence(setPresence);
+        channel.onPresence((state) => setParticipants(toParticipants(state)));
 
         // A rejoin after a dropped connection lands here too, which is what
         // makes recovery a replacement rather than a replay of missed edits.
@@ -90,7 +94,7 @@ export default function RealtimeProvider({ projectId, workspaceId, children }: P
         return () => {
             peerConnection.destroy();
             setRtc(null);
-            channel.leave();
+            releaseWorkspaceChannel(workspaceId);
             channelRef.current = null;
         };
     }, [workspaceId, projectId, queryClient, replaceProject]);
@@ -136,8 +140,8 @@ export default function RealtimeProvider({ projectId, workspaceId, children }: P
     const { broadcast } = useWorkspaceBroadcast(rtc);
 
     const value = useMemo(
-        () => ({ sessionId, rtc, broadcast, sendOperation, presence, status }),
-        [sessionId, rtc, broadcast, sendOperation, presence, status],
+        () => ({ sessionId, rtc, broadcast, sendOperation, participants, status }),
+        [sessionId, rtc, broadcast, sendOperation, participants, status],
     );
 
     return <RealtimeContext value={value}>{children}</RealtimeContext>;

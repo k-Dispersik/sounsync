@@ -5,18 +5,13 @@ import { useProjectBPM } from "@/features/workspace/hooks/useProjectBPM";
 import type { ProjectSettings } from "@/shared/types";
 import { TIME_SIGNATURES, type TimeSignatureValue } from "@/shared/types";
 import Transport from "./Transport";
-import { useTransportContext } from "../contextProviders/TransportProvider";
-import UserSettings from "@/shared/components/UserSettings";
-import { getOrCreateSessionId } from "../services/signaling/workspaceChannel";
-import { RealtimeEvents } from "../events/events";
 import { useRealtime } from "../contextProviders/RealtimeProvider";
+import { useTransportContext } from "../contextProviders/TransportProvider";
+import { initials, participantColor } from "../model/presence";
+import UserSettings from "@/shared/components/UserSettings";
+import { RealtimeEvents } from "../events/events";
 import { useWorkspaceEvent } from "../hooks/useWorkspaceEvent";
-
-const AVATARS = [
-    { initials: "A", color: "#6366f1" },
-    { initials: "M", color: "#ec4899" },
-    { initials: "J", color: "#06b6d4" },
-];
+import { getOrCreateSessionId } from "../services/signaling/workspaceChannel";
 
 interface Props {
     projectTitle?: string;
@@ -90,7 +85,7 @@ export default function WorkspaceTopBar({
                 <input className="field w-32" disabled value={playheadTime} />
             </div>
 
-            <CollaboratorAvatars users={AVATARS} />
+            <CollaboratorAvatars />
             <ExternalActions />
         </header>
     );
@@ -200,19 +195,35 @@ function BPMInput({
     );
 }
 
-function CollaboratorAvatars({ users }: { users?: { initials: string; color: string }[] }) {
+/**
+ * Who is actually in the project right now, from presence.
+ *
+ * The colour comes from the server so one person looks the same to everyone,
+ * and a person with two tabs open still gets one face.
+ */
+function CollaboratorAvatars() {
+    const { participants } = useRealtime();
+
     return (
         <div className="flex items-center gap-1">
-            {users?.map((a) => (
+            {participants.map((participant) => (
                 <div
-                    key={a.initials}
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-base-content flex-shrink-0 ring-2 ring-base-200 -ml-1 first:ml-0"
-                    style={{ backgroundColor: a.color }}
+                    key={participant.userId}
+                    title={
+                        participant.sessions > 1
+                            ? `${participant.name} (${participant.sessions} tabs)`
+                            : participant.name
+                    }
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-base-100 flex-shrink-0 ring-2 ring-base-200 -ml-1 first:ml-0"
+                    style={{ backgroundColor: participantColor(participant.colorHue) }}
                 >
-                    {a.initials}
+                    {initials(participant.name)}
                 </div>
             ))}
-            <button className="w-7 h-7 rounded-full bg-base-content/10 hover:bg-base-content/20 flex items-center justify-center text-base-content/60 transition-colors ml-1">
+            <button
+                aria-label="Invite someone to this project"
+                className="w-7 h-7 rounded-full bg-base-content/10 hover:bg-base-content/20 flex items-center justify-center text-base-content/60 transition-colors ml-1"
+            >
                 <Plus size={13} />
             </button>
         </div>

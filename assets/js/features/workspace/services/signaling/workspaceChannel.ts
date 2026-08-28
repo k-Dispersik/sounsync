@@ -1,4 +1,4 @@
-import { Channel } from "phoenix";
+import { Channel, Presence } from "phoenix";
 
 import { createLogger } from "@/shared/lib/logger";
 import type { Project } from "@/shared/types";
@@ -55,6 +55,13 @@ export default class WorkspaceChannel {
     readonly workspaceId: string;
     readonly sessionId: string;
     private channel: Channel;
+    private leaveRequested = false;
+    private snapshot: JoinReply | null = null;
+    private joinedOnce = false;
+    private handlers: {
+        onSnapshot?: (reply: JoinReply) => void;
+        onDropped?: () => void;
+    } = {};
 
     constructor(workspaceId: string) {
         this.workspaceId = workspaceId;
@@ -75,6 +82,17 @@ export default class WorkspaceChannel {
             onDropped?: () => void;
         } = {},
     ): this {
+        // A Phoenix channel may be joined once. When the same room is picked
+        // up again — a remount, or a second consumer — hand over what we
+        // already have instead of joining twice.
+        if (this.joinedOnce) {
+            this.handlers = handlers;
+            if (this.snapshot) handlers.onSnapshot?.(this.snapshot);
+            return this;
+        }
+
+        this.joinedOnce = true;
+        this.handlers = handlers;
         connectSocket();
         log.debug(`${this.workspaceId}: joining, socket state ${socket.connectionState()}`);
 
@@ -85,13 +103,22 @@ export default class WorkspaceChannel {
             .join()
             .receive("ok", (reply: JoinReply) => {
                 log.debug(`${this.workspaceId}: joined at version ${reply.project.version}`);
-                handlers.onSnapshot?.(reply);
+
+                // Someone asked to leave while the join was still in flight;
+                // honour it now, or this session lingers in presence forever.
+                if (this.leaveRequested) {
+                    this.channel.leave();
+                    return;
+                }
+
+                this.snapshot = reply;
+                this.handlers.onSnapshot?.(reply);
             })
             .receive("error", (error) => log.error(`${this.workspaceId}: join failed`, error))
             .receive("timeout", () => log.warn(`${this.workspaceId}: join timed out`));
 
-        this.channel.onError(() => handlers.onDropped?.());
-        this.channel.onClose(() => handlers.onDropped?.());
+        this.channel.onError(() => this.handlers.onDropped?.());
+        this.channel.onClose(() => this.handlers.onDropped?.());
 
         return this;
     }
@@ -123,15 +150,89 @@ export default class WorkspaceChannel {
         });
     }
 
-    onPresence(handler: (state: unknown) => void): number {
-        return this.channel.on("presence_state", handler);
+    /**
+     * Keeps a presence list in step with the room.
+     *
+     * `presence_state` arrives once on join and `presence_diff` on every change
+     * after it; letting Phoenix's own `Presence` fold them together is what
+     * keeps a participant from lingering after their last tab closes.
+     */
+    onPresence(handler: (state: unknown) => void): void {
+        const presence = new Presence(this.channel);
+
+        // `list` gives one entry per session key with its metas, which is the
+        // shape the presence model parses.
+        presence.onSync(() =>
+            handler(
+                Object.fromEntries(
+                    presence.list((key, entry: { metas: unknown[] }) => [key, entry]),
+                ),
+            ),
+        );
     }
 
-    onPresenceDiff(handler: (diff: unknown) => void): number {
-        return this.channel.on("presence_diff", handler);
-    }
-
+    /**
+     * Leaves the room.
+     *
+     * The Phoenix client ignores `leave()` on a channel that is still joining,
+     * which is easy to hit: navigating away, or a development double-mount,
+     * both leave before the join has landed. The intent is remembered instead
+     * and acted on when the join replies.
+     */
     leave() {
-        this.channel.leave();
+        this.leaveRequested = true;
+
+        if (this.channel.state === "joined") this.channel.leave();
     }
+
+    /** The last snapshot the server sent, for a consumer that arrives late. */
+    get lastSnapshot(): JoinReply | null {
+        return this.snapshot;
+    }
+}
+
+// A socket allows one channel per topic, so the mapping from topic to channel
+// belongs to the connection rather than to whichever component happens to want
+// it. Reference counting keeps a remount — React runs effects twice in
+// development — from leaving a second channel joined behind the first.
+const rooms = new Map<
+    string,
+    { channel: WorkspaceChannel; refs: number; timer?: ReturnType<typeof setTimeout> }
+>();
+
+// Long enough to span a remount, short enough that a real navigation leaves
+// promptly.
+const LEAVE_GRACE_MS = 250;
+
+export function acquireWorkspaceChannel(workspaceId: string): WorkspaceChannel {
+    const existing = rooms.get(workspaceId);
+
+    if (existing) {
+        clearTimeout(existing.timer);
+        existing.timer = undefined;
+        existing.refs += 1;
+        return existing.channel;
+    }
+
+    const channel = new WorkspaceChannel(workspaceId);
+    rooms.set(workspaceId, { channel, refs: 1 });
+
+    return channel;
+}
+
+export function releaseWorkspaceChannel(workspaceId: string): void {
+    const room = rooms.get(workspaceId);
+
+    if (!room) return;
+
+    room.refs -= 1;
+
+    if (room.refs > 0) return;
+
+    room.timer = setTimeout(() => {
+        if (rooms.get(workspaceId)?.refs === 0) {
+            room.channel.leave();
+            rooms.delete(workspaceId);
+        }
+    }, LEAVE_GRACE_MS);
 }
