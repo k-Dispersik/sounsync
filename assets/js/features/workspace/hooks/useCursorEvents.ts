@@ -1,10 +1,11 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 
+import { throttle } from "@/shared/lib/rate";
 import { pointToCursor, type DomainCursor, type TimelineSurface } from "../model/cursor";
 
 // Thirty a second is smooth to the eye and an order of magnitude less traffic
 // than every mouse event the browser produces.
-const THROTTLE_MS = 33;
+const CURSOR_HZ = 30;
 
 /**
  * Turns pointer events over the timeline into domain cursors.
@@ -17,7 +18,6 @@ export function useCursorEvents(
     surface: TimelineSurface,
     send: { move: (cursor: DomainCursor) => void; click: (cursor: DomainCursor) => void },
 ) {
-    const lastSentRef = useRef(0);
     const surfaceRef = useRef(surface);
     surfaceRef.current = surface;
 
@@ -30,15 +30,14 @@ export function useCursorEvents(
         );
     }, []);
 
-    const onMouseMove = useCallback(
-        (event: React.MouseEvent<HTMLElement>) => {
-            const now = Date.now();
-            if (now - lastSentRef.current < THROTTLE_MS) return;
+    const sendMove = useMemo(
+        () => throttle((cursor: DomainCursor) => send.move(cursor), 1000 / CURSOR_HZ),
+        [send],
+    );
 
-            lastSentRef.current = now;
-            send.move(toCursor(event));
-        },
-        [send, toCursor],
+    const onMouseMove = useCallback(
+        (event: React.MouseEvent<HTMLElement>) => sendMove(toCursor(event)),
+        [sendMove, toCursor],
     );
 
     const onClick = useCallback(

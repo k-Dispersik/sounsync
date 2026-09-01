@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 
 import {
@@ -15,9 +15,14 @@ import {
 } from "@/features/workspace";
 
 import { createLogger } from "@/shared/lib/logger";
+import { debounce } from "@/shared/lib/rate";
 import type { ProjectSettings } from "@/shared/types";
 
 const log = createLogger("Workspace");
+
+// Dragging a tempo through 90 values should ask the server once, when the
+// person stops, not ninety times on the way.
+const SETTINGS_DEBOUNCE_MS = 400;
 
 // The realtime room is named after the project, which is what the server
 // authorises against; a shared constant put every project in one room.
@@ -28,18 +33,32 @@ function WorkspaceContent() {
     const { project, isLoading, isError, refetch } = useProject(Number(id));
     const { sendOperation, status } = useRealtime();
 
-    // Edits no longer update local state directly: they go to the server, and
+    // Edits no longer update local state directly: they go to the server and
     // come back as operations that update the project for everyone, including
     // the person who made them.
-    const handleProjectSettingsChange = useCallback(
-        async (settings: ProjectSettings) => {
-            try {
-                await sendOperation(OPERATIONS.SETTINGS_UPDATE, settings);
-            } catch (error) {
-                log.error("could not change the project settings", error);
-            }
-        },
+    const pushSettings = useMemo(
+        () =>
+            debounce((settings: ProjectSettings) => {
+                sendOperation(OPERATIONS.SETTINGS_UPDATE, settings).catch((error: unknown) =>
+                    log.error("could not change the project settings", error),
+                );
+            }, SETTINGS_DEBOUNCE_MS),
         [sendOperation],
+    );
+
+    useEffect(
+        () => () => {
+            pushSettings.cancel();
+        },
+        [pushSettings],
+    );
+
+    const handleProjectSettingsChange = useCallback(
+        (settings: ProjectSettings) => {
+            pushSettings(settings);
+            return Promise.resolve();
+        },
+        [pushSettings],
     );
 
     if (isError) {
