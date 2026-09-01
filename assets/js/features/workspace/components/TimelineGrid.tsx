@@ -57,7 +57,12 @@ export default function TimelineGrid({ project, isLoading, beatWidth = 48 }: Pro
 
     const millisecondsPerBeat = gridBeatWidth / pixelsPerMillisecond;
     const selectedCell = rawSelectedCell
-        ? { ...rawSelectedCell, startTimeMs: rawSelectedCell.beatIndex * millisecondsPerBeat }
+        ? {
+              ...rawSelectedCell,
+              // Whole milliseconds: that is what the clip is stored in, and a
+              // fractional beat boundary is not a different moment in the music.
+              startTimeMs: Math.round(rawSelectedCell.beatIndex * millisecondsPerBeat),
+          }
         : null;
 
     const { sendOperation } = useRealtime();

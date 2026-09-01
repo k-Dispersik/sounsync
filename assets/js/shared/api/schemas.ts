@@ -31,7 +31,9 @@ export const clipSchema = z.object({
     duration: z.number(),
     file_path: z.string().nullable(),
     settings: z.unknown().optional(),
-    track_id: z.number().optional(),
+    // Required: an operation that carries a clip has to say which track it
+    // belongs to, and leaving this optional let a missing one pass unnoticed.
+    track_id: z.number(),
     audio_file_id: z.number().nullable().optional(),
 });
 

@@ -35,7 +35,11 @@ defmodule SoundsyncWeb.JSONTest do
 
     assert [track] = full.tracks
     assert track.row_index == 1
-    assert [%{title: "Kick"}] = track.clips
+    assert [%{title: "Kick"} = clip] = track.clips
+
+    # Without this a clip arriving on the wire cannot be placed: the realtime
+    # reducer has only the clip to go on.
+    assert clip.track_id == track.id
   end
 
   test "B-1: an unloaded association is left out, not guessed at", %{bare: bare} do

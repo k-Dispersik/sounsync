@@ -130,6 +130,15 @@ describe("applyOperation", () => {
             expect(applyOperation(before, event("project.nuke", {}))).toBe(before);
         });
 
+        it("refuses a clip that does not say which track it belongs to", () => {
+            const before = project();
+            const { track_id: _missing, ...withoutTrack } = clip();
+
+            expect(applyOperation(before, event(OPERATIONS.CLIP_CREATE, withoutTrack))).toBe(
+                before,
+            );
+        });
+
         it("leaves the project alone when the payload is not what it claims", () => {
             const before = project();
 

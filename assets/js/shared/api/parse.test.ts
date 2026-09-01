@@ -20,6 +20,7 @@ const project = {
             clips: [
                 {
                     id: 3,
+                    track_id: 2,
                     title: "Kick",
                     type: "drums",
                     start_time: 0,

@@ -61,6 +61,7 @@ export default function ClipModal({ state, onClose }: Props) {
                     isEdit={form.isEdit}
                     isSaving={form.isSaving}
                     canSubmit={form.canSubmit}
+                    error={form.error}
                     onClose={onClose}
                     onSubmit={form.handleSubmit}
                 />
@@ -282,17 +283,24 @@ function ModalFooter({
     isEdit,
     isSaving,
     canSubmit,
+    error,
     onClose,
     onSubmit,
 }: {
     isEdit: boolean;
     isSaving: boolean;
     canSubmit: boolean;
+    error: string | null;
     onClose: () => void;
     onSubmit: () => void;
 }) {
     return (
         <div className="flex items-center justify-end gap-2 px-5 pb-5">
+            {error && (
+                <p role="alert" className="flex-1 text-xs text-error">
+                    {error}
+                </p>
+            )}
             <button
                 onClick={onClose}
                 className="h-8 px-4 rounded-lg text-sm text-base-content/50 hover:text-base-content hover:bg-base-content/[0.07] transition-colors"

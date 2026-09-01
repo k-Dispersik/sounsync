@@ -22,6 +22,7 @@ const project: Project = {
             clips: [
                 {
                     id: 100,
+                    track_id: 10,
                     title: "Kick",
                     type: "drums",
                     start_time: 0,
@@ -75,6 +76,7 @@ describe("useProject", () => {
         act(() =>
             result.current.addClip(10, {
                 id: 101,
+                track_id: 10,
                 title: "Snare",
                 type: "drums",
                 start_time: 500,

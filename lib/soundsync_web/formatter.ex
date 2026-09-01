@@ -48,6 +48,7 @@ defmodule SoundsyncWeb.Formatter do
   def format(%Clip{} = clip) do
     %{
       id: clip.id,
+      track_id: clip.track_id,
       type: clip.type,
       title: clip.title,
       start_time: clip.start_time,

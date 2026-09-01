@@ -3,8 +3,11 @@ import { useEffect, useMemo, useState } from "react";
 import type { AudioFile } from "@/shared/types";
 import { useAudioFiles } from "./useAudioFiles";
 import type { ClipModalState } from "../contextProviders/ClipModalProvider";
+import { createLogger } from "@/shared/lib/logger";
 import { useRealtime } from "../contextProviders/RealtimeProvider";
 import { OPERATIONS } from "../model/operations";
+
+const log = createLogger("ClipForm");
 
 export type ClipType = "piano" | "guitar" | "drums" | "bass" | "recording" | "effect";
 export type Tab = "library" | "upload";
@@ -53,6 +56,7 @@ export function useClipForm(state: NonNullable<ClipModalState>, onSaved: () => v
     const [uploadTitle, setUploadTitle] = useState("");
     const [uploadType, setUploadType] = useState<ClipType>("piano");
     const [isSaving, setIsSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const samples = useMemo(() => readyFiles.map(toSample), [readyFiles]);
 
@@ -104,7 +108,9 @@ export function useClipForm(state: NonNullable<ClipModalState>, onSaved: () => v
 
     const handleSubmit = async () => {
         if (!canSubmit) return;
+
         setIsSaving(true);
+        setError(null);
 
         const attrs = buildAttrs();
 
@@ -124,6 +130,11 @@ export function useClipForm(state: NonNullable<ClipModalState>, onSaved: () => v
             }
 
             onSaved();
+        } catch (cause) {
+            // Closing on a failure would look exactly like success and lose the
+            // clip; the dialog stays open with the reason instead.
+            log.error("could not save the clip", cause);
+            setError("The clip could not be saved. Please try again.");
         } finally {
             setIsSaving(false);
         }
@@ -144,6 +155,7 @@ export function useClipForm(state: NonNullable<ClipModalState>, onSaved: () => v
         uploadType,
         setUploadType,
         isSaving,
+        error,
         canSubmit,
         visibleSamples,
         handleSubmit,
