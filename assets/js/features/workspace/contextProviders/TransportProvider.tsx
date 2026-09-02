@@ -1,70 +1,87 @@
-import { createContext, useContext, useMemo, useState } from "react";
-import { Player } from "../services/audio/Player";
-import { Scheduler } from "../services/audio/Scheduler";
-import { AudioEngine } from "../services/audio/AudioEngine";
-import { SampleBank } from "../services/audio/SampleBank";
+import { createContext, use, useCallback, useEffect, useMemo, useState } from "react";
 
-type TransportContextType = {
+import { createLogger } from "@/shared/lib/logger";
+import { AudioGraph } from "../services/audio/AudioGraph";
+import { Player } from "../services/audio/Player";
+import { SampleBank } from "../services/audio/SampleBank";
+import { Scheduler } from "../services/audio/Scheduler";
+
+const log = createLogger("Transport");
+
+interface TransportContextValue {
     isPlaying: boolean;
     playheadPosition: number;
     play: () => void;
     pause: () => void;
     stop: () => void;
     setPosition: (ms: number) => void;
-};
+    player: Player;
+}
 
-const TransportContext = createContext<TransportContextType | null>(null);
+const TransportContext = createContext<TransportContextValue | null>(null);
 
 export default function TransportProvider({ children }: { children: React.ReactNode }) {
-    const scheduler = useMemo(() => new Scheduler(), []);
+    const { player, graph } = useMemo(() => {
+        const scheduler = new Scheduler();
+        const audioGraph = new AudioGraph(new SampleBank());
 
-    const engine = useMemo(() => {
-        const ctx = new AudioContext();
-        return new AudioEngine(ctx, new SampleBank(ctx));
+        return { player: new Player(scheduler, audioGraph), graph: audioGraph };
     }, []);
-
-    const player = useMemo(() => {
-        return new Player(scheduler, engine);
-    }, [scheduler, engine]);
 
     const [isPlaying, setIsPlaying] = useState(false);
     const [playheadPosition, setPlayheadPosition] = useState(0);
 
-    const transport = useMemo(() => {
-        return {
-            isPlaying,
-            playheadPosition,
-
-            play: () => {
-                setIsPlaying(true);
-                player.start();
-            },
-
-            pause: () => {
-                setIsPlaying(false);
-                player.pause();
-            },
-
-            stop: () => {
-                setIsPlaying(false);
-                setPlayheadPosition(0);
-                player.stop();
-            },
-
-            setPosition: (ms: number) => {
-                setPlayheadPosition(ms);
-                player.seek(ms);
-            },
+    useEffect(() => {
+        return () => {
+            player.destroy();
+            void graph.close();
         };
-    }, [player, isPlaying, playheadPosition]);
+    }, [player, graph]);
 
-    return <TransportContext.Provider value={transport}>{children}</TransportContext.Provider>;
+    // Starting the context here rather than at construction is what makes the
+    // first Play audible: browsers only let it start from a user gesture.
+    const play = useCallback(() => {
+        graph
+            .ensureRunning()
+            .then(() => {
+                player.play();
+                setIsPlaying(true);
+            })
+            .catch((error: unknown) => log.error("could not start audio", error));
+    }, [player, graph]);
+
+    const pause = useCallback(() => {
+        player.pause();
+        setIsPlaying(false);
+        setPlayheadPosition(player.positionMs());
+    }, [player]);
+
+    const stop = useCallback(() => {
+        player.stop();
+        setIsPlaying(false);
+        setPlayheadPosition(0);
+    }, [player]);
+
+    const setPosition = useCallback(
+        (ms: number) => {
+            player.seek(ms);
+            setPlayheadPosition(ms);
+        },
+        [player],
+    );
+
+    const value = useMemo(
+        () => ({ isPlaying, playheadPosition, play, pause, stop, setPosition, player }),
+        [isPlaying, playheadPosition, play, pause, stop, setPosition, player],
+    );
+
+    return <TransportContext value={value}>{children}</TransportContext>;
 }
 
-export function useTransportContext() {
-    const ctx = useContext(TransportContext);
-    if (!ctx) {
-        throw new Error("useTransport must be used within TransportProvider");
-    }
-    return ctx;
+export function useTransportContext(): TransportContextValue {
+    const context = use(TransportContext);
+
+    if (!context) throw new Error("useTransportContext must be used within TransportProvider");
+
+    return context;
 }
