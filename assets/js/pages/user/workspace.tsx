@@ -80,7 +80,7 @@ function WorkspaceContent() {
     }
 
     return (
-        <TransportProvider>
+        <TransportProvider project={project}>
             <ClipModalProvider>
                 <ConnectionBanner status={status} />
                 <WorkspaceTopBar

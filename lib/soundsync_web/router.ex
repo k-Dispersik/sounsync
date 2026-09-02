@@ -48,6 +48,7 @@ defmodule SoundsyncWeb.Router do
 
       get "/:project_id/audio_files", AudioFileController, :index
       get "/:project_id/audio_files/:id/peaks", AudioFileController, :peaks
+      get "/:project_id/audio_files/:id/content", AudioFileController, :content
       post "/:project_id/uploads", UploadController, :create
     end
 

@@ -51,6 +51,45 @@ defmodule SoundsyncWeb.API.V1.AudioFileController do
     end
   end
 
+  @doc """
+  The audio itself.
+
+  Served by this controller rather than straight off disk: a file is only
+  readable by people who can read its project, and a static route cannot ask
+  that question. In production the client gets a presigned URL and never comes
+  here at all.
+  """
+  # sobelow_skip ["XSS.ContentType", "XSS.SendResp"]
+  # The content type is constrained to the audio allow-list by
+  # `safe_content_type/1`, and the body is the stored file, not request data.
+  def content(conn, %{"project_id" => project_id, "id" => id}) do
+    with {:ok, project} <- ProjectScope.fetch(conn, project_id, :read),
+         {:ok, file_id} <- RequestParams.cast_id(id),
+         audio_file when not is_nil(audio_file) <-
+           Storage.get_project_audio_file(project, file_id),
+         {:ok, bytes} <- Storage.read(audio_file.storage_key) do
+      conn
+      |> put_resp_content_type(safe_content_type(audio_file.content_type))
+      |> put_resp_header("cache-control", "private, max-age=3600")
+      |> put_resp_header("x-content-type-options", "nosniff")
+      |> send_resp(200, bytes)
+    else
+      nil -> {:error, :not_found, "No such audio file in this project"}
+      {:error, :enoent} -> {:error, :upload_missing}
+      error -> error
+    end
+  end
+
+  # The stored content type was claimed by whoever uploaded the file. Echoing it
+  # back would let someone store `text/html` and have the browser render their
+  # bytes as a page on our origin; the upload check makes that unlikely, not
+  # impossible. Only types we play are ever sent, and never sniffed.
+  defp safe_content_type(content_type) do
+    if content_type in Storage.allowed_content_types(),
+      do: content_type,
+      else: "application/octet-stream"
+  end
+
   # A file that has not been analysed has no waveform yet; that is a fact worth
   # sending, so the client can draw a placeholder instead of an empty box.
   defp encode_peaks(nil), do: nil

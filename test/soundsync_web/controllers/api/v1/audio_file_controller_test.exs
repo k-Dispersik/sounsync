@@ -1,5 +1,6 @@
 defmodule SoundsyncWeb.API.V1.AudioFileControllerTest do
-  use SoundsyncWeb.ConnCase, async: true
+  # Not async: the content tests point the storage adapter at a root of their own.
+  use SoundsyncWeb.ConnCase, async: false
 
   alias Core.Accounts
   alias Core.Projects
@@ -150,6 +151,91 @@ defmodule SoundsyncWeb.API.V1.AudioFileControllerTest do
                |> as(user_fixture())
                |> get(~p"/v1/projects/#{project.id}/audio_files/#{file.id}/peaks"),
                403
+             )
+    end
+  end
+
+  describe "GET .../audio_files/:id/content" do
+    setup do
+      root = Path.join(System.tmp_dir!(), "audio-content-#{System.unique_integer([:positive])}")
+      original = Application.fetch_env!(:soundsync, :storage)
+      Application.put_env(:soundsync, :storage, Keyword.put(original, :root, root))
+
+      on_exit(fn ->
+        File.rm_rf!(root)
+        Application.put_env(:soundsync, :storage, original)
+      end)
+
+      :ok
+    end
+
+    test "serves the bytes to someone who may read the project", ctx do
+      %{conn: conn, owner: owner, project: project} = ctx
+      file = audio_file_fixture(project)
+      {:ok, _key} = Storage.put(file.storage_key, "RIFF....WAVE")
+
+      conn =
+        conn |> as(owner) |> get(~p"/v1/projects/#{project.id}/audio_files/#{file.id}/content")
+
+      assert response(conn, 200) == "RIFF....WAVE"
+      assert response_content_type(conn, :wav) =~ "audio/wav"
+    end
+
+    test "S-2: a content type nobody offered to play is not echoed back", ctx do
+      %{conn: conn, owner: owner, project: project} = ctx
+      file = audio_file_fixture(project, %{content_type: "text/html"})
+      {:ok, _key} = Storage.put(file.storage_key, "<script>alert(1)</script>")
+
+      conn =
+        conn |> as(owner) |> get(~p"/v1/projects/#{project.id}/audio_files/#{file.id}/content")
+
+      assert response(conn, 200)
+      assert ["application/octet-stream" <> _charset] = get_resp_header(conn, "content-type")
+      assert get_resp_header(conn, "x-content-type-options") == ["nosniff"]
+    end
+
+    test "a stranger gets nothing", ctx do
+      %{conn: conn, project: project} = ctx
+      file = audio_file_fixture(project)
+      {:ok, _key} = Storage.put(file.storage_key, "RIFF....WAVE")
+
+      conn =
+        conn
+        |> as(user_fixture())
+        |> get(~p"/v1/projects/#{project.id}/audio_files/#{file.id}/content")
+
+      assert json_response(conn, 403)
+    end
+
+    test "no token, no audio", ctx do
+      %{conn: conn, project: project} = ctx
+      file = audio_file_fixture(project)
+
+      assert json_response(
+               get(conn, ~p"/v1/projects/#{project.id}/audio_files/#{file.id}/content"),
+               401
+             )
+    end
+
+    test "a record whose bytes never arrived is reported, not a 500", ctx do
+      %{conn: conn, owner: owner, project: project} = ctx
+      file = audio_file_fixture(project)
+
+      conn =
+        conn |> as(owner) |> get(~p"/v1/projects/#{project.id}/audio_files/#{file.id}/content")
+
+      assert %{"error" => %{"code" => "upload_missing"}} = json_response(conn, 422)
+    end
+
+    test "audio from another project is not found", ctx do
+      %{conn: conn, owner: owner, project: project} = ctx
+      foreign = audio_file_fixture(project_fixture())
+
+      assert json_response(
+               conn
+               |> as(owner)
+               |> get(~p"/v1/projects/#{project.id}/audio_files/#{foreign.id}/content"),
+               404
              )
     end
   end
