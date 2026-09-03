@@ -2,7 +2,7 @@ import type { CSSProperties } from "react";
 import type { Track } from "@/shared/types";
 import TrackClip from "./TrackClip";
 import { TrackCell } from "./TrackCell";
-import { BarEndMarkers, PlayheadMarker } from "./TimelineMarkers";
+import { BarEndMarkers } from "./TimelineMarkers";
 
 interface TrackRowProps {
     track: Track;
@@ -40,7 +40,7 @@ export default function TrackRow({
     const beatOffsets = Array.from({ length: totalBeats }, (_, beatIndex) => beatIndex * beatWidth);
     const rowStyle = {
         "--track-row-height": `${80}px`,
-        "--playhead-x": `${(hoveredBeat ?? selectedBeat ?? 0) * beatWidth}px`,
+        "--hover-x": `${(hoveredBeat ?? selectedBeat ?? 0) * beatWidth}px`,
     } as CSSProperties;
 
     return (
@@ -79,14 +79,12 @@ export default function TrackRow({
 
             <BarEndMarkers barEndLines={barEndLines} barEndKeyPrefix={`bar-end-${track.id}`} />
 
-            <PlayheadMarker pixelsPerMillisecond={pixelsPerMillisecond} />
-
             {(hoveredBeat !== null || (selectedBeat !== null && selectedTrackId === track.id)) && (
                 <div
                     className={`pointer-events-none absolute inset-y-0 z-10 w-px ${
                         selectedBeat !== null ? "bg-cyan-300/80" : "bg-cyan-200/45"
                     }`}
-                    style={{ left: "var(--playhead-x)" }}
+                    style={{ left: "var(--hover-x)" }}
                 />
             )}
 

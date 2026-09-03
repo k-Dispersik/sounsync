@@ -1,13 +1,15 @@
-import { type CSSProperties, useMemo } from "react";
+import { type CSSProperties, useMemo, useRef } from "react";
 import Ruler from "./Ruler";
 import TrackRow from "./TrackRow";
 import type { Project } from "@/shared/types";
 import { Trash2 } from "lucide-react";
+import Playhead from "./Playhead";
 import WorkspaceCursor from "./WorkspaceCursor";
 import WorkspaceToolbar from "./WorkspaceToolbar";
 import { useTimeline } from "@/features/workspace/hooks/useTimeline";
 import { useTimelineSelection } from "@/features/workspace/hooks/useTimelineSelection";
 import { useRealtime } from "../contextProviders/RealtimeProvider";
+import { useTransportContext } from "../contextProviders/TransportProvider";
 import type { TimelineSurface } from "../model/cursor";
 import { OPERATIONS } from "../model/operations";
 import { useWorkspaceRealtime } from "../hooks/useWorkspaceRealtime";
@@ -79,6 +81,8 @@ export default function TimelineGrid({ project, isLoading, beatWidth = 48 }: Pro
     );
 
     const { cursors, pointerHandlers } = useWorkspaceRealtime(surface);
+    const { player } = useTransportContext();
+    const contentRef = useRef<HTMLDivElement>(null);
 
     // Tracks appearing and disappearing now arrive as operations on the
     // channel, so the grid only has to ask; the answer updates the project for
@@ -163,12 +167,18 @@ export default function TimelineGrid({ project, isLoading, beatWidth = 48 }: Pro
                         }}
                     >
                         <div
+                            ref={contentRef}
                             className="relative w-[var(--timeline-width)]"
                             style={{ "--timeline-width": `${contentWidth}px` } as CSSProperties}
                             onMouseMove={pointerHandlers.onMouseMove}
                             onClick={pointerHandlers.onClick}
                         >
                             <WorkspaceCursor cursors={cursors} surface={surface} />
+                            <Playhead
+                                player={player}
+                                pixelsPerMillisecond={pixelsPerMillisecond}
+                                surfaceRef={contentRef}
+                            />
                             {isLoading ? (
                                 <div className="flex flex-col gap-2 p-4">
                                     {Array.from({ length: 4 }).map((_, i) => (

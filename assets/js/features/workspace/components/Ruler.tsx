@@ -1,5 +1,4 @@
 import { Fragment, type CSSProperties } from "react";
-import { PlayheadMarker } from "./TimelineMarkers";
 
 export const RULER_HEIGHT = 32; // px — top ruler
 
@@ -112,8 +111,6 @@ export default function Ruler({
                     </Fragment>
                 );
             })}
-
-            <PlayheadMarker pixelsPerMillisecond={pixelsPerMillisecond} />
         </div>
     );
 }
