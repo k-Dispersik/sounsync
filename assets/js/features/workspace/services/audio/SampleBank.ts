@@ -1,3 +1,4 @@
+import { authorizedFetch } from "@/shared/api/authorizedFetch";
 import { createLogger } from "@/shared/lib/logger";
 
 const log = createLogger("SampleBank");
@@ -15,6 +16,10 @@ const log = createLogger("SampleBank");
 export class SampleBank {
     private buffers = new Map<string, AudioBuffer>();
     private loading = new Map<string, Promise<AudioBuffer | null>>();
+
+    // Injectable so the cache can be tested without a network, and because the
+    // audio endpoints need the session token like every other one.
+    constructor(private readonly fetcher: (url: string) => Promise<Response> = authorizedFetch) {}
 
     get(key: string): AudioBuffer | undefined {
         return this.buffers.get(key);
@@ -62,7 +67,7 @@ export class SampleBank {
         url: string,
     ): Promise<AudioBuffer | null> {
         try {
-            const response = await fetch(url);
+            const response = await this.fetcher(url);
 
             if (!response.ok) throw new Error(`${response.status} for ${url}`);
 
