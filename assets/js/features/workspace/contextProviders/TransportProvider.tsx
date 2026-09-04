@@ -3,6 +3,17 @@ import { createContext, use, useCallback, useEffect, useMemo, useState } from "r
 import { createLogger } from "@/shared/lib/logger";
 import type { Project } from "@/shared/types";
 import { AudioGraph } from "../services/audio/AudioGraph";
+import {
+    EMPTY_MIXER,
+    effectiveGain,
+    setMaster,
+    setVolume,
+    toggleMute,
+    toggleSolo,
+    trackMix,
+    type MixerState,
+    type TrackMix,
+} from "../model/mixer";
 import { compileProject } from "../services/audio/compile";
 import { Player } from "../services/audio/Player";
 import { SampleBank } from "../services/audio/SampleBank";
@@ -20,6 +31,12 @@ interface TransportContextValue {
     stop: () => void;
     setPosition: (ms: number) => void;
     player: Player;
+    mixer: MixerState;
+    trackMix: (trackId: number) => TrackMix;
+    toggleTrackMute: (trackId: number) => void;
+    toggleTrackSolo: (trackId: number) => void;
+    setTrackVolume: (trackId: number, volume: number) => void;
+    setMasterVolume: (volume: number) => void;
 }
 
 const TransportContext = createContext<TransportContextValue | null>(null);
@@ -47,8 +64,22 @@ export default function TransportProvider({
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [playheadPosition, setPlayheadPosition] = useState(0);
+    const [mixer, setMixer] = useState<MixerState>(EMPTY_MIXER);
 
     const compiled = useMemo(() => compileProject(project), [project]);
+
+    // Levels are pushed to the graph whenever they change, including while
+    // playing: muting a track has to take effect now, not at the next Play.
+    useEffect(() => {
+        const trackIds = new Set([
+            ...Object.keys(mixer.tracks).map(Number),
+            ...compiled.events.map((event) => event.trackId),
+        ]);
+
+        graph.setMasterGain(mixer.master);
+
+        for (const trackId of trackIds) graph.setTrackGain(trackId, effectiveGain(mixer, trackId));
+    }, [graph, mixer, compiled]);
 
     // The scheduler always holds the current project: an edit made while
     // playing takes effect on the next window rather than at the next Play.
@@ -101,9 +132,45 @@ export default function TransportProvider({
         [player],
     );
 
+    const mixerActions = useMemo(
+        () => ({
+            trackMix: (trackId: number) => trackMix(mixer, trackId),
+            toggleTrackMute: (trackId: number) =>
+                setMixer((current) => toggleMute(current, trackId)),
+            toggleTrackSolo: (trackId: number) =>
+                setMixer((current) => toggleSolo(current, trackId)),
+            setTrackVolume: (trackId: number, volume: number) =>
+                setMixer((current) => setVolume(current, trackId, volume)),
+            setMasterVolume: (volume: number) => setMixer((current) => setMaster(current, volume)),
+        }),
+        [mixer],
+    );
+
     const value = useMemo(
-        () => ({ isPlaying, isLoading, playheadPosition, play, pause, stop, setPosition, player }),
-        [isPlaying, isLoading, playheadPosition, play, pause, stop, setPosition, player],
+        () => ({
+            isPlaying,
+            isLoading,
+            playheadPosition,
+            play,
+            pause,
+            stop,
+            setPosition,
+            player,
+            mixer,
+            ...mixerActions,
+        }),
+        [
+            isPlaying,
+            isLoading,
+            playheadPosition,
+            play,
+            pause,
+            stop,
+            setPosition,
+            player,
+            mixer,
+            mixerActions,
+        ],
     );
 
     return <TransportContext value={value}>{children}</TransportContext>;

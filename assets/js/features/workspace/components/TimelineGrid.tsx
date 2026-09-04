@@ -12,6 +12,7 @@ import { useRealtime } from "../contextProviders/RealtimeProvider";
 import { useTransportContext } from "../contextProviders/TransportProvider";
 import type { TimelineSurface } from "../model/cursor";
 import { OPERATIONS } from "../model/operations";
+import TrackLevelButtons from "./TrackLevelButtons";
 import { useWorkspaceRealtime } from "../hooks/useWorkspaceRealtime";
 import { createLogger } from "@/shared/lib/logger";
 
@@ -149,9 +150,11 @@ export default function TimelineGrid({ project, isLoading, beatWidth = 48 }: Pro
                                         className="text-base-content/20 cursor-pointer hover:text-base-content/50 transition-colors"
                                     />
 
-                                    <span className="text-sm text-base-content/70 truncate font-medium">
+                                    <span className="flex-1 text-sm text-base-content/70 truncate font-medium">
                                         {`Track ${track.row_index + 1}`}
                                     </span>
+
+                                    <TrackLevelButtons trackId={track.id} />
                                 </div>
                             ))
                         )}

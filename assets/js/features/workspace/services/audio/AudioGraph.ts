@@ -96,6 +96,30 @@ export class AudioGraph implements AudioSink {
         this.live.clear();
     }
 
+    /**
+     * Sets a track's level.
+     *
+     * Ramped over a few milliseconds rather than assigned: a step change in
+     * gain is a discontinuity in the waveform, which is heard as a click.
+     */
+    setTrackGain(trackId: number, value: number): void {
+        if (!this.context) return;
+
+        const gain = this.trackGain(trackId).gain;
+
+        gain.cancelScheduledValues(this.context.currentTime);
+        gain.setTargetAtTime(value, this.context.currentTime, EDGE_FADE_S);
+    }
+
+    setMasterGain(value: number): void {
+        if (!this.context) return;
+
+        const gain = this.masterGain().gain;
+
+        gain.cancelScheduledValues(this.context.currentTime);
+        gain.setTargetAtTime(value, this.context.currentTime, EDGE_FADE_S);
+    }
+
     /** Gain node for a track, created on first use. */
     trackGain(trackId: number): GainNode {
         const context = this.context;
