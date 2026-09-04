@@ -1,20 +1,12 @@
 import { useRef, useState } from "react";
-import type { Track, Project } from "@/shared/types";
+
+import type { Project, Track } from "@/shared/types";
+import { beatDurationMs, parseTimeSignature } from "../services/audio/clock";
+import { pixelsPerMillisecond as pixelsPerMs, type TimelineScale } from "../model/timeline";
 
 interface Props {
     project: Project | null;
     beatWidth: number;
-}
-
-function parseTimeSignature(timeSignature?: string) {
-    const [rawBeatsPerBar = "4", rawBeatUnit = "4"] = timeSignature?.split("/") ?? [];
-    const beatsPerBar = Number.parseInt(rawBeatsPerBar, 10);
-    const beatUnit = Number.parseInt(rawBeatUnit, 10);
-
-    return {
-        beatsPerBar: Number.isFinite(beatsPerBar) && beatsPerBar > 0 ? beatsPerBar : 4,
-        beatUnit: Number.isFinite(beatUnit) && beatUnit > 0 ? beatUnit : 4,
-    };
 }
 
 function getMinimumTimelineLengthMs(tracks: Track[]) {
@@ -36,10 +28,10 @@ export function useTimeline({ project, beatWidth }: Props) {
     const [hoveredBeat, setHoveredBeat] = useState<number | null>(null);
     const [hoveredTrackId, setHoveredTrackId] = useState<number | null>(null);
 
-    const { beatsPerBar, beatUnit } = parseTimeSignature(timeSignature);
-    const millisecondsPerQuarterNote = 60_000 / BPM;
-    const millisecondsPerBeat = millisecondsPerQuarterNote * (4 / beatUnit);
-    const pixelsPerMillisecond = beatWidth / millisecondsPerQuarterNote;
+    const { beatsPerBar } = parseTimeSignature(timeSignature);
+    const scale: TimelineScale = { bpm: BPM, timeSignature, pixelsPerBeat: beatWidth };
+    const millisecondsPerBeat = beatDurationMs(BPM, timeSignature);
+    const pixelsPerMillisecond = pixelsPerMs(scale);
     const minimumTimelineLengthMs = getMinimumTimelineLengthMs(tracks);
     const resolvedTimelineLengthMs = Math.max(timelineLengthMs, minimumTimelineLengthMs);
     const totalBeats = Math.max(1, Math.ceil(resolvedTimelineLengthMs / millisecondsPerBeat));
@@ -67,6 +59,7 @@ export function useTimeline({ project, beatWidth }: Props) {
     };
 
     return {
+        scale,
         scrollRef,
         hoveredBeat,
         hoveredTrackId,

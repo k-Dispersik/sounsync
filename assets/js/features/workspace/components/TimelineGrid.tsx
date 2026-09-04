@@ -35,6 +35,7 @@ export default function TimelineGrid({ project, isLoading, beatWidth = 48 }: Pro
     // cursor, sixty times a second.
     const tracks = useMemo(() => project?.tracks ?? [], [project?.tracks]);
     const {
+        scale,
         scrollRef,
         hoveredBeat,
         hoveredTrackId,
@@ -198,6 +199,7 @@ export default function TimelineGrid({ project, isLoading, beatWidth = 48 }: Pro
                                         beatsPerBar={beatsPerBar}
                                         barEndLines={barEndLines}
                                         pixelsPerMillisecond={pixelsPerMillisecond}
+                                        scale={scale}
                                         isLast={i === tracks.length - 1}
                                         hoveredBeat={hoveredBeat}
                                         hoveredTrackId={hoveredTrackId}

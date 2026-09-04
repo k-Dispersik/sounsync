@@ -3,6 +3,7 @@ import { Clip } from "@/shared/types";
 import { useRealtime } from "../contextProviders/RealtimeProvider";
 import { RealtimeEvents } from "../events/events";
 import { OPERATIONS } from "../model/operations";
+import { snapToBeat, type TimelineScale } from "../model/timeline";
 import { getOrCreateSessionId } from "../services/signaling/workspaceChannel";
 import { createLogger } from "@/shared/lib/logger";
 import { throttle } from "@/shared/lib/rate";
@@ -17,9 +18,10 @@ interface Props {
     clip: Clip;
     trackId: number;
     pixelsPerMillisecond: number;
+    scale: TimelineScale;
 }
 
-export function useClipInteraction({ clip, trackId, pixelsPerMillisecond }: Props) {
+export function useClipInteraction({ clip, trackId, pixelsPerMillisecond, scale }: Props) {
     const { broadcast, sendOperation } = useRealtime();
     const sessionId = getOrCreateSessionId();
 
@@ -29,6 +31,7 @@ export function useClipInteraction({ clip, trackId, pixelsPerMillisecond }: Prop
     const tempStartTimeRef = useRef(tempStartTime);
     const committedStartTimeRef = useRef(committedStartTime);
     const lastSyncedClipStartTimeRef = useRef(clip.start_time);
+    const altHeldRef = useRef(false);
 
     useEffect(() => {
         if (isDragging) return;
@@ -54,6 +57,8 @@ export function useClipInteraction({ clip, trackId, pixelsPerMillisecond }: Prop
         }, 1000 / PREVIEW_HZ);
 
         function handleMouseMove(e: MouseEvent) {
+            altHeldRef.current = e.altKey;
+
             setTempStartTime((prev) => {
                 const next = Math.max(0, prev + e.movementX / pixelsPerMillisecond);
                 tempStartTimeRef.current = next;
@@ -67,7 +72,12 @@ export function useClipInteraction({ clip, trackId, pixelsPerMillisecond }: Prop
             previewMove.flush();
 
             const previousCommittedStartTime = committedStartTimeRef.current;
-            const nextStartTime = Math.round(tempStartTimeRef.current);
+
+            // Snapped to the beat so a clip lands in time with everything
+            // else; holding Alt drops a clip exactly where it was let go.
+            const nextStartTime = altHeldRef.current
+                ? Math.round(tempStartTimeRef.current)
+                : Math.round(snapToBeat(tempStartTimeRef.current, scale));
             setIsDragging(false);
             setCommittedStartTime(nextStartTime);
             committedStartTimeRef.current = nextStartTime;
@@ -94,7 +104,16 @@ export function useClipInteraction({ clip, trackId, pixelsPerMillisecond }: Prop
             window.removeEventListener("mousemove", handleMouseMove);
             window.removeEventListener("mouseup", handleMouseUp);
         };
-    }, [broadcast, clip.id, isDragging, pixelsPerMillisecond, sendOperation, sessionId, trackId]);
+    }, [
+        broadcast,
+        clip.id,
+        isDragging,
+        pixelsPerMillisecond,
+        scale,
+        sendOperation,
+        sessionId,
+        trackId,
+    ]);
 
     const startDrag = () => {
         const currentStartTime = committedStartTimeRef.current;

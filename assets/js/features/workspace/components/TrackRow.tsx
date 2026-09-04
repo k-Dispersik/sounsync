@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import type { Track } from "@/shared/types";
+import type { TimelineScale } from "../model/timeline";
 import TrackClip from "./TrackClip";
 import { TrackCell } from "./TrackCell";
 import { BarEndMarkers } from "./TimelineMarkers";
@@ -11,6 +12,7 @@ interface TrackRowProps {
     beatsPerBar: number;
     barEndLines: number[];
     pixelsPerMillisecond: number;
+    scale: TimelineScale;
     isLast: boolean;
     hoveredBeat: number | null;
     hoveredTrackId: number | null;
@@ -28,6 +30,7 @@ export default function TrackRow({
     beatsPerBar,
     barEndLines,
     pixelsPerMillisecond,
+    scale,
     isLast,
     hoveredBeat,
     hoveredTrackId,
@@ -97,6 +100,7 @@ export default function TrackRow({
                     color={"rgba(255, 0, 255, 0.2)"}
                     clip={clip}
                     pixelsPerMillisecond={pixelsPerMillisecond}
+                    scale={scale}
                 />
             ))}
         </div>

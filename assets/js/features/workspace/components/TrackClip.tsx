@@ -7,6 +7,7 @@ import { useWorkspaceEvent } from "../hooks/useWorkspaceEvent";
 import { RealtimeEvents } from "../events/events";
 import { getOrCreateSessionId } from "../services/signaling/workspaceChannel";
 import { useWaveform } from "../hooks/useWaveform";
+import type { TimelineScale } from "../model/timeline";
 
 export interface TrackClipProps {
     /** Base accent colour (hex, rgb, etc.) used for header, bars and border */
@@ -19,6 +20,7 @@ export interface TrackClipProps {
     projectId: number;
     trackId: number;
     pixelsPerMillisecond: number;
+    scale: TimelineScale;
     barCount?: number;
     /** Extra class names applied to the root element */
     className?: string;
@@ -47,6 +49,7 @@ export default function TrackClip({
     trackId,
     barCount = 50,
     pixelsPerMillisecond,
+    scale,
     className = "",
     onClick,
     clip,
@@ -62,6 +65,7 @@ export default function TrackClip({
         clip,
         trackId,
         pixelsPerMillisecond,
+        scale,
     });
     const { openEditClip } = useClipModal();
 
