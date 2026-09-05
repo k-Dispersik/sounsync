@@ -36,6 +36,32 @@ export default tseslint.config(
 
             "no-console": "error",
 
+            "no-restricted-syntax": [
+                "error",
+                {
+                    // A colour written into a component cannot be themed, and
+                    // will not follow when the palette changes.
+                    selector:
+                        "Literal[value=/(^|\\s)(bg|text|border|ring|fill|stroke)-(cyan|red|blue|green|yellow|purple|pink|orange|gray|slate|zinc|neutral|stone|amber|lime|emerald|teal|sky|indigo|violet|fuchsia|rose)-[0-9]/]",
+                    message: "Use a token from css/tokens.css instead of a palette colour.",
+                },
+                {
+                    selector: "Literal[value=/(^|\\s)(text|bg)-(white|black)(\\/|\\s|$)/]",
+                    message: "Use a text or surface token instead of white or black.",
+                },
+                {
+                    selector: "Literal[value=/#[0-9a-fA-F]{6}\\b|rgba?\\(/]",
+                    message: "Use a token from css/tokens.css instead of a literal colour.",
+                },
+                {
+                    // daisyUI component classes bring their own look and their
+                    // own accessibility decisions; ours live in shared/ui.
+                    selector:
+                        "Literal[value=/(^|\\s)(btn|modal-box|modal-action|modal-backdrop|dropdown|dropdown-content|badge|menu|skeleton|navbar|tabs)(\\s|$)/]",
+                    message: "Use a component from @/shared/ui instead of a daisyUI class.",
+                },
+            ],
+
             "@typescript-eslint/no-explicit-any": "error",
             "@typescript-eslint/no-floating-promises": "error",
             "@typescript-eslint/no-unused-vars": [
@@ -80,11 +106,16 @@ export default tseslint.config(
         rules: { "no-console": "off" },
     },
 
+    {
+        // Tests ship no styles, and the class-name patterns match ordinary
+        // English inside test names often enough to be a nuisance there.
+        files: ["js/**/*.test.{ts,tsx}"],
+        rules: { "no-restricted-syntax": "off" },
+    },
+
     /*
-     * Next in line, switched on once the code passes them:
+     * Next in line, switched on once the code passes it:
      *   max-lines: 150 for a component, 80 for a hook
-     *   no-restricted-syntax: raw colors, tailwind palette classes,
-     *     daisyUI classes outside shared/ui
      */
 
     prettierConfig,
