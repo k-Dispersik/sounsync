@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
     beatWidthPx,
+    clipAt,
+    clipInBeat,
     beatsIn,
     msToPx,
     pixelsPerMillisecond,
@@ -97,5 +99,47 @@ describe("bars and beats", () => {
 
     it("beats in counts fractional beats", () => {
         expect(beatsIn(750, scale())).toBe(1.5);
+    });
+});
+
+describe("clipAt", () => {
+    const clips = [
+        { id: 1, start_time: 0, duration: 1000 },
+        { id: 2, start_time: 1000, duration: 500 },
+    ];
+
+    it("finds the clip a moment falls inside", () => {
+        expect(clipAt(clips, 0)?.id).toBe(1);
+        expect(clipAt(clips, 999)?.id).toBe(1);
+        expect(clipAt(clips, 1200)?.id).toBe(2);
+    });
+
+    it("gives the boundary to the later clip", () => {
+        expect(clipAt(clips, 1000)?.id).toBe(2);
+    });
+
+    it("answers nothing for a gap or an empty track", () => {
+        expect(clipAt(clips, 5000)).toBeNull();
+        expect(clipAt([], 0)).toBeNull();
+    });
+});
+
+describe("clipInBeat", () => {
+    const beat = 500;
+    const clips = [
+        { id: 1, start_time: 0, duration: 200 },
+        { id: 2, start_time: 250, duration: 400 },
+    ];
+
+    it("prefers the clip the moment is inside", () => {
+        expect(clipInBeat(clips, 0, beat)?.id).toBe(1);
+    });
+
+    it("still finds a clip that starts part-way through the beat", () => {
+        expect(clipInBeat([clips[1]], 0, beat)?.id).toBe(2);
+    });
+
+    it("does not reach into the next beat", () => {
+        expect(clipInBeat([{ id: 3, start_time: 600, duration: 100 }], 0, beat)).toBeNull();
     });
 });

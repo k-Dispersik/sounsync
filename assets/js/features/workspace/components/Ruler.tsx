@@ -60,15 +60,9 @@ export default function Ruler({
 
     return (
         <div
-            role="button"
-            tabIndex={0}
-            aria-label="Timeline ruler: click to move the playhead"
             className="relative h-[var(--ruler-height)] w-[var(--ruler-width)] flex-shrink-0
-                cursor-pointer border-b border-token bg-surface-raised focus-ring"
+                border-b border-token bg-surface-raised"
             style={style}
-            onMouseMove={(event) => onBeatHover(beatAt(event))}
-            onMouseLeave={onBeatLeave}
-            onClick={(event) => onBeatClick(beatAt(event))}
         >
             <div
                 aria-hidden="true"
@@ -91,12 +85,26 @@ export default function Ruler({
             {secondMarkers.map(({ second, left }) => (
                 <span
                     key={second}
+                    aria-hidden="true"
                     className="pointer-events-none absolute top-1 select-none font-mono text-[10px] text-subtle"
                     style={{ left: left + 4 }}
                 >
                     {second}
                 </span>
             ))}
+
+            {/* The surface sits above the decoration and holds none of it: a
+                control whose visible text is a row of numbers has no honest
+                accessible name. */}
+            <div
+                role="button"
+                tabIndex={0}
+                aria-label="Timeline ruler: click to move the playhead"
+                className="absolute inset-0 cursor-pointer focus-ring"
+                onMouseMove={(event) => onBeatHover(beatAt(event))}
+                onMouseLeave={onBeatLeave}
+                onClick={(event) => onBeatClick(beatAt(event))}
+            />
         </div>
     );
 }

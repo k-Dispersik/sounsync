@@ -13,13 +13,25 @@ const STATUS_LABEL: Record<AudioFile["status"], string> = {
     failed: "could not be read",
 };
 
-function SidebarTab({ icon, active = false }: { icon: React.ReactNode; active?: boolean }) {
+function SidebarTab({
+    label,
+    icon,
+    active = false,
+}: {
+    label: string;
+    icon: React.ReactNode;
+    active?: boolean;
+}) {
     return (
         <button
-            className={`flex-1 flex items-center justify-center h-10 border-b-2 transition-colors ${
+            type="button"
+            aria-label={label}
+            aria-pressed={active}
+            title={label}
+            className={`flex-1 flex items-center justify-center h-10 border-b-2 transition-colors focus-ring ${
                 active
-                    ? "border-primary text-primary"
-                    : "border-transparent text-base-content/30 hover:text-base-content/60"
+                    ? "border-primary text-accent"
+                    : "border-transparent text-subtle hover:text-base-content/60"
             }`}
         >
             {icon}
@@ -35,7 +47,7 @@ function SampleRow({ file }: { file: AudioFile }) {
             <span className="text-base leading-none">🎵</span>
             <div className="flex-1 min-w-0">
                 <p className="text-sm text-base-content/75 truncate">{file.original_filename}</p>
-                <p className="text-[11px] text-base-content/30">{detail}</p>
+                <p className="text-[11px] text-subtle">{detail}</p>
             </div>
         </li>
     );
@@ -58,13 +70,13 @@ export default function SampleSidebar({ projectId }: { projectId: number }) {
     return (
         <aside className="w-52 flex-shrink-0 bg-base-200 border-r border-base-content/[0.07] flex flex-col">
             <div className="flex border-b border-base-content/[0.07]">
-                <SidebarTab icon={<Music2 size={14} />} active />
-                <SidebarTab icon={<Clock size={14} />} />
+                <SidebarTab label="Samples" icon={<Music2 size={14} />} active />
+                <SidebarTab label="Recent" icon={<Clock size={14} />} />
             </div>
 
             <div className="p-3 border-b border-base-content/[0.07]">
                 <div className="flex items-center gap-2 px-3 h-8 rounded-md bg-base-content/[0.05] border border-base-content/[0.08]">
-                    <Search size={13} className="text-base-content/30 flex-shrink-0" />
+                    <Search size={13} className="text-subtle flex-shrink-0" />
                     <label htmlFor="sample-search" className="sr-only">
                         Search samples
                     </label>
@@ -72,7 +84,7 @@ export default function SampleSidebar({ projectId }: { projectId: number }) {
                         id="sample-search"
                         value={search}
                         onChange={(event) => setSearch(event.target.value)}
-                        className="bg-transparent text-sm text-base-content/70 placeholder:text-base-content/25 outline-none w-full"
+                        className="bg-transparent text-sm text-base-content/70 placeholder:text-subtle outline-none w-full"
                         placeholder="Search samples…"
                     />
                 </div>

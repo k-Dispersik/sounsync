@@ -1,47 +1,41 @@
-import { SkipBack, Square, Play, Pause, Circle, SkipForward, Repeat2 } from "lucide-react";
-import { ReactNode } from "react";
+import { Circle, Pause, Play, Repeat2, SkipBack, SkipForward, Square } from "lucide-react";
+
+import { IconButton } from "@/shared/ui";
 import { useTransportContext } from "../contextProviders/TransportProvider";
 
 export default function Transport() {
-    const { isPlaying, play, pause, stop } = useTransportContext();
+    const { isPlaying, isLoading, play, pause, stop } = useTransportContext();
 
     return (
         <>
-            <TransportBtn>
-                <SkipBack size={15} />
-            </TransportBtn>
-            <TransportBtn onClick={stop}>
-                <Square size={15} />
-            </TransportBtn>
+            <IconButton
+                label="Rewind to the start (not available yet)"
+                icon={<SkipBack size={15} />}
+                disabled
+            />
+            <IconButton label="Stop" icon={<Square size={15} />} onClick={stop} />
             {isPlaying ? (
-                <TransportBtn onClick={pause}>
-                    <Pause size={15} />
-                </TransportBtn>
+                <IconButton label="Pause" icon={<Pause size={15} />} onClick={pause} />
             ) : (
-                <TransportBtn onClick={play}>
-                    <Play size={16} className="text-base-content ml-0.5" />
-                </TransportBtn>
+                <IconButton
+                    label={isLoading ? "Loading samples…" : "Play (space)"}
+                    icon={<Play size={16} className="ml-0.5" />}
+                    aria-busy={isLoading}
+                    disabled={isLoading}
+                    onClick={play}
+                />
             )}
-            <TransportBtn>
-                <Circle size={15} className="text-error" />
-            </TransportBtn>
-            <TransportBtn>
-                <SkipForward size={15} />
-            </TransportBtn>
-            <TransportBtn>
-                <Repeat2 size={15} />
-            </TransportBtn>
+            <IconButton
+                label="Record (not available yet)"
+                icon={<Circle size={15} className="text-error" />}
+                disabled
+            />
+            <IconButton
+                label="Skip forward (not available yet)"
+                icon={<SkipForward size={15} />}
+                disabled
+            />
+            <IconButton label="Loop (not available yet)" icon={<Repeat2 size={15} />} disabled />
         </>
-    );
-}
-
-function TransportBtn({ children, onClick }: { children: ReactNode; onClick?: () => void }) {
-    return (
-        <button
-            className="w-9 h-9 rounded-md hover:bg-base-content/[0.08] flex items-center justify-center text-base-content/60 hover:text-base-content transition-colors cursor-pointer"
-            onClick={onClick}
-        >
-            {children}
-        </button>
     );
 }

@@ -41,7 +41,7 @@ export default function RegisterPage() {
             subtitle={
                 <>
                     Already have one?{" "}
-                    <Link to="/login" className="text-primary">
+                    <Link to="/login" className="text-accent">
                         Sign in
                     </Link>
                 </>

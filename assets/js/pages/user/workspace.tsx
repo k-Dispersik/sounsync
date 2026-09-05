@@ -86,11 +86,11 @@ function WorkspaceContent() {
 
                 <div className="flex flex-1 overflow-hidden">
                     <SampleSidebar projectId={Number(id)} />
-                    <div className="flex flex-col flex-1 overflow-hidden">
+                    <main className="flex flex-col flex-1 overflow-hidden">
                         <div className="flex-1 overflow-hidden">
                             <TimelineGrid project={project} isLoading={isLoading} />
                         </div>
-                    </div>
+                    </main>
                 </div>
             </ClipModalProvider>
         </TransportProvider>

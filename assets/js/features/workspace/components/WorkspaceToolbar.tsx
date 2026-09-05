@@ -29,20 +29,27 @@ export default function WorkspaceToolbar({ projectId, tracks, selectedCell }: Pr
     return (
         <div className="flex items-center gap-4 px-4 h-9 bg-base-200 border-b border-base-content/[0.07] flex-shrink-0">
             <button
-                className="flex items-center gap-1.5 text-xs text-base-content/50 hover:text-base-content/80 transition-colors"
+                type="button"
+                className="flex items-center gap-1.5 rounded text-xs text-muted hover:text-default transition-colors focus-ring"
                 onClick={handleAddTrack}
             >
                 <Plus size={13} />
                 Add Track
             </button>
             <div className="w-px h-4 bg-base-content/10" />
-            <button className="flex items-center gap-1.5 text-xs text-base-content/50 hover:text-base-content/80 transition-colors">
+            <button
+                type="button"
+                disabled
+                title="Recording is not available yet"
+                className="flex items-center gap-1.5 rounded text-xs text-muted transition-colors focus-ring disabled:opacity-40"
+            >
                 <Mic size={13} />
                 Record
             </button>
             {selectedCell && (
                 <button
-                    className="flex items-center gap-1.5 text-xs text-base-content/50 hover:text-base-content/80 transition-colors"
+                    type="button"
+                    className="flex items-center gap-1.5 rounded text-xs text-muted hover:text-default transition-colors focus-ring"
                     onClick={() =>
                         openCreateClip(projectId, selectedCell.trackId, selectedCell.startTimeMs)
                     }

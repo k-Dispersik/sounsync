@@ -66,6 +66,7 @@ export default function TrackClip({
         scale,
     });
     const { openEditClip } = useClipModal();
+    const clipName = clip.title?.trim() || `clip at ${Math.round(clip.start_time / 1000)}s`;
 
     const [remoteStartTime, setRemoteStartTime] = useState<number | null>(null);
     const sessionId = getOrCreateSessionId();
@@ -110,11 +111,15 @@ export default function TrackClip({
                     style={{ backgroundColor: `${color}30` }}
                 >
                     <GripVertical
+                        aria-hidden="true"
                         className={`w-3 h-3 text-base-content/50 ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
                         onMouseDown={startDrag}
                     />
                     <button
-                        className="ml-auto w-4 h-4 flex items-center justify-center rounded opacity-0 group-hover/clip:opacity-100 hover:text-primary transition-all"
+                        type="button"
+                        aria-label={`Edit ${clipName}`}
+                        title={`Edit ${clipName}`}
+                        className="ml-auto flex h-4 w-4 items-center justify-center rounded opacity-0 transition-all focus-ring focus-visible:opacity-100 group-hover/clip:opacity-100 hover:text-accent"
                         onClick={(e) => {
                             e.stopPropagation();
                             openEditClip(projectId, trackId, clip);

@@ -65,7 +65,9 @@ export function toParticipants(state: unknown): Participant[] {
 
 /** The colour everyone shows this person in. */
 export function participantColor(colorHue: number): string {
-    return `hsl(${colorHue} 65% 55%)`;
+    // Dark enough for white initials to read on it: an avatar is a
+    // 28px circle with 11px text, which is where contrast is won or lost.
+    return `hsl(${colorHue} 65% 30%)`;
 }
 
 /** Initials for an avatar: at most two, from the start of each word. */

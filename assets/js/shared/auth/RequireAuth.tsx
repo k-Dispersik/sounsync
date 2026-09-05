@@ -16,7 +16,7 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
             <div
                 role="status"
                 aria-label="Checking your session"
-                className="h-screen flex items-center justify-center text-base-content/40 text-sm"
+                className="h-screen flex items-center justify-center text-subtle text-sm"
             >
                 Loading…
             </div>

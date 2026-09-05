@@ -59,3 +59,37 @@ export function toBarsAndBeats(ms: number, scale: TimelineScale): { bar: number;
         beat: Math.floor(totalBeats % beatsPerBar) + 1,
     };
 }
+
+/**
+ * The clip a moment falls inside, if there is one.
+ *
+ * The end is exclusive: two clips laid back to back should not both answer to
+ * the boundary between them, and the later one is the one being pointed at.
+ */
+export function clipAt<T extends { start_time: number; duration: number }>(
+    clips: readonly T[],
+    ms: number,
+): T | null {
+    return (
+        clips.find((clip) => ms >= clip.start_time && ms < clip.start_time + clip.duration) ?? null
+    );
+}
+
+/**
+ * The clip a selected beat refers to.
+ *
+ * A selection is a beat, but a clip may start part-way through one, so asking
+ * only what covers the beat's first millisecond would miss it — and delete its
+ * neighbour instead, which is a bad way to find out.
+ */
+export function clipInBeat<T extends { start_time: number; duration: number }>(
+    clips: readonly T[],
+    fromMs: number,
+    beatMs: number,
+): T | null {
+    return (
+        clipAt(clips, fromMs) ??
+        clips.find((clip) => clip.start_time >= fromMs && clip.start_time < fromMs + beatMs) ??
+        null
+    );
+}

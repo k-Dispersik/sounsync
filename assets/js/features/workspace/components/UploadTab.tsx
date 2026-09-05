@@ -20,14 +20,14 @@ function UploadRow({ upload, onCancel }: { upload: UploadState; onCancel: () => 
         <li className="px-3 py-2 text-xs">
             <div className="flex items-center gap-2">
                 <span className="flex-1 truncate text-base-content/70">{upload.filename}</span>
-                <span className="text-base-content/40">{STAGE_LABEL[upload.stage]}</span>
+                <span className="text-subtle">{STAGE_LABEL[upload.stage]}</span>
                 <button
                     type="button"
                     onClick={onCancel}
                     aria-label={
                         inFlight ? `Cancel ${upload.filename}` : `Dismiss ${upload.filename}`
                     }
-                    className="text-base-content/30 hover:text-base-content/70 transition-colors"
+                    className="text-subtle hover:text-base-content/70 transition-colors"
                 >
                     <X size={12} />
                 </button>
@@ -91,7 +91,7 @@ export default function UploadTab({
                 <button
                     type="button"
                     onClick={() => inputRef.current?.click()}
-                    className="w-full flex items-center justify-center gap-2 h-10 text-primary text-xs font-medium"
+                    className="w-full flex items-center justify-center gap-2 h-10 text-accent text-xs font-medium"
                 >
                     <Upload size={12} />
                     Upload sample

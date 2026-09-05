@@ -48,7 +48,7 @@ export default function WorkspaceTopBar({
                     <span>{projectTitle ?? "Untitled Project"}</span>
                 )}
                 <ChevronDown size={14} />
-                <span className="ml-2 text-xs text-base-content/30">Saved</span>
+                <span className="ml-2 text-xs text-subtle">Saved</span>
             </div>
 
             {/* Transport */}
@@ -59,7 +59,13 @@ export default function WorkspaceTopBar({
             <div className="flex items-center gap-3 mr-4">
                 <TimeSignatureDropdown settings={settings} onChange={onChangeProjectSettings} />
                 <BPMInput settings={settings} onChange={onChangeProjectSettings} />
-                <input className="field w-32" disabled value={playheadTime} />
+                <output
+                    aria-label="Playhead position"
+                    aria-live="off"
+                    className="field flex w-32 items-center font-mono"
+                >
+                    {playheadTime}
+                </output>
             </div>
 
             <CollaboratorAvatars />
@@ -163,7 +169,7 @@ function CollaboratorAvatars() {
                             ? `${participant.name} (${participant.sessions} tabs)`
                             : participant.name
                     }
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-base-100 flex-shrink-0 ring-2 ring-base-200 -ml-1 first:ml-0"
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-on-accent flex-shrink-0 ring-2 ring-base-200 -ml-1 first:ml-0"
                     style={{ backgroundColor: participantColor(participant.colorHue) }}
                 >
                     {initials(participant.name)}

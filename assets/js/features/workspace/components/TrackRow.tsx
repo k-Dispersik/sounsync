@@ -73,6 +73,13 @@ export default function TrackRow({
         onBeatClick(next, track.id, track.row_index);
     };
 
+    // Clicking a clip selects the beat it starts on, which is what makes the
+    // keyboard shortcuts able to act on it: without this, the only selectable
+    // beats are the ones no clip is covering.
+    const millisecondsPerBeat = beatWidth / pixelsPerMillisecond;
+    const selectClip = (startTime: number) =>
+        onBeatClick(Math.floor(startTime / millisecondsPerBeat), track.id, track.row_index);
+
     const rowStyle = {
         "--beat-width": `${beatWidth}px`,
         "--bar-width": `${beatWidth * beatsPerBar}px`,
@@ -125,6 +132,7 @@ export default function TrackRow({
                     clip={clip}
                     pixelsPerMillisecond={pixelsPerMillisecond}
                     scale={scale}
+                    onClick={() => selectClip(clip.start_time)}
                 />
             ))}
         </div>

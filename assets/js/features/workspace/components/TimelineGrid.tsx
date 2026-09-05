@@ -12,6 +12,7 @@ import { useRealtime } from "../contextProviders/RealtimeProvider";
 import { useTransportContext } from "../contextProviders/TransportProvider";
 import type { TimelineSurface } from "../model/cursor";
 import { OPERATIONS } from "../model/operations";
+import { useTimelineShortcuts } from "../hooks/useTimelineShortcuts";
 import { useWorkspaceRealtime } from "../hooks/useWorkspaceRealtime";
 import { createLogger } from "@/shared/lib/logger";
 
@@ -68,6 +69,7 @@ export default function TimelineGrid({ project, isLoading, beatWidth = 48 }: Pro
         : null;
 
     const { sendOperation } = useRealtime();
+    useTimelineShortcuts(tracks, selectedCell, millisecondsPerBeat);
     const selectedBeat = selectedPosition?.beatIndex ?? null;
     const selectedTrackId = selectedPosition?.trackId ?? null;
 
@@ -114,7 +116,7 @@ export default function TimelineGrid({ project, isLoading, beatWidth = 48 }: Pro
                 <div className="flex flex-shrink-0 border-b border-base-content/10">
                     {/* Corner cell */}
                     <div className="flex h-8 w-[168px] flex-shrink-0 items-center border-r border-base-content/10 bg-base-300/80 px-4">
-                        <span className="text-[10px] uppercase tracking-widest text-base-content/30 font-semibold">
+                        <span className="text-[10px] uppercase tracking-widest text-subtle font-semibold">
                             Tracks
                         </span>
                     </div>

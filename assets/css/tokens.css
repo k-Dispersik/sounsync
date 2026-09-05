@@ -19,9 +19,17 @@
 
     /* ── Text ─────────────────────────────────────────────────────────────── */
     --color-text: color-mix(in oklch, var(--color-base-content) 92%, transparent);
-    --color-text-muted: color-mix(in oklch, var(--color-base-content) 60%, transparent);
-    --color-text-subtle: color-mix(in oklch, var(--color-base-content) 38%, transparent);
+    --color-text-muted: color-mix(in oklch, var(--color-base-content) 72%, transparent);
+    --color-text-subtle: color-mix(in oklch, var(--color-base-content) 68%, transparent);
     --color-text-on-accent: var(--color-primary-content);
+    /* The accent as text rather than as a background. Pulled towards the
+       theme's own foreground, which lightens it on a dark theme and darkens it
+       on a light one — the accent alone is too close to both to read at 12px. */
+    --color-text-accent: color-mix(
+        in oklch,
+        var(--color-primary) 70%,
+        var(--color-base-content) 30%
+    );
 
     /* ── Borders ──────────────────────────────────────────────────────────── */
     --color-border: color-mix(in oklch, var(--color-base-content) 10%, transparent);
@@ -92,6 +100,12 @@
     }
     .text-subtle {
         color: var(--color-text-subtle);
+    }
+    .text-accent {
+        color: var(--color-text-accent);
+    }
+    .text-on-accent {
+        color: var(--color-text-on-accent);
     }
 
     .border-token {

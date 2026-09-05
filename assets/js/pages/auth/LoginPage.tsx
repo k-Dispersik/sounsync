@@ -47,7 +47,7 @@ export default function LoginPage() {
             subtitle={
                 <>
                     No account yet?{" "}
-                    <Link to="/register" className="text-primary">
+                    <Link to="/register" className="text-accent">
                         Create one
                     </Link>
                 </>

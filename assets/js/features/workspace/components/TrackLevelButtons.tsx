@@ -49,7 +49,7 @@ function LevelButton({
             className={`w-5 h-5 rounded text-[10px] font-bold transition-colors ${
                 active
                     ? "bg-primary text-primary-content"
-                    : "bg-base-content/[0.08] text-base-content/40 hover:text-base-content/70"
+                    : "bg-base-content/[0.08] text-subtle hover:text-base-content/70"
             }`}
         >
             {letter}

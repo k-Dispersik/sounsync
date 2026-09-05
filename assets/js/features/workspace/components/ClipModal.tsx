@@ -82,7 +82,7 @@ function ModalHeader({ isEdit, onClose }: { isEdit: boolean; onClose: () => void
             </h3>
             <button
                 onClick={onClose}
-                className="w-7 h-7 flex items-center justify-center rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-content/[0.07] transition-colors"
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-subtle hover:text-base-content hover:bg-base-content/[0.07] transition-colors"
             >
                 <X size={15} />
             </button>
@@ -104,8 +104,8 @@ function TabBar({ tab, onChange }: { tab: Tab; onChange: (t: Tab) => void }) {
                     onClick={() => onChange(key)}
                     className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 -mb-px transition-colors ${
                         tab === key
-                            ? "border-primary text-primary"
-                            : "border-transparent text-base-content/40 hover:text-base-content/70"
+                            ? "border-primary text-accent"
+                            : "border-transparent text-subtle hover:text-base-content/70"
                     }`}
                 >
                     {icon}
@@ -159,9 +159,9 @@ function LibraryTab({
 function SearchBar({ value, onChange }: { value: string; onChange: (v: string) => void }) {
     return (
         <div className="flex items-center gap-2 px-3 h-8 rounded-lg bg-base-content/[0.05] border border-base-content/[0.08]">
-            <Search size={13} className="text-base-content/30 flex-shrink-0" />
+            <Search size={13} className="text-subtle flex-shrink-0" />
             <input
-                className="bg-transparent text-sm text-base-content/80 placeholder:text-base-content/25 outline-none w-full"
+                className="bg-transparent text-sm text-base-content/80 placeholder:text-subtle outline-none w-full"
                 placeholder="Search sounds…"
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
@@ -182,7 +182,7 @@ function SampleList({
     return (
         <div className="h-52 overflow-y-auto rounded-xl border border-base-content/[0.07] bg-base-100/50 divide-y divide-base-content/[0.05]">
             {samples.length === 0 && (
-                <div className="flex items-center justify-center h-full text-sm text-base-content/30">
+                <div className="flex items-center justify-center h-full text-sm text-subtle">
                     No sounds found
                 </div>
             )}
@@ -220,13 +220,13 @@ function SampleRow({
             <span className="text-base leading-none w-5 text-center">🎵</span>
             <div className="flex-1 min-w-0">
                 <p
-                    className={`text-sm truncate ${isActive ? "text-primary font-medium" : "text-base-content/75"}`}
+                    className={`text-sm truncate ${isActive ? "text-accent font-medium" : "text-base-content/75"}`}
                 >
                     {sample.title}
                 </p>
-                <p className="text-[11px] text-base-content/30">{duration}</p>
+                <p className="text-[11px] text-subtle">{duration}</p>
             </div>
-            {isActive && <Check size={14} className="text-primary flex-shrink-0" />}
+            {isActive && <Check size={14} className="text-accent flex-shrink-0" />}
         </button>
     );
 }
@@ -249,7 +249,7 @@ function UploadTab({
                     Title
                 </label>
                 <input
-                    className="w-full h-9 px-3 rounded-lg bg-base-content/[0.05] border border-base-content/[0.08] text-sm text-base-content/90 placeholder:text-base-content/25 outline-none focus:border-primary/50 transition-colors"
+                    className="w-full h-9 px-3 rounded-lg bg-base-content/[0.05] border border-base-content/[0.08] text-sm text-base-content/90 placeholder:text-subtle outline-none focus:border-primary/50 transition-colors"
                     placeholder="My clip…"
                     value={title}
                     onChange={(e) => onTitleChange(e.target.value)}
@@ -273,11 +273,11 @@ function UploadTab({
             </div>
 
             <div className="flex flex-col items-center justify-center gap-2 h-28 rounded-xl border-2 border-dashed border-base-content/[0.12] hover:border-primary/40 hover:bg-primary/[0.03] transition-colors cursor-pointer">
-                <Upload size={20} className="text-base-content/25" />
-                <p className="text-sm text-base-content/40">
-                    Drop audio file or <span className="text-primary underline">browse</span>
+                <Upload size={20} className="text-subtle" />
+                <p className="text-sm text-subtle">
+                    Drop audio file or <span className="text-accent underline">browse</span>
                 </p>
-                <p className="text-[11px] text-base-content/25">MP3, WAV, FLAC</p>
+                <p className="text-[11px] text-subtle">MP3, WAV, FLAC</p>
             </div>
         </div>
     );
