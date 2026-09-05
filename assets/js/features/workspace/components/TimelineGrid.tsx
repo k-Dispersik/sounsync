@@ -83,8 +83,15 @@ export default function TimelineGrid({ project, isLoading, beatWidth = 48 }: Pro
     );
 
     const { cursors, pointerHandlers } = useWorkspaceRealtime(surface);
-    const { player } = useTransportContext();
+    const { player, setPosition } = useTransportContext();
     const contentRef = useRef<HTMLDivElement>(null);
+
+    // The ruler says "jump to beat N", so it had better jump: clicking it
+    // selects the beat and moves the playhead there.
+    const handleRulerSeek = (beatIndex: number) => {
+        handleRulerBeatClick(beatIndex);
+        setPosition(beatIndex * millisecondsPerBeat);
+    };
 
     // Tracks appearing and disappearing now arrive as operations on the
     // channel, so the grid only has to ask; the answer updates the project for
@@ -124,7 +131,7 @@ export default function TimelineGrid({ project, isLoading, beatWidth = 48 }: Pro
                             selectedBeat={selectedPosition?.beatIndex ?? null}
                             onBeatHover={handleRulerBeatHover}
                             onBeatLeave={handleBeatLeave}
-                            onBeatClick={handleRulerBeatClick}
+                            onBeatClick={handleRulerSeek}
                         />
                     </div>
                 </div>
