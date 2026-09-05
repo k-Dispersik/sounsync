@@ -3,7 +3,24 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark light" />
     <title>Soundsync</title>
+    <script>
+      // Applies the stored theme before the stylesheet paints anything, so a
+      // reload does not flash the other theme first. Kept deliberately tiny
+      // and inline: a separate request would be a request too late.
+      // The key and the attribute are also in assets/js/shared/lib/theme.ts.
+      (function () {
+        try {
+          var theme = localStorage.getItem("soundsync:theme");
+          if (theme === "dark" || theme === "light") {
+            document.documentElement.setAttribute("data-theme", theme);
+          }
+        } catch (error) {
+          // No storage, no stored theme: the system one is already right.
+        }
+      })();
+    </script>
     <link rel="stylesheet" href={~p"/assets/css/app.css"} />
   </head>
   <body>
