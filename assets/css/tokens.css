@@ -1,0 +1,108 @@
+/*
+ * Semantic and domain tokens.
+ *
+ * Components are allowed to use the names in this file, and nothing below
+ * them. A component that knows about `oklch(62% 0.18 25)` cannot be restyled,
+ * and a component that knows about `--color-primary` cannot be reasoned about:
+ * both leave you rereading the component to find out what it looks like.
+ *
+ * Level 1 (the palette: primary, base-100, base-content…) lives in app.css and
+ * is set per theme. Everything here is derived from it, so both themes follow
+ * from one definition rather than two lists that drift apart.
+ */
+
+:root {
+    /* ── Surfaces, from the deepest to the highest ────────────────────────── */
+    --color-surface-sunken: var(--color-base-100);
+    --color-surface: var(--color-base-200);
+    --color-surface-raised: var(--color-base-300);
+
+    /* ── Text ─────────────────────────────────────────────────────────────── */
+    --color-text: color-mix(in oklch, var(--color-base-content) 92%, transparent);
+    --color-text-muted: color-mix(in oklch, var(--color-base-content) 60%, transparent);
+    --color-text-subtle: color-mix(in oklch, var(--color-base-content) 38%, transparent);
+    --color-text-on-accent: var(--color-primary-content);
+
+    /* ── Borders ──────────────────────────────────────────────────────────── */
+    --color-border: color-mix(in oklch, var(--color-base-content) 10%, transparent);
+    --color-border-strong: color-mix(in oklch, var(--color-base-content) 22%, transparent);
+
+    /* ── Actions ──────────────────────────────────────────────────────────── */
+    --color-action-primary: var(--color-primary);
+    --color-action-primary-hover: color-mix(in oklch, var(--color-primary) 88%, black);
+    --color-action-secondary: color-mix(in oklch, var(--color-base-content) 8%, transparent);
+    --color-action-danger: var(--color-error);
+
+    /* ── States ───────────────────────────────────────────────────────────── */
+    --color-focus-ring: color-mix(in oklch, var(--color-primary) 70%, transparent);
+    --color-hover-overlay: color-mix(in oklch, var(--color-base-content) 5%, transparent);
+    --color-selected-overlay: color-mix(in oklch, var(--color-primary) 14%, transparent);
+
+    /* ── The editor's own vocabulary ──────────────────────────────────────── */
+    --color-playhead: var(--color-error);
+    --color-grid-line: color-mix(in oklch, var(--color-base-content) 4%, transparent);
+    --color-grid-bar: color-mix(in oklch, var(--color-base-content) 9%, transparent);
+    --color-cursor-remote: var(--color-info);
+
+    /* One hue per clip type: this is part of the language of the interface,
+       the way a colour tells you what a track holds before you read it. */
+    --color-clip-piano: oklch(62% 0.16 285);
+    --color-clip-guitar: oklch(66% 0.15 55);
+    --color-clip-drums: oklch(62% 0.18 25);
+    --color-clip-bass: oklch(60% 0.14 165);
+    --color-clip-recording: oklch(64% 0.15 330);
+    --color-clip-effect: oklch(66% 0.12 220);
+
+    /* Timeline metrics, so CSS and the scheduling arithmetic cannot disagree
+       about how tall a lane is. */
+    --track-row-height: 80px;
+    --track-head-width: 168px;
+    --ruler-height: 32px;
+}
+
+/*
+ * Utilities for the tokens Tailwind cannot generate, so a component never has
+ * to write `style={{ background: "var(--color-…)" }}` by hand.
+ */
+@layer utilities {
+    .bg-surface-sunken {
+        background-color: var(--color-surface-sunken);
+    }
+    .bg-surface {
+        background-color: var(--color-surface);
+    }
+    .bg-surface-raised {
+        background-color: var(--color-surface-raised);
+    }
+    .bg-hover-overlay:hover {
+        background-color: var(--color-hover-overlay);
+    }
+    .bg-selected-overlay {
+        background-color: var(--color-selected-overlay);
+    }
+    .bg-playhead {
+        background-color: var(--color-playhead);
+    }
+
+    .text-default {
+        color: var(--color-text);
+    }
+    .text-muted {
+        color: var(--color-text-muted);
+    }
+    .text-subtle {
+        color: var(--color-text-subtle);
+    }
+
+    .border-token {
+        border-color: var(--color-border);
+    }
+    .border-token-strong {
+        border-color: var(--color-border-strong);
+    }
+
+    .focus-ring:focus-visible {
+        outline: 2px solid var(--color-focus-ring);
+        outline-offset: 2px;
+    }
+}
