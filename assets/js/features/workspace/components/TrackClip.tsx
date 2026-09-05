@@ -7,6 +7,7 @@ import { useWorkspaceEvent } from "../hooks/useWorkspaceEvent";
 import { RealtimeEvents } from "../events/events";
 import { getOrCreateSessionId } from "../services/signaling/workspaceChannel";
 import { useWaveform } from "../hooks/useWaveform";
+import Waveform from "./Waveform";
 import type { TimelineScale } from "../model/timeline";
 
 export interface TrackClipProps {
@@ -56,10 +57,7 @@ export default function TrackClip({
 }: TrackClipProps) {
     const { bars } = useWaveform(projectId, clip.audio_file_id ?? null, barCount);
 
-    const barHeights = useMemo(
-        () => (bars ?? placeholderBars(color, barCount)).map((value) => 10 + value * 90),
-        [bars, color, barCount],
-    );
+    const shape = useMemo(() => bars ?? placeholderBars(color, barCount), [bars, color, barCount]);
 
     const { isDragging, tempStartTime, committedStartTime, startDrag } = useClipInteraction({
         clip,
@@ -126,22 +124,8 @@ export default function TrackClip({
                     </button>
                 </div>
 
-                {/* ── Waveform bars ── */}
-                <div
-                    className="px-1 flex items-end gap-px"
-                    style={{ height: "calc(100% - 1.5rem)" }}
-                >
-                    {barHeights.map((h, i) => (
-                        <div
-                            key={i}
-                            className="flex-1 rounded-t"
-                            style={{
-                                height: `${h}%`,
-                                backgroundColor: color,
-                                opacity: 0.6,
-                            }}
-                        />
-                    ))}
+                <div className="px-1" style={{ height: "calc(100% - 1.5rem)" }}>
+                    <Waveform values={shape} color={color} />
                 </div>
             </div>
         </div>

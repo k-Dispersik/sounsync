@@ -47,7 +47,6 @@ export default function TimelineGrid({ project, isLoading, beatWidth = 48 }: Pro
         handleTrackBeatHover,
         handleRulerBeatHover,
         handleBeatLeave,
-        barEndLines,
     } = useTimeline({
         project,
         beatWidth,
@@ -204,7 +203,6 @@ export default function TimelineGrid({ project, isLoading, beatWidth = 48 }: Pro
                                         totalBeats={totalBeats}
                                         beatWidth={gridBeatWidth}
                                         beatsPerBar={beatsPerBar}
-                                        barEndLines={barEndLines}
                                         pixelsPerMillisecond={pixelsPerMillisecond}
                                         scale={scale}
                                         isLast={i === tracks.length - 1}

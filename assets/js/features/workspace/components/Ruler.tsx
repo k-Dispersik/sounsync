@@ -1,18 +1,6 @@
-import { Fragment, type CSSProperties } from "react";
+import { useCallback, type CSSProperties, type MouseEvent } from "react";
 
 export const RULER_HEIGHT = 32; // px — top ruler
-
-interface TimelineMarker {
-    second: number;
-    left: number;
-}
-
-interface RulerTick {
-    beatIndex: number;
-    left: number;
-    secondMarker: TimelineMarker | null;
-    isBarStart: boolean;
-}
 
 interface Props {
     totalBeats: number;
@@ -27,6 +15,14 @@ interface Props {
     onBeatClick: (beatIndex: number) => void;
 }
 
+/**
+ * The bar above the timeline: ticks, second markers, and the place you click
+ * to move the playhead.
+ *
+ * Like the lanes, the ticks are painted rather than built. Only the second
+ * labels are real elements, and there is one of those per second rather than
+ * one per beat.
+ */
 export default function Ruler({
     totalBeats,
     beatsPerBar,
@@ -39,78 +35,68 @@ export default function Ruler({
     onBeatLeave,
     onBeatClick,
 }: Props) {
-    const rulerStyle = {
+    const beatAt = useCallback(
+        (event: MouseEvent<HTMLElement>) => {
+            const bounds = event.currentTarget.getBoundingClientRect();
+            const beat = Math.floor((event.clientX - bounds.left) / beatWidth);
+
+            return Math.min(Math.max(beat, 0), totalBeats - 1);
+        },
+        [beatWidth, totalBeats],
+    );
+
+    const secondsInView = Math.floor(contentWidth / (1000 * pixelsPerMillisecond));
+    const secondMarkers = Array.from({ length: secondsInView }, (_unused, index) => ({
+        second: index + 1,
+        left: (index + 1) * 1000 * pixelsPerMillisecond,
+    }));
+
+    const style = {
         "--ruler-width": `${contentWidth}px`,
-        "--hover-indicator-x": `${(hoveredBeat ?? 0) * beatWidth + beatWidth / 2}px`,
+        "--beat-width": `${beatWidth}px`,
+        "--bar-width": `${beatWidth * beatsPerBar}px`,
+        "--marker-x": `${(hoveredBeat ?? selectedBeat ?? 0) * beatWidth}px`,
     } as CSSProperties;
-    const secondMarkers = Array.from(
-        { length: Math.floor(contentWidth / (1000 * pixelsPerMillisecond)) },
-        (_, index) =>
-            ({
-                second: index + 1,
-                left: (index + 1) * 1000 * pixelsPerMillisecond,
-            }) satisfies TimelineMarker,
-    );
-    const secondMarkerByBeat = new Map(
-        secondMarkers.map((marker) => [Math.floor(marker.left / beatWidth), marker] as const),
-    );
-    const rulerTicks = Array.from(
-        { length: totalBeats },
-        (_, beatIndex) =>
-            ({
-                beatIndex,
-                left: beatIndex * beatWidth,
-                secondMarker: secondMarkerByBeat.get(beatIndex) ?? null,
-                isBarStart: beatIndex % beatsPerBar === 0,
-            }) satisfies RulerTick,
-    );
 
     return (
         <div
-            className="relative h-8 w-[var(--ruler-width)] flex-shrink-0 border-b border-base-content/10 bg-base-300/80"
-            style={rulerStyle}
+            role="button"
+            tabIndex={0}
+            aria-label="Timeline ruler: click to move the playhead"
+            className="relative h-[var(--ruler-height)] w-[var(--ruler-width)] flex-shrink-0
+                cursor-pointer border-b border-token bg-surface-raised focus-ring"
+            style={style}
+            onMouseMove={(event) => onBeatHover(beatAt(event))}
+            onMouseLeave={onBeatLeave}
+            onClick={(event) => onBeatClick(beatAt(event))}
         >
-            {rulerTicks.map(({ beatIndex, left, secondMarker, isBarStart }) => {
-                const indicatorClassName =
-                    selectedBeat === beatIndex
-                        ? "bg-cyan-200/80"
-                        : hoveredBeat === beatIndex
-                          ? "bg-cyan-100/60"
-                          : "bg-transparent";
+            <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-x-0 bottom-0 h-2.5"
+                style={{
+                    backgroundImage:
+                        "repeating-linear-gradient(to right, var(--color-grid-bar) 0 1px, transparent 1px var(--bar-width))",
+                }}
+            />
 
-                return (
-                    <Fragment key={beatIndex}>
-                        <button
-                            type="button"
-                            aria-label={`Jump to beat ${beatIndex + 1}`}
-                            className="absolute inset-y-0 z-10 w-[var(--beat-width)] cursor-pointer"
-                            style={{ "--beat-width": `${beatWidth}px`, left } as CSSProperties}
-                            onMouseEnter={() => onBeatHover(beatIndex)}
-                            onMouseLeave={onBeatLeave}
-                            onClick={() => onBeatClick(beatIndex)}
-                        >
-                            <span
-                                className={`pointer-events-none absolute inset-y-0 left-0 w-px transition-colors ${indicatorClassName}`}
-                            />
-                        </button>
-                        {secondMarker && (
-                            <span
-                                className="absolute top-1 text-[10px] font-mono text-base-content/40 select-none"
-                                style={{ left: secondMarker.left + 4 }}
-                            >
-                                {secondMarker.second}
-                            </span>
-                        )}
+            {(hoveredBeat !== null || selectedBeat !== null) && (
+                <div
+                    aria-hidden="true"
+                    className={`pointer-events-none absolute inset-y-0 w-[var(--beat-width)]
+                        ${selectedBeat !== null ? "bg-selected-overlay" : "bg-hover-overlay"}`}
+                    style={{ left: "var(--marker-x)" }}
+                />
+            )}
 
-                        {isBarStart && (
-                            <div
-                                className="absolute bottom-0 w-px bg-base-content/20"
-                                style={{ left, height: 10 }}
-                            />
-                        )}
-                    </Fragment>
-                );
-            })}
+            {secondMarkers.map(({ second, left }) => (
+                <span
+                    key={second}
+                    className="pointer-events-none absolute top-1 select-none font-mono text-[10px] text-subtle"
+                    style={{ left: left + 4 }}
+                >
+                    {second}
+                </span>
+            ))}
         </div>
     );
 }
