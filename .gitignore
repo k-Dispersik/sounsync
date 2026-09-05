@@ -48,3 +48,8 @@ npm-debug.log
 # Uploaded files in dev — real audio, never committed.
 /priv/uploads/
 /tmp/
+
+# Playwright's per-run output: traces, diffs and the actual screenshots of a
+# failing run. The baselines in e2e/__screenshots__ are committed; these are not.
+/assets/e2e/.results/
+/assets/playwright-report/

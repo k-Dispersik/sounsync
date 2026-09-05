@@ -1,5 +1,5 @@
 import type { Track } from "@/shared/types";
-import { EmptyState, Skeleton } from "@/shared/ui";
+import { Skeleton } from "@/shared/ui";
 import type { TimelineScale } from "../model/timeline";
 import TrackRow from "./TrackRow";
 
@@ -23,9 +23,9 @@ interface Props {
 /**
  * The lanes, or a word about why there are none.
  *
- * Holds all three states of the lane area — loading, empty and populated — so
- * the grid does not have to. The arm that says "nothing here yet" is the one
- * that gets forgotten when it lives three levels inside a ternary.
+ * The lanes, and the placeholders that stand in for them while the project is
+ * on its way. The empty case is not here: it belongs outside the scrolling
+ * area, where it can be centred on what the reader can actually see.
  */
 export default function TrackLanes({ tracks, isLoading, ...rest }: Props) {
     if (isLoading) {
@@ -33,16 +33,6 @@ export default function TrackLanes({ tracks, isLoading, ...rest }: Props) {
             <div className="flex flex-col gap-2 p-4">
                 <Skeleton className="h-20 w-full rounded-lg" count={4} />
             </div>
-        );
-    }
-
-    if (tracks.length === 0) {
-        return (
-            <EmptyState
-                title="No tracks yet"
-                description="Add a track to start placing clips on the timeline."
-                className="h-full"
-            />
         );
     }
 

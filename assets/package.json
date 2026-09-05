@@ -1,13 +1,15 @@
 {
     "scripts": {
-        "typecheck": "tsc --noEmit",
+        "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.e2e.json",
         "lint": "eslint js --max-warnings 0",
         "lint:fix": "eslint js --fix",
-        "format": "prettier --write \"js/**/*.{ts,tsx}\" \"css/**/*.css\" \"*.{mts,mjs}\"",
-        "format:check": "prettier --check \"js/**/*.{ts,tsx}\" \"css/**/*.css\" \"*.{mts,mjs}\"",
+        "format": "prettier --write \"js/**/*.{ts,tsx}\" \"e2e/**/*.ts\" \"css/**/*.css\" \"*.{ts,mts,mjs}\"",
+        "format:check": "prettier --check \"js/**/*.{ts,tsx}\" \"e2e/**/*.ts\" \"css/**/*.css\" \"*.{ts,mts,mjs}\"",
         "test": "vitest run",
         "test:watch": "vitest",
-        "verify": "npm run typecheck && npm run lint && npm run format:check && npm run test"
+        "verify": "npm run typecheck && npm run lint && npm run format:check && npm run test",
+        "test:e2e": "playwright test",
+        "test:e2e:update": "playwright test --update-snapshots"
     },
     "dependencies": {
         "@tanstack/react-query": "^5.99.1",
@@ -21,9 +23,11 @@
     },
     "devDependencies": {
         "@eslint/js": "^10.0.1",
+        "@playwright/test": "^1.63.0",
         "@testing-library/jest-dom": "^6.9.1",
         "@testing-library/react": "^16.3.3",
         "@testing-library/user-event": "^14.6.7",
+        "@types/node": "^26.4.1",
         "@types/phoenix": "^1.6.7",
         "@types/react": "^19.1.0",
         "@types/react-dom": "^19.1.0",

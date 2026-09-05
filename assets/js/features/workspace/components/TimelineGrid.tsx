@@ -15,6 +15,7 @@ import { OPERATIONS } from "../model/operations";
 import { useTimelineShortcuts } from "../hooks/useTimelineShortcuts";
 import { useWorkspaceRealtime } from "../hooks/useWorkspaceRealtime";
 import { createLogger } from "@/shared/lib/logger";
+import { EmptyState } from "@/shared/ui";
 
 const log = createLogger("TimelineGrid");
 
@@ -33,7 +34,8 @@ export default function TimelineGrid({ project, isLoading, beatWidth = 48 }: Pro
     // Memoised because the cursor surface is derived from it: a fresh empty
     // array on every render would rebuild the surface, and with it every peer
     // cursor, sixty times a second.
-    const tracks = useMemo(() => project?.tracks ?? [], [project?.tracks]);
+    const loadedTracks = project?.tracks;
+    const tracks = useMemo(() => loadedTracks ?? [], [loadedTracks]);
     const {
         scale,
         scrollRef,
@@ -59,17 +61,11 @@ export default function TimelineGrid({ project, isLoading, beatWidth = 48 }: Pro
     } = useTimelineSelection();
 
     const millisecondsPerBeat = gridBeatWidth / pixelsPerMillisecond;
-    const selectedCell = rawSelectedCell
-        ? {
-              ...rawSelectedCell,
-              // Whole milliseconds: that is what the clip is stored in, and a
-              // fractional beat boundary is not a different moment in the music.
-              startTimeMs: Math.round(rawSelectedCell.beatIndex * millisecondsPerBeat),
-          }
-        : null;
+    const selectedCell = withStartTime(rawSelectedCell, millisecondsPerBeat);
 
     const { sendOperation } = useRealtime();
     useTimelineShortcuts(tracks, selectedCell, millisecondsPerBeat);
+    const isEmpty = !isLoading && tracks.length === 0;
     const selectedBeat = selectedPosition?.beatIndex ?? null;
     const selectedTrackId = selectedPosition?.trackId ?? null;
 
@@ -145,48 +141,70 @@ export default function TimelineGrid({ project, isLoading, beatWidth = 48 }: Pro
                         onRemove={handleRemoveTrack}
                     />
 
-                    {/* Scrollable content */}
-                    <div
-                        className="flex-1 overflow-x-auto overflow-y-hidden"
-                        onScroll={(e) => {
-                            if (scrollRef.current) {
-                                scrollRef.current.scrollLeft = e.currentTarget.scrollLeft;
-                            }
-                        }}
-                    >
+                    {isEmpty ? (
+                        <EmptyState
+                            className="flex-1"
+                            title="No tracks yet"
+                            description="Add a track to start placing clips on the timeline."
+                        />
+                    ) : (
                         <div
-                            ref={contentRef}
-                            className="relative w-[var(--timeline-width)]"
-                            style={{ "--timeline-width": `${contentWidth}px` } as CSSProperties}
-                            onMouseMove={pointerHandlers.onMouseMove}
-                            onClick={pointerHandlers.onClick}
+                            className="flex-1 overflow-x-auto overflow-y-hidden"
+                            onScroll={(e) => {
+                                if (scrollRef.current) {
+                                    scrollRef.current.scrollLeft = e.currentTarget.scrollLeft;
+                                }
+                            }}
                         >
-                            <WorkspaceCursor cursors={cursors} surface={surface} />
-                            <Playhead
-                                player={player}
-                                pixelsPerMillisecond={pixelsPerMillisecond}
-                                surfaceRef={contentRef}
-                            />
-                            <TrackLanes
-                                tracks={tracks}
-                                isLoading={isLoading}
-                                totalBeats={totalBeats}
-                                beatWidth={gridBeatWidth}
-                                beatsPerBar={beatsPerBar}
-                                pixelsPerMillisecond={pixelsPerMillisecond}
-                                scale={scale}
-                                hoveredBeat={hoveredBeat}
-                                hoveredTrackId={hoveredTrackId}
-                                selectedBeat={selectedBeat}
-                                selectedTrackId={selectedTrackId}
-                                onBeatHover={handleTrackBeatHover}
-                                onBeatLeave={handleBeatLeave}
-                                onBeatClick={handleTrackBeatClick}
-                            />
+                            <div
+                                ref={contentRef}
+                                className="relative w-[var(--timeline-width)]"
+                                style={{ "--timeline-width": `${contentWidth}px` } as CSSProperties}
+                                onMouseMove={pointerHandlers.onMouseMove}
+                                onClick={pointerHandlers.onClick}
+                            >
+                                <WorkspaceCursor cursors={cursors} surface={surface} />
+                                <Playhead
+                                    player={player}
+                                    pixelsPerMillisecond={pixelsPerMillisecond}
+                                    surfaceRef={contentRef}
+                                />
+                                <TrackLanes
+                                    tracks={tracks}
+                                    isLoading={isLoading}
+                                    totalBeats={totalBeats}
+                                    beatWidth={gridBeatWidth}
+                                    beatsPerBar={beatsPerBar}
+                                    pixelsPerMillisecond={pixelsPerMillisecond}
+                                    scale={scale}
+                                    hoveredBeat={hoveredBeat}
+                                    hoveredTrackId={hoveredTrackId}
+                                    selectedBeat={selectedBeat}
+                                    selectedTrackId={selectedTrackId}
+                                    onBeatHover={handleTrackBeatHover}
+                                    onBeatLeave={handleBeatLeave}
+                                    onBeatClick={handleTrackBeatClick}
+                                />
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
         </>
     );
+}
+
+/**
+ * Puts a moment on a selected beat.
+ *
+ * Whole milliseconds: that is what a clip is stored in, and a fractional beat
+ * boundary is not a different moment in the music.
+ */
+function withStartTime(
+    cell: { trackId: number; beatIndex: number } | null,
+    millisecondsPerBeat: number,
+) {
+    if (!cell) return null;
+
+    return { ...cell, startTimeMs: Math.round(cell.beatIndex * millisecondsPerBeat) };
 }

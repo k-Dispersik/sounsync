@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import TrackLanes from "./TrackLanes";
@@ -23,12 +23,11 @@ describe("TrackLanes", () => {
         const { container } = render(<TrackLanes tracks={[]} isLoading {...lanes} />);
 
         expect(container.querySelectorAll("[aria-hidden='true']").length).toBeGreaterThan(0);
-        expect(screen.queryByText("No tracks yet")).not.toBeInTheDocument();
     });
 
-    it("a project with no tracks says so, rather than looking broken", () => {
-        render(<TrackLanes tracks={[]} isLoading={false} {...lanes} />);
+    it("draws nothing for a project with no tracks: the grid says why", () => {
+        const { container } = render(<TrackLanes tracks={[]} isLoading={false} {...lanes} />);
 
-        expect(screen.getByText("No tracks yet")).toBeInTheDocument();
+        expect(container).toBeEmptyDOMElement();
     });
 });

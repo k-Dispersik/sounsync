@@ -41,14 +41,16 @@ export default function WorkspaceTopBar({
     return (
         <header className="flex items-center gap-4 px-4 h-14 bg-base-200 border-b border-base-content/[0.07] flex-shrink-0 relative z-50">
             <Logo size={16} showText={true} />
-            <div className="flex items-center gap-1 text-sm text-base-content/60 cursor-pointer hover:text-base-content transition-colors">
+            <div className="flex min-w-0 cursor-pointer items-center gap-1 text-sm text-base-content/60 transition-colors hover:text-base-content">
                 {isLoading ? (
                     <Skeleton className="h-4 w-24" />
                 ) : (
-                    <span>{projectTitle ?? "Untitled Project"}</span>
+                    <span className="truncate" title={projectTitle ?? "Untitled Project"}>
+                        {projectTitle ?? "Untitled Project"}
+                    </span>
                 )}
-                <ChevronDown size={14} />
-                <span className="ml-2 text-xs text-subtle">Saved</span>
+                <ChevronDown size={14} className="flex-shrink-0" />
+                <span className="ml-2 whitespace-nowrap text-xs text-subtle">Saved</span>
             </div>
 
             {/* Transport */}
@@ -56,7 +58,7 @@ export default function WorkspaceTopBar({
                 <Transport />
             </div>
 
-            <div className="flex items-center gap-3 mr-4">
+            <div className="mr-4 flex flex-shrink-0 items-center gap-3">
                 <TimeSignatureDropdown settings={settings} onChange={onChangeProjectSettings} />
                 <BPMInput settings={settings} onChange={onChangeProjectSettings} />
                 <output
@@ -94,7 +96,7 @@ function TimeSignatureDropdown({
     };
 
     return (
-        <div className="field flex items-center gap-2">
+        <div className="flex flex-shrink-0 items-center gap-2">
             <Select
                 label="Time signature"
                 labelHidden
