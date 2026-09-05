@@ -2,7 +2,17 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
-import { Button, IconButton, Input, Modal, Select, Tooltip } from "./index";
+import {
+    Button,
+    EmptyState,
+    ErrorState,
+    IconButton,
+    Input,
+    Modal,
+    Select,
+    Skeleton,
+    Tooltip,
+} from "./index";
 
 describe("Button", () => {
     it("is not a submit button unless asked", () => {
@@ -127,5 +137,55 @@ describe("Tooltip", () => {
         );
 
         expect(screen.getByRole("tooltip")).toHaveTextContent("Play from the start");
+    });
+});
+
+describe("EmptyState", () => {
+    it("says what is missing and how to get it", () => {
+        render(
+            <EmptyState
+                title="No tracks yet"
+                description="Add a track to start."
+                action={<Button>Add track</Button>}
+            />,
+        );
+
+        expect(screen.getByText("No tracks yet")).toBeInTheDocument();
+        expect(screen.getByText("Add a track to start.")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Add track" })).toBeInTheDocument();
+    });
+});
+
+describe("ErrorState", () => {
+    it("announces itself, because it appears where content was expected", () => {
+        render(<ErrorState />);
+
+        expect(screen.getByRole("alert")).toBeInTheDocument();
+    });
+
+    it("offers a retry only when there is something to retry", async () => {
+        const onRetry = vi.fn();
+        const { rerender } = render(<ErrorState />);
+
+        expect(screen.queryByRole("button", { name: "Try again" })).not.toBeInTheDocument();
+
+        rerender(<ErrorState onRetry={onRetry} />);
+        await userEvent.click(screen.getByRole("button", { name: "Try again" }));
+
+        expect(onRetry).toHaveBeenCalledOnce();
+    });
+});
+
+describe("Skeleton", () => {
+    it("draws as many placeholders as were asked for", () => {
+        const { container } = render(<Skeleton className="h-6" count={3} />);
+
+        expect(container.querySelectorAll("div")).toHaveLength(3);
+    });
+
+    it("is scenery, not content: screen readers skip it", () => {
+        const { container } = render(<Skeleton />);
+
+        expect(container.firstElementChild).toHaveAttribute("aria-hidden", "true");
     });
 });

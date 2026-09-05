@@ -1,9 +1,9 @@
 import { type CSSProperties, useMemo, useRef } from "react";
 import Ruler from "./Ruler";
-import TrackRow from "./TrackRow";
 import type { Project } from "@/shared/types";
-import { Trash2 } from "lucide-react";
 import Playhead from "./Playhead";
+import TrackHeads from "./TrackHeads";
+import TrackLanes from "./TrackLanes";
 import WorkspaceCursor from "./WorkspaceCursor";
 import WorkspaceToolbar from "./WorkspaceToolbar";
 import { useTimeline } from "@/features/workspace/hooks/useTimeline";
@@ -12,7 +12,6 @@ import { useRealtime } from "../contextProviders/RealtimeProvider";
 import { useTransportContext } from "../contextProviders/TransportProvider";
 import type { TimelineSurface } from "../model/cursor";
 import { OPERATIONS } from "../model/operations";
-import TrackLevelButtons from "./TrackLevelButtons";
 import { useWorkspaceRealtime } from "../hooks/useWorkspaceRealtime";
 import { createLogger } from "@/shared/lib/logger";
 
@@ -69,6 +68,8 @@ export default function TimelineGrid({ project, isLoading, beatWidth = 48 }: Pro
         : null;
 
     const { sendOperation } = useRealtime();
+    const selectedBeat = selectedPosition?.beatIndex ?? null;
+    const selectedTrackId = selectedPosition?.trackId ?? null;
 
     const surface: TimelineSurface = useMemo(
         () => ({
@@ -127,7 +128,7 @@ export default function TimelineGrid({ project, isLoading, beatWidth = 48 }: Pro
                             contentWidth={contentWidth}
                             pixelsPerMillisecond={pixelsPerMillisecond}
                             hoveredBeat={hoveredBeat}
-                            selectedBeat={selectedPosition?.beatIndex ?? null}
+                            selectedBeat={selectedBeat}
                             onBeatHover={handleRulerBeatHover}
                             onBeatLeave={handleBeatLeave}
                             onBeatClick={handleRulerSeek}
@@ -136,36 +137,11 @@ export default function TimelineGrid({ project, isLoading, beatWidth = 48 }: Pro
                 </div>
 
                 <div className="flex flex-1 overflow-hidden">
-                    <div className="w-[168px] flex-shrink-0 overflow-hidden border-r border-base-content/10">
-                        {isLoading ? (
-                            <div className="p-4 flex flex-col gap-2">
-                                {Array.from({ length: 4 }).map((_, i) => (
-                                    <div key={i} className="h-6 w-full rounded bg-hover-overlay" />
-                                ))}
-                            </div>
-                        ) : (
-                            project?.tracks.map((track, i) => (
-                                <div
-                                    key={track.id}
-                                    className={`flex items-center px-4 gap-3 ${i < project?.tracks.length - 1 ? "border-b border-base-content/[0.06]" : ""}
-                                        }`}
-                                    style={{ height: 80 }}
-                                >
-                                    <Trash2
-                                        onClick={() => handleRemoveTrack(track.id)}
-                                        size={18}
-                                        className="text-base-content/20 cursor-pointer hover:text-base-content/50 transition-colors"
-                                    />
-
-                                    <span className="flex-1 text-sm text-base-content/70 truncate font-medium">
-                                        {`Track ${track.row_index + 1}`}
-                                    </span>
-
-                                    <TrackLevelButtons trackId={track.id} />
-                                </div>
-                            ))
-                        )}
-                    </div>
+                    <TrackHeads
+                        tracks={tracks}
+                        isLoading={isLoading}
+                        onRemove={handleRemoveTrack}
+                    />
 
                     {/* Scrollable content */}
                     <div
@@ -189,36 +165,22 @@ export default function TimelineGrid({ project, isLoading, beatWidth = 48 }: Pro
                                 pixelsPerMillisecond={pixelsPerMillisecond}
                                 surfaceRef={contentRef}
                             />
-                            {isLoading ? (
-                                <div className="flex flex-col gap-2 p-4">
-                                    {Array.from({ length: 4 }).map((_, i) => (
-                                        <div
-                                            key={i}
-                                            className="h-20 w-full rounded-lg bg-hover-overlay"
-                                        />
-                                    ))}
-                                </div>
-                            ) : (
-                                tracks.map((track, i) => (
-                                    <TrackRow
-                                        key={track.id}
-                                        track={track}
-                                        totalBeats={totalBeats}
-                                        beatWidth={gridBeatWidth}
-                                        beatsPerBar={beatsPerBar}
-                                        pixelsPerMillisecond={pixelsPerMillisecond}
-                                        scale={scale}
-                                        isLast={i === tracks.length - 1}
-                                        hoveredBeat={hoveredBeat}
-                                        hoveredTrackId={hoveredTrackId}
-                                        selectedBeat={selectedPosition?.beatIndex ?? null}
-                                        selectedTrackId={selectedPosition?.trackId ?? null}
-                                        onBeatHover={handleTrackBeatHover}
-                                        onBeatLeave={handleBeatLeave}
-                                        onBeatClick={handleTrackBeatClick}
-                                    />
-                                ))
-                            )}
+                            <TrackLanes
+                                tracks={tracks}
+                                isLoading={isLoading}
+                                totalBeats={totalBeats}
+                                beatWidth={gridBeatWidth}
+                                beatsPerBar={beatsPerBar}
+                                pixelsPerMillisecond={pixelsPerMillisecond}
+                                scale={scale}
+                                hoveredBeat={hoveredBeat}
+                                hoveredTrackId={hoveredTrackId}
+                                selectedBeat={selectedBeat}
+                                selectedTrackId={selectedTrackId}
+                                onBeatHover={handleTrackBeatHover}
+                                onBeatLeave={handleBeatLeave}
+                                onBeatClick={handleTrackBeatClick}
+                            />
                         </div>
                     </div>
                 </div>

@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 
 import { formatDuration } from "@/shared/lib/duration";
 import type { AudioFile } from "@/shared/types";
+import { EmptyState, ErrorState, Skeleton } from "@/shared/ui";
 import { useAudioFiles } from "../hooks/useAudioFiles";
 import UploadTab from "./UploadTab";
 
@@ -82,37 +83,63 @@ export default function SampleSidebar({ projectId }: { projectId: number }) {
             </div>
 
             <div className="flex-1 overflow-y-auto py-1">
-                {isLoading && (
-                    <div className="p-4 flex flex-col gap-2">
-                        {Array.from({ length: 4 }).map((_, index) => (
-                            <div
-                                key={index}
-                                className="h-10 w-full rounded bg-base-content/[0.06]"
-                            />
-                        ))}
-                    </div>
-                )}
-
-                {isError && (
-                    <p role="alert" className="px-3 py-4 text-xs text-base-content/50">
-                        The sample library could not be loaded.
-                    </p>
-                )}
-
-                {!isLoading && !isError && visible.length === 0 && (
-                    <p className="px-3 py-4 text-xs text-base-content/40">
-                        {files.length === 0
-                            ? "No samples yet. Upload one to get started."
-                            : "Nothing matches that search."}
-                    </p>
-                )}
-
-                <ul>
-                    {visible.map((file) => (
-                        <SampleRow key={file.id} file={file} />
-                    ))}
-                </ul>
+                <SampleList
+                    files={files}
+                    visible={visible}
+                    isLoading={isLoading}
+                    isError={isError}
+                    onRetry={refresh}
+                />
             </div>
         </aside>
+    );
+}
+
+/**
+ * The library itself: loading, failed, empty, or a list.
+ *
+ * "Empty" here has two meanings — no samples at all, and none matching the
+ * search — and they call for different words: one asks for an upload, the
+ * other for a different search.
+ */
+function SampleList({
+    files,
+    visible,
+    isLoading,
+    isError,
+    onRetry,
+}: {
+    files: AudioFile[];
+    visible: AudioFile[];
+    isLoading: boolean;
+    isError: boolean;
+    onRetry: () => void;
+}) {
+    if (isLoading) {
+        return (
+            <div className="flex flex-col gap-2 p-4">
+                <Skeleton className="h-10 w-full" count={4} />
+            </div>
+        );
+    }
+
+    if (isError) {
+        return <ErrorState title="The sample library could not be loaded." onRetry={onRetry} />;
+    }
+
+    if (visible.length === 0) {
+        return files.length === 0 ? (
+            <EmptyState title="No samples yet" description="Upload one to get started." />
+        ) : (
+            <EmptyState title="Nothing matches that search." />
+        );
+    }
+
+    return (
+        <ul>
+            {visible.map((file) => (
+                <SampleRow key={file.id} file={file} />
+            ))}
+        </ul>
     );
 }

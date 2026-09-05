@@ -17,6 +17,7 @@ import {
 import { createLogger } from "@/shared/lib/logger";
 import { debounce } from "@/shared/lib/rate";
 import type { ProjectSettings } from "@/shared/types";
+import { ErrorState } from "@/shared/ui";
 
 const log = createLogger("Workspace");
 
@@ -63,19 +64,12 @@ function WorkspaceContent() {
 
     if (isError) {
         return (
-            <div
-                role="alert"
-                className="flex-1 flex flex-col items-center justify-center gap-3 text-sm"
-            >
-                <p className="text-base-content/60">This project could not be loaded.</p>
-                <button
-                    type="button"
-                    onClick={() => void refetch()}
-                    className="h-8 px-4 rounded-md bg-primary text-primary-content text-sm"
-                >
-                    Try again
-                </button>
-            </div>
+            <ErrorState
+                className="flex-1"
+                title="This project could not be loaded."
+                description="It may have been deleted, or the connection dropped on the way."
+                onRetry={() => void refetch()}
+            />
         );
     }
 

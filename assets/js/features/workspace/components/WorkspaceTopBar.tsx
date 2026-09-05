@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Share2, Download, ChevronDown, Plus } from "lucide-react";
 import { Logo } from "@/shared/components/Logo";
-import { Select } from "@/shared/ui";
+import { Select, Skeleton } from "@/shared/ui";
 import { useProjectBPM } from "@/features/workspace/hooks/useProjectBPM";
 import type { ProjectSettings } from "@/shared/types";
 import { TIME_SIGNATURES, type TimeSignatureValue } from "@/shared/types";
@@ -43,7 +43,7 @@ export default function WorkspaceTopBar({
             <Logo size={16} showText={true} />
             <div className="flex items-center gap-1 text-sm text-base-content/60 cursor-pointer hover:text-base-content transition-colors">
                 {isLoading ? (
-                    <div className="h-4 w-24 rounded bg-hover-overlay" />
+                    <Skeleton className="h-4 w-24" />
                 ) : (
                     <span>{projectTitle ?? "Untitled Project"}</span>
                 )}
