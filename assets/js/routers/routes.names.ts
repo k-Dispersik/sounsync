@@ -8,5 +8,6 @@ export enum AUTH_ROUTES {
 }
 
 export enum USER_ROUTES {
+    PROJECTS = "/projects",
     PROJECT = "/projects/:id",
 }

@@ -52,6 +52,13 @@ defmodule SoundsyncWeb.API.V1.ProjectController do
     end
   end
 
+  def delete(conn, %{"id" => id}) do
+    with {:ok, project} <- ProjectScope.fetch(conn, id, :delete),
+         {:ok, _deleted} <- Projects.delete_project(project) do
+      send_resp(conn, :no_content, "")
+    end
+  end
+
   def update_settings(conn, %{"id" => id} = params) do
     with {:ok, attrs} <- RequestParams.cast(&update_settings_params/1, params),
          {:ok, project} <- ProjectScope.fetch(conn, id, :write),

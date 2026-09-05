@@ -114,6 +114,21 @@ describe("Modal", () => {
         expect(screen.getByText("Body")).toBeInTheDocument();
     });
 
+    it("names itself after its own title, even beside another dialog", () => {
+        render(
+            <>
+                <Modal title="Add clip" open onClose={vi.fn()}>
+                    <p>First</p>
+                </Modal>
+                <Modal title="Delete project?" open onClose={vi.fn()}>
+                    <p>Second</p>
+                </Modal>
+            </>,
+        );
+
+        expect(screen.getByRole("dialog", { name: "Delete project?" })).toBeInTheDocument();
+    });
+
     it("closes on the close button", async () => {
         const onClose = vi.fn();
         render(

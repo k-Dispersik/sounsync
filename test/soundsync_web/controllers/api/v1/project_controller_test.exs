@@ -184,4 +184,39 @@ defmodule SoundsyncWeb.API.V1.ProjectControllerTest do
       assert body["settings"]["timeline_length_ms"] == 60_000
     end
   end
+
+  describe "DELETE /v1/projects/:id" do
+    test "the owner deletes the project, and everything under it", ctx do
+      %{conn: conn, owner: owner, project: project} = ctx
+
+      assert conn |> as(owner) |> delete(~p"/v1/projects/#{project.id}") |> response(204)
+
+      assert Projects.get_project(project.id) == nil
+    end
+
+    test "an editor may not: deleting is the owner's alone", ctx do
+      %{conn: conn, project: project} = ctx
+      editor = user_fixture()
+      {:ok, _member} = Projects.add_member(project, editor, :editor)
+
+      conn = conn |> as(editor) |> delete(~p"/v1/projects/#{project.id}")
+
+      assert %{"error" => %{"code" => "forbidden"}} = json_response(conn, 403)
+      assert Projects.get_project(project.id)
+    end
+
+    test "a stranger gets 403 rather than a hint that it exists", ctx do
+      %{conn: conn, project: project} = ctx
+
+      conn = conn |> as(user_fixture()) |> delete(~p"/v1/projects/#{project.id}")
+
+      assert json_response(conn, 403)
+    end
+
+    test "a project that is not there is 404", %{conn: conn, owner: owner} do
+      conn = conn |> as(owner) |> delete(~p"/v1/projects/999999")
+
+      assert json_response(conn, 404)
+    end
+  end
 end

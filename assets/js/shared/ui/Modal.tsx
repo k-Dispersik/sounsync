@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 
 import IconButton from "./IconButton";
 
@@ -20,6 +20,9 @@ export interface ModalProps {
  */
 export default function Modal({ title, open, onClose, children, footer }: ModalProps) {
     const ref = useRef<HTMLDialogElement>(null);
+    // Unique, because more than one modal can sit in the document at once and a
+    // shared id would name every dialog after whichever mounted first.
+    const titleId = useId();
 
     useEffect(() => {
         const dialog = ref.current;
@@ -45,7 +48,7 @@ export default function Modal({ title, open, onClose, children, footer }: ModalP
     return (
         <dialog
             ref={ref}
-            aria-labelledby="modal-title"
+            aria-labelledby={titleId}
             className="m-auto w-full max-w-md rounded-xl bg-surface-raised text-default
                 backdrop:bg-neutral/60 p-0"
             onClick={(event) => {
@@ -55,7 +58,7 @@ export default function Modal({ title, open, onClose, children, footer }: ModalP
             }}
         >
             <div className="flex items-center justify-between border-b border-token px-5 py-4">
-                <h2 id="modal-title" className="text-base font-semibold">
+                <h2 id={titleId} className="text-base font-semibold">
                     {title}
                 </h2>
                 <IconButton
