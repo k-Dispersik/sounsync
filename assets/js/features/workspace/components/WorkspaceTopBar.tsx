@@ -1,6 +1,7 @@
-import { ReactNode, useState } from "react";
+import { useState } from "react";
 import { Share2, Download, ChevronDown, Plus } from "lucide-react";
 import { Logo } from "@/shared/components/Logo";
+import { Select } from "@/shared/ui";
 import { useProjectBPM } from "@/features/workspace/hooks/useProjectBPM";
 import type { ProjectSettings } from "@/shared/types";
 import { TIME_SIGNATURES, type TimeSignatureValue } from "@/shared/types";
@@ -9,9 +10,6 @@ import { useRealtime } from "../contextProviders/RealtimeProvider";
 import { useTransportContext } from "../contextProviders/TransportProvider";
 import { initials, participantColor } from "../model/presence";
 import UserSettings from "@/shared/components/UserSettings";
-import { RealtimeEvents } from "../events/events";
-import { useWorkspaceEvent } from "../hooks/useWorkspaceEvent";
-import { getOrCreateSessionId } from "../services/signaling/workspaceChannel";
 
 interface Props {
     projectTitle?: string;
@@ -25,10 +23,6 @@ const DEFAULT_PROJECT_SETTINGS: ProjectSettings = {
     time_signature: "4/4",
     timeline_length_ms: 60_000,
 };
-
-function isTimeSignatureValue(value: string): value is TimeSignatureValue {
-    return TIME_SIGNATURES.includes(value as TimeSignatureValue);
-}
 
 export default function WorkspaceTopBar({
     projectTitle,
@@ -44,29 +38,12 @@ export default function WorkspaceTopBar({
             ? new Date(playheadPosition).toISOString().slice(11, 23)
             : "00:00:00.000";
 
-    const { broadcast } = useRealtime();
-
-    const handleupdateProjectSettings = async (newSettings: ProjectSettings) => {
-        onChangeProjectSettings?.(newSettings);
-        broadcast(RealtimeEvents.PROJECT_SETTINGS_UPDATED, {
-            session_id: getOrCreateSessionId(),
-            settings: newSettings,
-        });
-    };
-
-    useWorkspaceEvent<{ session_id: string; settings: ProjectSettings }>(
-        RealtimeEvents.PROJECT_SETTINGS_UPDATED,
-        ({ settings }) => {
-            onChangeProjectSettings?.(settings);
-        },
-    );
-
     return (
         <header className="flex items-center gap-4 px-4 h-14 bg-base-200 border-b border-base-content/[0.07] flex-shrink-0 relative z-50">
             <Logo size={16} showText={true} />
             <div className="flex items-center gap-1 text-sm text-base-content/60 cursor-pointer hover:text-base-content transition-colors">
                 {isLoading ? (
-                    <div className="skeleton h-4 w-24 rounded" />
+                    <div className="h-4 w-24 rounded bg-hover-overlay" />
                 ) : (
                     <span>{projectTitle ?? "Untitled Project"}</span>
                 )}
@@ -80,8 +57,8 @@ export default function WorkspaceTopBar({
             </div>
 
             <div className="flex items-center gap-3 mr-4">
-                <TimeSignatureDropdown settings={settings} onChange={handleupdateProjectSettings} />
-                <BPMInput settings={settings} onChange={handleupdateProjectSettings} />
+                <TimeSignatureDropdown settings={settings} onChange={onChangeProjectSettings} />
+                <BPMInput settings={settings} onChange={onChangeProjectSettings} />
                 <input className="field w-32" disabled value={playheadTime} />
             </div>
 
@@ -100,55 +77,27 @@ function TimeSignatureDropdown({
 }) {
     const [isSaving, setIsSaving] = useState(false);
 
-    const handleTimeSignatureChange = async (timeSignature: TimeSignatureValue) => {
-        if (!onChange || settings.time_signature === timeSignature) {
-            return;
-        }
+    const handleChange = (timeSignature: TimeSignatureValue) => {
+        if (!onChange || settings.time_signature === timeSignature) return;
 
         setIsSaving(true);
 
-        try {
-            await onChange({ ...settings, time_signature: timeSignature });
-        } finally {
-            setIsSaving(false);
-        }
+        void onChange({ ...settings, time_signature: timeSignature }).finally(() =>
+            setIsSaving(false),
+        );
     };
 
     return (
-        <div className="dropdown cursor-pointer">
-            <div
-                tabIndex={0}
-                role="button"
-                className="field flex items-center gap-2 cursor-pointer"
-            >
-                <span className="field-label">Time Signature</span>
-                <span className="font-mono font-semibold">
-                    {isSaving ? "..." : settings.time_signature}
-                </span>
-                <ChevronDown size={14} />
-            </div>
-            <ul
-                tabIndex={-1}
-                className="dropdown-content menu bg-base-200 border border-base-content/10 rounded-lg z-40 w-24 p-2 shadow-lg"
-            >
-                {TIME_SIGNATURES.map((value) => {
-                    if (!isTimeSignatureValue(value)) {
-                        return null;
-                    }
-
-                    return (
-                        <li key={value}>
-                            <button
-                                onClick={() => void handleTimeSignatureChange(value)}
-                                className="flex justify-between"
-                                disabled={isSaving}
-                            >
-                                {value}
-                            </button>
-                        </li>
-                    );
-                })}
-            </ul>
+        <div className="field flex items-center gap-2">
+            <Select
+                label="Time signature"
+                labelHidden
+                value={settings.time_signature}
+                options={TIME_SIGNATURES.map((value) => ({ value, label: value }))}
+                onChange={handleChange}
+                disabled={isSaving}
+                className="w-20 font-mono font-semibold"
+            />
         </div>
     );
 }
@@ -185,7 +134,7 @@ function BPMInput({
                 </label>
             ) : (
                 <button type="button" className="field flex items-center gap-2" onClick={open}>
-                    <span className="text-white/40 text-xs">BPM</span>
+                    <span className="text-subtle text-xs">BPM</span>
                     <span className="font-mono font-semibold">
                         {isSaving ? "..." : settings.bpm}
                     </span>

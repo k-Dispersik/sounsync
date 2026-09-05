@@ -23,7 +23,7 @@ export default function Transport() {
                 </TransportBtn>
             )}
             <TransportBtn>
-                <Circle size={15} className="text-red-400" />
+                <Circle size={15} className="text-error" />
             </TransportBtn>
             <TransportBtn>
                 <SkipForward size={15} />

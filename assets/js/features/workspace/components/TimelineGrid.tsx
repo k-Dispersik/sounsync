@@ -140,7 +140,7 @@ export default function TimelineGrid({ project, isLoading, beatWidth = 48 }: Pro
                         {isLoading ? (
                             <div className="p-4 flex flex-col gap-2">
                                 {Array.from({ length: 4 }).map((_, i) => (
-                                    <div key={i} className="skeleton h-6 w-full rounded" />
+                                    <div key={i} className="h-6 w-full rounded bg-hover-overlay" />
                                 ))}
                             </div>
                         ) : (
@@ -192,7 +192,10 @@ export default function TimelineGrid({ project, isLoading, beatWidth = 48 }: Pro
                             {isLoading ? (
                                 <div className="flex flex-col gap-2 p-4">
                                     {Array.from({ length: 4 }).map((_, i) => (
-                                        <div key={i} className="skeleton h-20 w-full rounded-lg" />
+                                        <div
+                                            key={i}
+                                            className="h-20 w-full rounded-lg bg-hover-overlay"
+                                        />
                                     ))}
                                 </div>
                             ) : (

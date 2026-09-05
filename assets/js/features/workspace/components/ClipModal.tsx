@@ -30,8 +30,12 @@ export default function ClipModal({ state, onClose }: Props) {
     };
 
     return (
-        <dialog ref={dialogRef} className="modal" onClick={handleBackdropClick}>
-            <div className="modal-box max-w-xl p-0 overflow-hidden bg-base-200 border border-base-content/[0.08] rounded-2xl shadow-2xl">
+        <dialog
+            ref={dialogRef}
+            className="m-auto p-0 backdrop:bg-neutral/60"
+            onClick={handleBackdropClick}
+        >
+            <div className="max-w-xl overflow-hidden rounded-2xl border border-token bg-surface p-0 shadow-2xl">
                 <ModalHeader isEdit={form.isEdit} onClose={onClose} />
                 <TabBar tab={form.tab} onChange={form.setTab} />
 

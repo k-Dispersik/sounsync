@@ -1,6 +1,7 @@
 import { useCallback, type CSSProperties, type KeyboardEvent, type MouseEvent } from "react";
 
 import type { Track } from "@/shared/types";
+import { clipColor } from "../model/clipColor";
 import type { TimelineScale } from "../model/timeline";
 import TrackClip from "./TrackClip";
 
@@ -120,7 +121,7 @@ export default function TrackRow({
                     key={clip.id}
                     projectId={track.project_id}
                     trackId={track.id}
-                    color={"var(--color-clip-drums)"}
+                    color={clipColor(clip.type)}
                     clip={clip}
                     pixelsPerMillisecond={pixelsPerMillisecond}
                     scale={scale}

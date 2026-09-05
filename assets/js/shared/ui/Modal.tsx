@@ -47,7 +47,7 @@ export default function Modal({ title, open, onClose, children, footer }: ModalP
             ref={ref}
             aria-labelledby="modal-title"
             className="m-auto w-full max-w-md rounded-xl bg-surface-raised text-default
-                backdrop:bg-black/50 p-0"
+                backdrop:bg-neutral/60 p-0"
             onClick={(event) => {
                 // A click that lands on the dialog itself is a backdrop click:
                 // the content sits in a child element.

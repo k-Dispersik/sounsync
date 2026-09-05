@@ -1,42 +1,49 @@
-import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { useEffect, useState } from "react";
 
-export default function ThemeSwitcher() {
-    const [isOpen, setIsOpen] = useState(false);
+import { Select } from "@/shared/ui";
 
-    return (
-        <>
-            <button
-                className="w-full btn btn-ghost justify-start"
-                onClick={() => setIsOpen(!isOpen)}
-            >
-                Themes
-                <ChevronDown
-                    size={14}
-                    className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
-                />
-            </button>
-            <div
-                className={`${isOpen ? "block" : "hidden"} transition-all transform origin-top-left`}
-            >
-                <ThemeItem label="Default" value="default" />
-                <ThemeItem label="Dark" value="dark" />
-                <ThemeItem label="Light" value="light" />
-            </div>
-        </>
-    );
+type Theme = "system" | "dark" | "light";
+
+const THEMES = [
+    { value: "system", label: "Match system" },
+    { value: "dark", label: "Dark" },
+    { value: "light", label: "Light" },
+] as const;
+
+const STORAGE_KEY = "soundsync:theme";
+
+function read(): Theme {
+    try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+
+        return stored === "dark" || stored === "light" ? stored : "system";
+    } catch {
+        return "system";
+    }
 }
 
-function ThemeItem({ label, value }: { label: string; value: string }) {
-    return (
-        <div>
-            <input
-                type="radio"
-                name="theme-dropdown"
-                className="theme-controller w-full btn btn-sm btn-block btn-ghost justify-start text-base-content/60 checked:bg-primary/15 checked:text-primary"
-                aria-label={label}
-                value={value}
-            />
-        </div>
-    );
+/**
+ * Picks the colour theme.
+ *
+ * "Match system" is the default and a real option rather than the absence of
+ * one: choosing dark on a laptop that switches at sunset should stick.
+ */
+export default function ThemeSwitcher() {
+    const [theme, setTheme] = useState<Theme>(read);
+
+    useEffect(() => {
+        const root = document.documentElement;
+
+        if (theme === "system") root.removeAttribute("data-theme");
+        else root.setAttribute("data-theme", theme);
+
+        try {
+            if (theme === "system") localStorage.removeItem(STORAGE_KEY);
+            else localStorage.setItem(STORAGE_KEY, theme);
+        } catch {
+            // A browser that refuses storage still gets the theme it asked for.
+        }
+    }, [theme]);
+
+    return <Select label="Theme" value={theme} options={THEMES} onChange={setTheme} />;
 }

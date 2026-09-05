@@ -1,27 +1,58 @@
 import { Settings } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+
+import { IconButton } from "@/shared/ui";
 import ThemeSwitcher from "./ThemeSwitcher";
 
+/**
+ * The settings popover.
+ *
+ * Closes on Escape and on a click elsewhere, because a menu that only closes
+ * by clicking the thing that opened it is a menu people learn to avoid.
+ */
 export default function UserSettings() {
+    const [isOpen, setIsOpen] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") setIsOpen(false);
+        };
+
+        const onPointerDown = (event: PointerEvent) => {
+            if (!containerRef.current?.contains(event.target as Node)) setIsOpen(false);
+        };
+
+        document.addEventListener("keydown", onKeyDown);
+        document.addEventListener("pointerdown", onPointerDown);
+
+        return () => {
+            document.removeEventListener("keydown", onKeyDown);
+            document.removeEventListener("pointerdown", onPointerDown);
+        };
+    }, [isOpen]);
+
     return (
-        <div className="dropdown dropdown-left">
-            <div
-                tabIndex={0}
-                role="button"
-                className="w-8 h-8 rounded-md hover:bg-base-content/[0.08] flex items-center justify-center text-base-content/40 hover:text-base-content/70 transition-colors cursor-pointer"
-            >
-                <Settings size={15} />
-            </div>
-            <ul
-                tabIndex={-1}
-                className="dropdown-content bg-base-200 border border-base-content/10 rounded-lg z-40 w-48 p-2 shadow-lg"
-            >
-                <li>
-                    <button className="w-full btn btn-ghost justify-start">Profile</button>
-                </li>
-                <li>
+        <div ref={containerRef} className="relative">
+            <IconButton
+                label="Settings"
+                size="sm"
+                icon={<Settings size={15} />}
+                active={isOpen}
+                aria-expanded={isOpen}
+                onClick={() => setIsOpen((open) => !open)}
+            />
+
+            {isOpen && (
+                <div
+                    className="absolute right-0 top-9 z-50 w-52 rounded-lg border border-token
+                        bg-surface p-3 shadow-lg"
+                >
                     <ThemeSwitcher />
-                </li>
-            </ul>
+                </div>
+            )}
         </div>
     );
 }
